@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import tempfile
 from collections import Counter
 from dataclasses import asdict, dataclass
@@ -92,6 +93,7 @@ def run_benchmark(
     output_path: Path | None = None,
     feedback_target_filter_window: int = FEEDBACK_TARGET_FILTER_WINDOW,
     feedback_required_tolerance_checks: int = FEEDBACK_REQUIRED_TOLERANCE_CHECKS,
+    feedback_max_joint_step_radians: float = FEEDBACK_MAX_JOINT_STEP_RADIANS,
 ) -> dict:
     """Run every stress condition on paired target sequences and save a report."""
     if seeds <= 0 or episodes_per_seed <= 0:
@@ -110,6 +112,13 @@ def run_benchmark(
         or feedback_required_tolerance_checks <= 0
     ):
         raise ValueError("feedback_required_tolerance_checks must be a positive integer")
+    if (
+        isinstance(feedback_max_joint_step_radians, bool)
+        or not isinstance(feedback_max_joint_step_radians, (int, float))
+        or not math.isfinite(feedback_max_joint_step_radians)
+        or feedback_max_joint_step_radians <= 0.0
+    ):
+        raise ValueError("feedback_max_joint_step_radians must be a positive finite number")
 
     condition_reports = []
     with tempfile.TemporaryDirectory(prefix="visual-servo-benchmark-") as temp_dir:
@@ -126,6 +135,7 @@ def run_benchmark(
                         controller=controller,
                         feedback_target_filter_window=feedback_target_filter_window,
                         feedback_required_tolerance_checks=feedback_required_tolerance_checks,
+                        feedback_max_joint_step_radians=feedback_max_joint_step_radians,
                         save_media=False,
                     )
                     trials.extend({"seed": seed, **trial} for trial in report["results"])
@@ -156,7 +166,7 @@ def run_benchmark(
             "window": feedback_target_filter_window,
         },
         "feedback_required_tolerance_checks": feedback_required_tolerance_checks,
-        "feedback_max_joint_step_radians": FEEDBACK_MAX_JOINT_STEP_RADIANS,
+        "feedback_max_joint_step_radians": feedback_max_joint_step_radians,
         "base_seed": base_seed,
         "seeds": seeds,
         "episodes_per_seed": episodes_per_seed,
@@ -189,6 +199,12 @@ def main() -> int:
         default=FEEDBACK_REQUIRED_TOLERANCE_CHECKS,
         help="consecutive image-space checks required before stopping",
     )
+    parser.add_argument(
+        "--feedback-max-joint-step-radians",
+        type=float,
+        default=FEEDBACK_MAX_JOINT_STEP_RADIANS,
+        help="maximum joint-angle change for one feedback motion update",
+    )
     parser.add_argument("--output", type=Path, default=Path("artifacts/benchmark.json"))
     args = parser.parse_args()
     if args.seeds <= 0 or args.episodes_per_seed <= 0:
@@ -199,6 +215,11 @@ def main() -> int:
         parser.error("--feedback-target-filter-window must be a positive integer")
     if args.feedback_required_tolerance_checks <= 0:
         parser.error("--feedback-required-tolerance-checks must be a positive integer")
+    if (
+        not math.isfinite(args.feedback_max_joint_step_radians)
+        or args.feedback_max_joint_step_radians <= 0.0
+    ):
+        parser.error("--feedback-max-joint-step-radians must be positive and finite")
 
     report = run_benchmark(
         seeds=args.seeds,
@@ -207,6 +228,7 @@ def main() -> int:
         output_path=args.output,
         feedback_target_filter_window=args.feedback_target_filter_window,
         feedback_required_tolerance_checks=args.feedback_required_tolerance_checks,
+        feedback_max_joint_step_radians=args.feedback_max_joint_step_radians,
     )
     print(
         "Controller     Condition                                  "

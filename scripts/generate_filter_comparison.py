@@ -12,8 +12,8 @@ from visual_servo_mujoco.run import IMAGE_HEIGHT, IMAGE_WIDTH, VIDEO_FPS, run_tr
 
 
 SEED = 1
-EPISODES = 8
-EPISODE_INDEX = 7
+EPISODES = 6
+EPISODE_INDEX = 5
 PIXEL_NOISE_STD_PX = 20.0
 FILTER_WINDOWS = (3, 5)
 HEADER_HEIGHT = 56
@@ -60,7 +60,7 @@ def _compose_videos(
             )
             cv2.putText(
                 canvas,
-                "Same target and noise sequence | seed 1, episode 7 | 20 px noise",
+                "Same target and noise sequence | seed 1, episode 5 | 20 px noise",
                 (18, 23),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.55,

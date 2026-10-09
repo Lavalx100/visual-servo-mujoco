@@ -26,6 +26,7 @@ uv run visual-servo-demo --controller image_feedback --episodes 20 --seed 7
 uv run visual-servo-benchmark --seeds 5 --episodes-per-seed 20
 uv run visual-servo-benchmark --feedback-target-filter-window 5 --output artifacts/filter-window-5.json
 uv run visual-servo-benchmark --feedback-required-tolerance-checks 2 --output artifacts/two-check-stop.json
+uv run visual-servo-benchmark --feedback-max-joint-step-radians 0.25 --output artifacts/step-cap-025.json
 ```
 
 The command writes `artifacts/results.json`, `artifacts/camera_view.png`, and
@@ -51,7 +52,7 @@ comparison is a labeled side-by-side video.
 | [20 px target noise](assets/demos/feedback_noise_20px.mp4) | Image feedback reaching under strong Gaussian pixel noise. |
 | [Noise and +5° FOV error](assets/demos/feedback_noise_and_fov_error.mp4) | Feedback with both sensor noise and a camera-model calibration error. |
 | [High-noise failure](assets/demos/feedback_high_noise_failure.mp4) | A recorded benchmark failure that reaches the motion-update limit. |
-| [3 vs. 5 observation filter](assets/demos/feedback_filter_window_comparison.mp4) | Same high-noise target and random measurements, with two median windows. This is one illustrative trial, not an aggregate result. |
+| [3 vs. 5 observation filter](assets/demos/feedback_filter_window_comparison.mp4) | Same seed and noise: three samples miss by 4.8 cm; five samples reach 0.1 cm. One illustrative trial, not an aggregate result. |
 
 Regenerate the gallery with:
 
@@ -118,7 +119,7 @@ arm model.
 At each feedback update, the controller measures the pixel difference
 `e = target_pixel - end_effector_pixel`. The Jacobian `J` predicts how those
 pixels move when the two joint angles change. It computes
-`Δq = 0.5 Jᵀ (J Jᵀ + I)⁻¹ e`, limits the joint change to 0.25 radians, advances
+`Δq = 0.5 Jᵀ (J Jᵀ + I)⁻¹ e`, limits the joint change to 0.30 radians, advances
 the simulation for 0.4 seconds, and measures again. The identity term keeps the
 inverse stable near arm singularities. Ground-truth target position is read
 only after the motion to score the trial.
@@ -273,21 +274,37 @@ the ablation reproducible. A tighter 6 px tolerance with two checks cut false
 stops but reduced success to 161/200 and increased update-limit failures from
 23 to 32, so I kept the 8 px threshold and added another confirmation instead.
 
+### Rechecking the joint-step cap
+
+With three checks and the three-sample median held fixed, I compared 0.25 and
+0.30 rad caps. In the original 100 high-noise trials, 0.30 raised success from
+85% to 88% and lowered median error from 2.34 to 2.12 cm. The 95th-percentile
+error rose from 5.92 to 6.39 cm, while the worst error fell from 8.63 to
+7.32 cm; update-limit failures fell from 12 to 9.
+
+On a separate 200-trial group (seeds 15–24), success rose from 158/200 to
+164/200, the 95th-percentile error fell from 6.72 to 6.22 cm, and the worst
+error fell from 10.16 to 9.26 cm. Other benchmark conditions remained at 100%
+success with either cap. I chose 0.30 for the higher high-noise recovery rate
+and lower worst errors, while documenting that the 95th-percentile result
+varies by seed group. `--feedback-max-joint-step-radians` makes this comparison
+reproducible.
+
 ### Current default benchmark
 
 The current defaults are a three-observation median, three consecutive checks
-within 8 px, and a 0.25 rad joint-step cap. This table summarizes the 100 paired
+within 8 px, and a 0.30 rad joint-step cap. This table summarizes the 100 paired
 image-feedback trials per condition in `artifacts/benchmark.json`.
 
 | Condition | Success | Median error | 95th percentile | Median updates | Simulated motion |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Clean | 100% | 0.67 cm | 1.31 cm | 13 | 5.2 s |
-| Pixel noise, 2 px | 100% | 0.60 cm | 1.21 cm | 13 | 5.2 s |
-| Pixel noise, 8 px | 100% | 0.92 cm | 2.58 cm | 14 | 5.6 s |
-| Pixel noise, 20 px | 85% | 2.34 cm | 5.92 cm | 20 | 8.0 s |
-| Camera FOV error, -5° | 100% | 0.58 cm | 1.22 cm | 14 | 5.6 s |
-| Camera FOV error, +5° | 100% | 0.58 cm | 1.24 cm | 12 | 4.8 s |
-| 8 px noise and +5° FOV error | 100% | 0.95 cm | 2.71 cm | 13 | 5.2 s |
+| Clean | 100% | 0.63 cm | 1.29 cm | 12 | 4.8 s |
+| Pixel noise, 2 px | 100% | 0.71 cm | 1.19 cm | 12 | 4.8 s |
+| Pixel noise, 8 px | 100% | 0.88 cm | 2.62 cm | 13 | 5.2 s |
+| Pixel noise, 20 px | 88% | 2.12 cm | 6.39 cm | 20 | 8.0 s |
+| Camera FOV error, -5° | 100% | 0.52 cm | 1.12 cm | 14 | 5.6 s |
+| Camera FOV error, +5° | 100% | 0.69 cm | 1.39 cm | 11 | 4.4 s |
+| 8 px noise and +5° FOV error | 100% | 1.05 cm | 2.56 cm | 12 | 4.8 s |
 
 The demo tests visual reaching, not grasping or contact-rich manipulation. A
 next extension could add a gripper and expose the scene as a LeRobot EnvHub

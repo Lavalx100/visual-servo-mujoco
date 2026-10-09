@@ -30,7 +30,7 @@ VIDEO_FPS = 30.0
 SUCCESS_THRESHOLD_METERS = 0.045
 HOME_JOINT_ANGLES = (0.0, 0.7)
 FEEDBACK_MAX_ITERATIONS = 20
-FEEDBACK_MAX_JOINT_STEP_RADIANS = 0.25
+FEEDBACK_MAX_JOINT_STEP_RADIANS = 0.30
 FEEDBACK_STEPS_PER_UPDATE = 200
 FEEDBACK_PIXEL_TOLERANCE = 8.0
 FEEDBACK_TARGET_OCCLUSION_GRACE = 5
@@ -140,6 +140,7 @@ def run_trials(
     video_episode_index: int = 0,
     feedback_target_filter_window: int | None = None,
     feedback_required_tolerance_checks: int | None = None,
+    feedback_max_joint_step_radians: float | None = None,
     save_media: bool = True,
 ) -> dict:
     """Run reaching trials with optional perception and camera-calibration errors.
@@ -147,9 +148,9 @@ def run_trials(
     ``pixel_noise_std_px`` adds independent Gaussian noise to each detected
     target centroid. ``camera_fovy_error_deg`` offsets the field of view used by
     the controller while leaving the simulated camera unchanged. The feedback
-    filter window controls how many recent target detections feed its median.
-    These knobs model measurement and calibration error; they do not change
-    the physics.
+    filter window controls how many recent target detections feed its median;
+    the tolerance-check count controls the stop confirmation; and the joint
+    step value caps each commanded update. These knobs do not change the physics.
     """
     if episodes <= 0:
         raise ValueError("episodes must be positive")
@@ -175,6 +176,15 @@ def run_trials(
         or feedback_required_tolerance_checks <= 0
     ):
         raise ValueError("feedback_required_tolerance_checks must be a positive integer")
+    if feedback_max_joint_step_radians is None:
+        feedback_max_joint_step_radians = FEEDBACK_MAX_JOINT_STEP_RADIANS
+    if (
+        isinstance(feedback_max_joint_step_radians, bool)
+        or not isinstance(feedback_max_joint_step_radians, (int, float))
+        or not math.isfinite(feedback_max_joint_step_radians)
+        or feedback_max_joint_step_radians <= 0.0
+    ):
+        raise ValueError("feedback_max_joint_step_radians must be a positive finite number")
     max_observations = (
         FEEDBACK_MAX_ITERATIONS * feedback_required_tolerance_checks
         + feedback_required_tolerance_checks
@@ -362,7 +372,7 @@ def run_trials(
                     delta = image_servo_joint_delta(
                         jacobian,
                         pixel_error,
-                        max_step_radians=FEEDBACK_MAX_JOINT_STEP_RADIANS,
+                        max_step_radians=feedback_max_joint_step_radians,
                     )
                     desired_angles = current_angles + delta
                     desired_angles[0] = np.clip(desired_angles[0], -2.8, 2.8)
@@ -471,6 +481,7 @@ def run_trials(
             "window": feedback_target_filter_window,
         },
         "feedback_required_tolerance_checks": feedback_required_tolerance_checks,
+        "feedback_max_joint_step_radians": feedback_max_joint_step_radians,
         "success_threshold_m": SUCCESS_THRESHOLD_METERS,
         "successes": successes,
         "success_rate": successes / episodes,
@@ -511,6 +522,12 @@ def main() -> int:
         help="consecutive image-space checks required before stopping",
     )
     parser.add_argument(
+        "--feedback-max-joint-step-radians",
+        type=float,
+        default=FEEDBACK_MAX_JOINT_STEP_RADIANS,
+        help="maximum joint-angle change for one feedback motion update",
+    )
+    parser.add_argument(
         "--controller",
         choices=("open_loop", "image_feedback"),
         default="open_loop",
@@ -539,6 +556,11 @@ def main() -> int:
         parser.error("--feedback-target-filter-window must be a positive integer")
     if args.feedback_required_tolerance_checks <= 0:
         parser.error("--feedback-required-tolerance-checks must be a positive integer")
+    if (
+        not math.isfinite(args.feedback_max_joint_step_radians)
+        or args.feedback_max_joint_step_radians <= 0.0
+    ):
+        parser.error("--feedback-max-joint-step-radians must be positive and finite")
 
     report = run_trials(
         args.episodes,
@@ -550,6 +572,7 @@ def main() -> int:
         video_episode_index=args.video_episode_index,
         feedback_target_filter_window=args.feedback_target_filter_window,
         feedback_required_tolerance_checks=args.feedback_required_tolerance_checks,
+        feedback_max_joint_step_radians=args.feedback_max_joint_step_radians,
     )
     print(
         f"Camera-based reaching: {report['successes']}/{report['trials']} successful "
