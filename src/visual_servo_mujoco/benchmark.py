@@ -12,6 +12,7 @@ from pathlib import Path
 import numpy as np
 
 from .run import (
+    FEEDBACK_MAX_JOINT_STEP_RADIANS,
     FEEDBACK_REQUIRED_TOLERANCE_CHECKS,
     FEEDBACK_TARGET_FILTER_WINDOW,
     SUCCESS_THRESHOLD_METERS,
@@ -131,7 +132,7 @@ def run_benchmark(
                 })
 
     result = {
-        "schema_version": 4,
+        "schema_version": 5,
         "benchmark": "camera_based_reaching_robustness",
         "success_threshold_m": SUCCESS_THRESHOLD_METERS,
         "feedback_target_filter": {
@@ -139,6 +140,7 @@ def run_benchmark(
             "window": FEEDBACK_TARGET_FILTER_WINDOW,
         },
         "feedback_required_tolerance_checks": FEEDBACK_REQUIRED_TOLERANCE_CHECKS,
+        "feedback_max_joint_step_radians": FEEDBACK_MAX_JOINT_STEP_RADIANS,
         "base_seed": base_seed,
         "seeds": seeds,
         "episodes_per_seed": episodes_per_seed,

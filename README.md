@@ -81,7 +81,7 @@ arm model.
 At each feedback update, the controller measures the pixel difference
 `e = target_pixel - end_effector_pixel`. The Jacobian `J` predicts how those
 pixels move when the two joint angles change. It computes
-`Δq = 0.5 Jᵀ (J Jᵀ + I)⁻¹ e`, limits the joint change to 0.2 radians, advances
+`Δq = 0.5 Jᵀ (J Jᵀ + I)⁻¹ e`, limits the joint change to 0.25 radians, advances
 the simulation for 0.4 seconds, and measures again. The identity term keeps the
 inverse stable near arm singularities. Ground-truth target position is read
 only after the motion to score the trial.
@@ -155,7 +155,8 @@ not a claim about real-camera noise.
 With the three-observation filter fixed, I changed only the stopping rule: the
 controller now requires two consecutive image-space checks inside the 8 px
 tolerance. This rejects a single noisy reading that would have caused a false
-stop. The paired results below compare this rule with the median-only run:
+stop. Both runs use a 0.20 rad joint-step cap; the paired results compare this
+rule with the median-only run:
 
 | Condition | Success, median only → confirmed | Median error, median only → confirmed | 95th percentile, median only → confirmed | Median motion time |
 | --- | ---: | ---: | ---: | ---: |
@@ -168,9 +169,28 @@ Success stayed at 100% for the ±5° FOV-only conditions. At 20 px noise, the
 confirmation rule improved success by another 4 points and reduced the 95th
 percentile error, at the cost of more motion: median simulated motion time rose
 from 5.6 s to 8.0 s. Eighteen of 100 high-noise trials still fail, with most
-reaching the 20-update limit; the next useful experiment is adaptive step size
-or a more efficient update policy, measured against both success and motion
-time.
+reaching the 20-update limit.
+
+### Joint-step cap experiment
+
+With the three-observation filter and two-check stop fixed, I raised the maximum
+joint change per update from 0.20 to 0.25 rad. This tests whether larger steps
+reduce the remaining update-limit failures. The paired results use the same
+five seeds and 100 trials per condition:
+
+| Condition | Success, 0.20 → 0.25 rad | Median error, 0.20 → 0.25 rad | 95th percentile, 0.20 → 0.25 rad | Median motion time |
+| --- | ---: | ---: | ---: | ---: |
+| Clean | 100% → 100% | 0.6 → 0.7 cm | 1.2 → 1.3 cm | 5.6 → 5.2 s |
+| Pixel noise, 8 px | 100% → 100% | 1.0 → 1.0 cm | 2.8 → 3.1 cm | 5.6 → 5.2 s |
+| Pixel noise, 20 px | 82% → 85% | 2.7 → 2.5 cm | 6.2 → 6.0 cm | 8.0 → 7.4 s |
+| Pixel noise 8 px and FOV error +5° | 100% → 100% | 1.0 → 1.2 cm | 3.6 → 2.8 cm | 5.2 → 4.8 s |
+
+The larger cap raised 20 px-noise success by 3 points and reduced its median
+motion time by 0.6 s. Clean and 8 px-noise success stayed at 100%, though the
+8 px 95th-percentile error increased slightly. At 20 px noise, 15 trials still
+fail: 8 hit the update limit and 7 stop inside pixel tolerance while exceeding
+the position-error threshold. Further tuning should focus on adaptive steps
+and these remaining failure cases, while retaining the paired-seed benchmark.
 
 The demo tests visual reaching, not grasping or contact-rich manipulation. A
 next extension could add a gripper and expose the scene as a LeRobot EnvHub

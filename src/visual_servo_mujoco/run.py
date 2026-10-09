@@ -29,6 +29,7 @@ SIMULATION_STEPS = 1200
 SUCCESS_THRESHOLD_METERS = 0.045
 HOME_JOINT_ANGLES = (0.0, 0.7)
 FEEDBACK_MAX_ITERATIONS = 20
+FEEDBACK_MAX_JOINT_STEP_RADIANS = 0.25
 FEEDBACK_STEPS_PER_UPDATE = 200
 FEEDBACK_PIXEL_TOLERANCE = 8.0
 FEEDBACK_TARGET_OCCLUSION_GRACE = 5
@@ -277,7 +278,11 @@ def run_trials(
                         vertical_fov_degrees=controller_camera_fovy,
                         link_lengths=LINK_LENGTHS,
                     )
-                    delta = image_servo_joint_delta(jacobian, pixel_error)
+                    delta = image_servo_joint_delta(
+                        jacobian,
+                        pixel_error,
+                        max_step_radians=FEEDBACK_MAX_JOINT_STEP_RADIANS,
+                    )
                     desired_angles = current_angles + delta
                     desired_angles[0] = np.clip(desired_angles[0], -2.8, 2.8)
                     desired_angles[1] = np.clip(desired_angles[1], -2.6, 2.6)

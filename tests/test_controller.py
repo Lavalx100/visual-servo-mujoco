@@ -136,6 +136,7 @@ def test_robustness_benchmark_is_reproducible_and_pairs_trials():
         "window": 3,
     }
     assert report["feedback_required_tolerance_checks"] == 2
+    assert report["feedback_max_joint_step_radians"] == 0.25
     assert len(report["conditions"]) == len(CONDITIONS) * len(CONTROLLERS)
     assert report["target_sequences_are_paired_across_controllers_and_conditions"] is True
 
