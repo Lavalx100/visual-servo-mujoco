@@ -97,8 +97,48 @@ def _summarize(trials: list[dict], threshold_m: float) -> dict:
         "injected_dropout_recovery_trials": sum(
             trial.get("injected_dropout_reacquired", False) for trial in trials
         ),
+        "natural_visibility_loss_trials": sum(
+            trial.get("natural_target_visibility_loss_observations", 0) > 0
+            for trial in trials
+        ),
+        "natural_visibility_loss_trials_outside_dropout": sum(
+            trial.get(
+                "natural_target_visibility_loss_outside_dropout_observations", 0
+            ) > 0
+            for trial in trials
+        ),
+        "natural_visibility_loss_observations_outside_dropout": sum(
+            trial.get("natural_target_visibility_loss_outside_dropout_observations", 0)
+            for trial in trials
+        ),
+        "natural_visibility_reacquisition_trials": sum(
+            trial.get("natural_target_reacquisitions", 0) > 0 for trial in trials
+        ),
+        "injected_dropout_visible_observations": sum(
+            trial.get("injected_dropout_visible_observations", 0) for trial in trials
+        ),
+        "injected_dropout_occlusion_overlap_observations": sum(
+            trial.get("injected_dropout_occlusion_overlap_observations", 0)
+            for trial in trials
+        ),
         "target_visibility_timeout_trials": sum(
             trial.get("controller_stop_reason") == "target_not_visible" for trial in trials
+        ),
+        "target_visibility_stop_causes": dict(
+            Counter(
+                trial["target_visibility_stop_cause"]
+                for trial in trials
+                if trial.get("target_visibility_stop_cause") is not None
+            )
+        ),
+        "stale_target_confirmation_trials": sum(
+            trial.get("controller_stop_reason") == "stale_target_tolerance_reached"
+            for trial in trials
+        ),
+        "stale_target_false_success_trials": sum(
+            trial.get("controller_stop_reason") == "stale_target_tolerance_reached"
+            and not trial["success"]
+            for trial in trials
         ),
         "failure_reasons": dict(
             Counter(
@@ -119,12 +159,15 @@ def run_benchmark(
     feedback_target_filter_window: int = FEEDBACK_TARGET_FILTER_WINDOW,
     feedback_required_tolerance_checks: int = FEEDBACK_REQUIRED_TOLERANCE_CHECKS,
     feedback_max_joint_step_radians: float = FEEDBACK_MAX_JOINT_STEP_RADIANS,
+    feedback_allow_stale_target_confirmation: bool = False,
 ) -> dict:
     """Run every stress condition on paired target sequences and save a report."""
     if seeds <= 0 or episodes_per_seed <= 0:
         raise ValueError("seeds and episodes_per_seed must be positive")
     if base_seed < 0:
         raise ValueError("base_seed must be non-negative")
+    if not isinstance(feedback_allow_stale_target_confirmation, bool):
+        raise ValueError("feedback_allow_stale_target_confirmation must be a boolean")
     if (
         isinstance(feedback_target_filter_window, bool)
         or not isinstance(feedback_target_filter_window, int)
@@ -164,6 +207,9 @@ def run_benchmark(
                         feedback_target_filter_window=feedback_target_filter_window,
                         feedback_required_tolerance_checks=feedback_required_tolerance_checks,
                         feedback_max_joint_step_radians=feedback_max_joint_step_radians,
+                        feedback_allow_stale_target_confirmation=(
+                            feedback_allow_stale_target_confirmation
+                        ),
                         target_dropout_start_observation=(
                             condition.target_dropout_start_observation
                         ),
@@ -192,7 +238,7 @@ def run_benchmark(
                 })
 
     result = {
-        "schema_version": 6,
+        "schema_version": 8,
         "benchmark": "camera_based_reaching_robustness",
         "success_threshold_m": SUCCESS_THRESHOLD_METERS,
         "feedback_target_filter": {
@@ -201,6 +247,9 @@ def run_benchmark(
         },
         "feedback_required_tolerance_checks": feedback_required_tolerance_checks,
         "feedback_max_joint_step_radians": feedback_max_joint_step_radians,
+        "feedback_allow_stale_target_confirmation": (
+            feedback_allow_stale_target_confirmation
+        ),
         "base_seed": base_seed,
         "seeds": seeds,
         "episodes_per_seed": episodes_per_seed,
@@ -239,6 +288,11 @@ def main() -> int:
         default=FEEDBACK_MAX_JOINT_STEP_RADIANS,
         help="maximum joint-angle change for one feedback motion update",
     )
+    parser.add_argument(
+        "--feedback-allow-stale-target-confirmation",
+        action="store_true",
+        help="experimental: allow arrival confirmation from recent target history during brief loss",
+    )
     parser.add_argument("--output", type=Path, default=Path("artifacts/benchmark.json"))
     args = parser.parse_args()
     if args.seeds <= 0 or args.episodes_per_seed <= 0:
@@ -263,6 +317,9 @@ def main() -> int:
         feedback_target_filter_window=args.feedback_target_filter_window,
         feedback_required_tolerance_checks=args.feedback_required_tolerance_checks,
         feedback_max_joint_step_radians=args.feedback_max_joint_step_radians,
+        feedback_allow_stale_target_confirmation=(
+            args.feedback_allow_stale_target_confirmation
+        ),
     )
     print(
         "Controller     Condition                                  "
@@ -284,6 +341,19 @@ def main() -> int:
                 f"{condition['injected_dropout_recovery_trials']}/"
                 f"{condition['injected_dropout_trials']}; "
                 f"target-not-visible stops: {condition['target_visibility_timeout_trials']}"
+            )
+            print(
+                f"  natural visibility loss outside injection: "
+                f"{condition['natural_visibility_loss_observations_outside_dropout']} "
+                "observations across "
+                f"{condition['natural_visibility_loss_trials_outside_dropout']} trials; "
+                f"stop causes: {condition['target_visibility_stop_causes']}"
+            )
+        if report["feedback_allow_stale_target_confirmation"]:
+            print(
+                f"  stale-target arrival stops: "
+                f"{condition['stale_target_confirmation_trials']}; "
+                f"outside physical threshold: {condition['stale_target_false_success_trials']}"
             )
     print(f"Saved benchmark report to {args.output}")
     return 0

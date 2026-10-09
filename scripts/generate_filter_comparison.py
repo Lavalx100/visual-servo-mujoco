@@ -19,8 +19,11 @@ FILTER_WINDOWS = (3, 5)
 HEADER_HEIGHT = 56
 
 
-def _compose_videos(
-    sources: list[tuple[Path, str, tuple[int, int, int]]], destination: Path
+def compose_paired_videos(
+    sources: list[tuple[Path, str, tuple[int, int, int]]],
+    destination: Path,
+    *,
+    title: str,
 ) -> None:
     captures = [cv2.VideoCapture(str(path)) for path, _, _ in sources]
     if not all(capture.isOpened() for capture in captures):
@@ -60,7 +63,7 @@ def _compose_videos(
             )
             cv2.putText(
                 canvas,
-                "Same target and noise sequence | seed 1, episode 5 | 20 px noise",
+                title,
                 (18, 23),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.55,
@@ -125,7 +128,11 @@ def main() -> int:
             color = (80, 220, 110) if trial["success"] else (90, 130, 255)
             sources.append((output_dir / "reaching_demo.mp4", label, color))
 
-        _compose_videos(sources, destination)
+        compose_paired_videos(
+            sources,
+            destination,
+            title="Same target and noise sequence | seed 1, episode 5 | 20 px noise",
+        )
 
     if not destination.is_file() or destination.stat().st_size == 0:
         raise RuntimeError("comparison video was not created")

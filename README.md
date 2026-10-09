@@ -27,6 +27,8 @@ uv run visual-servo-benchmark --seeds 5 --episodes-per-seed 20
 uv run visual-servo-benchmark --feedback-target-filter-window 5 --output artifacts/filter-window-5.json
 uv run visual-servo-benchmark --feedback-required-tolerance-checks 2 --output artifacts/two-check-stop.json
 uv run visual-servo-benchmark --feedback-max-joint-step-radians 0.25 --output artifacts/step-cap-025.json
+uv run visual-servo-benchmark --feedback-allow-stale-target-confirmation \
+  --output artifacts/benchmark-stale-confirmation.json
 ```
 
 The command writes `artifacts/results.json`, `artifacts/camera_view.png`, and
@@ -41,7 +43,8 @@ image.
 The gallery includes paired controller examples, noisy and miscalibrated
 runs, a transparent failure case, a filter-window comparison, and two target
 dropout cases: one where vision returns and one where the controller reaches
-its visibility timeout.
+its visibility timeout. A final paired clip compares strict and stale-target
+arrival confirmation on the same clean trial.
 Individual clips are rendered at 640×480 and 30 fps with the controller,
 sensor condition, pixel error, and final reaching result overlaid. The filter
 comparison is a labeled side-by-side video.
@@ -56,12 +59,14 @@ comparison is a labeled side-by-side video.
 | [3 vs. 5 observation filter](assets/demos/feedback_filter_window_comparison.mp4) | Same seed and noise: three samples miss by 4.8 cm; five samples reach 0.1 cm. One illustrative trial, not an aggregate result. |
 | [Target dropout and recovery](assets/demos/feedback_target_dropout_recovery.mp4) | Target detection is suppressed for three feedback observations; the arm reuses its last target estimate, then reacquires vision. |
 | [Target dropout timeout](assets/demos/feedback_target_dropout_timeout.mp4) | A six-observation blackout exceeds the five-observation grace period, so visual confirmation stops safely. |
+| [Strict vs. stale-target stop](assets/demos/feedback_stale_confirmation_comparison.mp4) | Same target and camera sequence; strict mode stops on target loss, while the experimental rule confirms arrival from recent target history. |
 
 Regenerate the gallery with:
 
 ```bash
 uv run python scripts/generate_demo_gallery.py
 uv run python scripts/generate_filter_comparison.py
+uv run python scripts/generate_stale_confirmation_comparison.py
 ```
 
 To record a specific episode from a seeded batch, select it with
@@ -81,11 +86,13 @@ green end-effector marker in the image and applies a bounded damped-Jacobian
 joint update. It requires three consecutive image-space checks inside an 8 px
 tolerance before stopping, or stops after 20 motion updates. If the target
 detector temporarily loses the target, feedback can reuse its last measured
-position for up to five observations. A stale estimate may guide motion, but
-it cannot confirm arrival; the controller requires fresh vision for its
-consecutive-tolerance stop. It estimates the stationary target center from up
-to three recent detections using a coordinate-wise median, which suppresses
-isolated pixel outliers. Both controllers start from the same joint pose.
+position for up to five observations. By default, a stale estimate may guide
+motion but cannot confirm arrival; the controller requires fresh vision for
+its consecutive-tolerance stop. The opt-in stale-target experiment tests a
+different policy for this stationary-target scene. The controller estimates
+the target center from up to three recent detections using a coordinate-wise
+median, which suppresses isolated pixel outliers. Both controllers start from
+the same joint pose.
 
 Seven paired conditions test clean sensing, Gaussian target-pixel noise, and
 camera field-of-view calibration errors. Four additional feedback-only
@@ -104,10 +111,11 @@ lighting.
 Target dropout is software fault injection: the simulated scene and physics
 continue normally, but selected camera observations are withheld from the red
 target detector. During the gap, the arm reuses the last target location to
-keep moving. It suspends arrival confirmation until the detector sees the
-target again. The benchmark tests gaps up to the five-observation grace limit
-and one longer gap that stops with `target_not_visible`. Run a recovery example
-locally with:
+keep moving. The default policy suspends arrival confirmation until the
+detector sees the target again; the separate stale-target option tests
+confirmation from recent target history. The benchmark tests gaps up to the
+five-observation grace limit and one longer gap that stops with
+`target_not_visible`. Run a recovery example locally with:
 
 ```bash
 uv run visual-servo-demo --controller image_feedback --seed 7 --episodes 1 \
@@ -115,6 +123,12 @@ uv run visual-servo-demo --controller image_feedback --seed 7 --episodes 1 \
   --target-dropout-duration-observations 3 \
   --output-dir artifacts/dropout-recovery
 ```
+
+Every image-feedback trial now records a visibility trace: whether the target
+was detectable in the rendered image, whether the test deliberately suppressed
+that observation, whether the controller used a target measurement, the pixel
+error, and the number of completed motion updates. This distinguishes an
+injected detector fault from a target that the arm itself hides.
 
 On the included deterministic setup (`--episodes 20 --seed 7`), the current run
 reached all 20 targets within 4.5 cm. Median end-effector error was 0.9 cm; the
@@ -155,13 +169,15 @@ only after the motion to score the trial.
   and forward kinematics, image Jacobian, and damped joint update.
 - `src/visual_servo_mujoco/run.py` implements color detection, both controllers,
   randomized trials, deterministic target-dropout injection, and per-trial
-  scoring.
+  scoring, including a per-observation target-visibility trace.
 - `src/visual_servo_mujoco/benchmark.py` runs paired seeds across controllers
   and stress conditions, then writes the JSON summary.
 - `scripts/generate_demo_gallery.py` regenerates the deterministic clips in
   `assets/demos/`, including a selected high-noise failure episode.
 - `scripts/generate_filter_comparison.py` creates the paired 3-vs-5 sample
   filter clip shown above.
+- `scripts/generate_stale_confirmation_comparison.py` creates the strict-versus-
+  experimental arrival-stop clip from one seeded target sequence.
 
 ### First paired robustness baseline
 
@@ -354,6 +370,41 @@ enough at stop, but the controller correctly reported that it had lost the
 target before it could confirm arrival. This is a conservative stopping rule,
 not a claim that the simulated camera models all real occlusions.
 
+### Natural target loss and stale-target confirmation experiment
+
+The clean, no-injected-fault image-feedback benchmark still had 555 rendered
+observations where the target detector could not see the target, across 92 of
+100 trials. In 91 trials the strict controller reached the physical success
+radius but stopped with `natural_target_visibility_loss` before it could make
+three fresh visual confirmations. The per-trial visibility trace showed that
+this is a separate self-occlusion problem, not a failure of the injected
+dropout test.
+
+I tested an opt-in alternative with
+`--feedback-allow-stale-target-confirmation`: when the target is temporarily
+missing, three consecutive end-effector observations within 8 px of the last
+target estimate can confirm arrival during the five-observation grace window.
+This assumes the target stays still, so the strict fresh-vision rule remains
+the default.
+
+| Policy and condition | Physical success | Stale-estimate arrival stops | Stops outside 4.5 cm |
+| --- | ---: | ---: | ---: |
+| Strict, clean | 100% | 0/100 | 0 |
+| Stale confirmation, clean | 100% | 91/100 | 0 |
+| Strict, 20 px noise | 88% | 0/100 | 0 |
+| Stale confirmation, 20 px noise | 88% | 17/100 | 0 |
+| Strict, 6-observation blackout | 33% | 0/100 | 0 |
+| Stale confirmation, 6-observation blackout | 33% | 7/100 | 0 |
+
+Across the full 1,800-trial stale-confirmation run, none of the stops based on
+the last target estimate ended outside the physical success radius. The policy
+did not improve physical success under 20 px noise, and seven 6-observation
+blackout trials stopped on the estimate before the detector returned. This
+trade-off supports keeping the option experimental until it is tested with a
+moving target, observation latency, and less idealized perception. Its report
+is written to `artifacts/benchmark-stale-confirmation.json`.
+
 The demo tests visual reaching, not grasping or contact-rich manipulation. A
-next extension should improve recovery and stopping around self-occlusion,
-then add a gripper and expose the scene as a LeRobot EnvHub environment.
+next extension should add moving-target and latency tests for this stopping
+rule, then improve self-occlusion recovery before adding a gripper and exposing
+the scene through a reusable robotics environment interface.

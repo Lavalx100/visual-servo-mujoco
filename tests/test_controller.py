@@ -194,11 +194,13 @@ def test_benchmark_records_selected_feedback_filter_window():
         feedback_target_filter_window=5,
         feedback_required_tolerance_checks=2,
         feedback_max_joint_step_radians=0.25,
+        feedback_allow_stale_target_confirmation=True,
     )
 
     assert report["feedback_target_filter"]["window"] == 5
     assert report["feedback_required_tolerance_checks"] == 2
     assert report["feedback_max_joint_step_radians"] == 0.25
+    assert report["feedback_allow_stale_target_confirmation"] is True
 
 
 def test_unreachable_camera_estimate_is_recorded_as_trial_failure(tmp_path):
@@ -284,6 +286,15 @@ def test_feedback_reacquires_target_after_temporary_dropout(tmp_path):
     trial = report["results"][0]
     assert trial["target_reacquisitions"] >= 1
     assert trial["injected_dropout_reacquired"] is True
+    injected_events = [
+        event for event in trial["target_visibility_trace"] if event["injected_dropout"]
+    ]
+    assert len(injected_events) == 3
+    assert all(event["target_visible_in_render"] for event in injected_events)
+    assert all(not event["target_measurement_used"] for event in injected_events)
+    assert trial["injected_dropout_visible_observations"] == 3
+    assert trial["natural_target_visibility_loss_outside_dropout_observations"] > 0
+    assert trial["target_visibility_stop_cause"] == "natural_target_visibility_loss"
 
 
 def test_feedback_stops_after_dropout_exceeds_visibility_grace(tmp_path):
@@ -301,6 +312,37 @@ def test_feedback_stops_after_dropout_exceeds_visibility_grace(tmp_path):
     assert trial["target_reacquisitions"] == 0
     assert trial["injected_dropout_reacquired"] is False
     assert trial["controller_stop_reason"] == "target_not_visible"
+    assert trial["target_visibility_stop_cause"] == "injected_detector_dropout"
+    assert len(trial["target_visibility_trace"]) == 7
+
+
+def test_stale_target_confirmation_is_opt_in_for_natural_visibility_loss(tmp_path):
+    strict_report = run_trials(
+        episodes=1,
+        seed=7,
+        output_dir=tmp_path / "strict",
+        controller="image_feedback",
+        save_media=False,
+    )
+    experimental_report = run_trials(
+        episodes=1,
+        seed=7,
+        output_dir=tmp_path / "experimental",
+        controller="image_feedback",
+        feedback_allow_stale_target_confirmation=True,
+        save_media=False,
+    )
+
+    strict_trial = strict_report["results"][0]
+    experimental_trial = experimental_report["results"][0]
+    assert strict_trial["target_visibility_stop_cause"] == "natural_target_visibility_loss"
+    assert experimental_trial["controller_stop_reason"] == "stale_target_tolerance_reached"
+    assert experimental_trial["feedback_allow_stale_target_confirmation"] is True
+    assert experimental_trial["success"] is True
+    assert max(
+        event.get("stale_tolerance_checks", 0)
+        for event in experimental_trial["target_visibility_trace"]
+    ) == 3
 
 
 def test_target_dropout_requires_valid_start_and_feedback_controller(tmp_path):

@@ -157,6 +157,7 @@ def run_trials(
     feedback_target_filter_window: int | None = None,
     feedback_required_tolerance_checks: int | None = None,
     feedback_max_joint_step_radians: float | None = None,
+    feedback_allow_stale_target_confirmation: bool = False,
     target_dropout_start_observation: int | None = None,
     target_dropout_duration_observations: int = 0,
     save_media: bool = True,
@@ -170,7 +171,8 @@ def run_trials(
     the tolerance-check count controls the stop confirmation; and the joint
     step value caps each commanded update. A target dropout skips detection for
     a specified range of feedback observations. These knobs do not change the
-    physics.
+    physics. Stale-target confirmation is an experimental option for the
+    stationary-target scene.
     """
     if episodes <= 0:
         raise ValueError("episodes must be positive")
@@ -180,6 +182,8 @@ def run_trials(
         raise ValueError("camera_fovy_error_deg must be finite")
     if controller not in {"open_loop", "image_feedback"}:
         raise ValueError("controller must be 'open_loop' or 'image_feedback'")
+    if not isinstance(feedback_allow_stale_target_confirmation, bool):
+        raise ValueError("feedback_allow_stale_target_confirmation must be a boolean")
     if target_dropout_start_observation is not None and (
         isinstance(target_dropout_start_observation, bool)
         or not isinstance(target_dropout_start_observation, int)
@@ -299,6 +303,30 @@ def run_trials(
         failure_reason = None
         controller_error = None
         controller_stop_reason = None
+        target_reacquisitions = 0
+        natural_target_visibility_loss_observations = 0
+        natural_target_visibility_loss_outside_dropout_observations = 0
+        natural_target_reacquisitions = 0
+        natural_visibility_pending = False
+        injected_dropout_pending = False
+        injected_dropout_reacquired = False
+        injected_dropout_visible_observations = 0
+        injected_dropout_occlusion_overlap_observations = 0
+        target_visibility_stop_cause = None
+        target_visibility_trace = [
+            {
+                "observation_index": 0,
+                "target_visible_in_render": True,
+                "injected_dropout": False,
+                "target_measurement_used": True,
+                "consecutive_target_misses": 0,
+                "completed_motion_updates": 0,
+                "joint_angles_rad": [
+                    round(float(data.qpos[shoulder_qpos]), 5),
+                    round(float(data.qpos[elbow_qpos]), 5),
+                ],
+            }
+        ]
         save_episode_media = index == video_episode_index and video_writer is not None
         if controller == "open_loop":
             try:
@@ -325,9 +353,6 @@ def run_trials(
                 video_writer.write(initial_frame)
 
         control_iterations = 0
-        target_reacquisitions = 0
-        injected_dropout_pending = False
-        injected_dropout_reacquired = False
         if failure_reason is None:
             if controller == "open_loop":
                 control_iterations = 1
@@ -353,31 +378,49 @@ def run_trials(
                 target_pixel_history = [pixel_xy]
                 consecutive_target_misses = 0
                 consecutive_tolerance_checks = 0
+                consecutive_stale_tolerance_checks = 0
                 for iteration in range(max_observations):
+                    visibility_event = target_visibility_trace[0] if iteration == 0 else None
                     if iteration > 0:
                         rgb = render_rgb(renderer, data)
+                        dropout_active = (
+                            target_dropout_start_observation is not None
+                            and target_dropout_start_observation
+                            <= iteration
+                            < target_dropout_start_observation
+                            + target_dropout_duration_observations
+                        )
                         try:
-                            dropout_active = (
-                                target_dropout_start_observation is not None
-                                and target_dropout_start_observation
-                                <= iteration
-                                < target_dropout_start_observation
-                                + target_dropout_duration_observations
-                            )
-                            if dropout_active:
-                                injected_dropout_pending = True
-                                raise RuntimeError("injected target detector dropout")
                             detected_pixel_xy = detect_red_target(rgb)
                         except RuntimeError as error:
-                            consecutive_target_misses += 1
-                            if consecutive_target_misses > FEEDBACK_TARGET_OCCLUSION_GRACE:
-                                controller_stop_reason = "target_not_visible"
-                                controller_error = str(error)
-                                break
+                            target_visible_in_render = False
+                            target_detection_error = error
                         else:
+                            target_visible_in_render = True
+                            target_detection_error = None
+
+                        if dropout_active:
+                            injected_dropout_pending = True
+                            consecutive_target_misses += 1
+                            if target_visible_in_render:
+                                injected_dropout_visible_observations += 1
+                            else:
+                                injected_dropout_occlusion_overlap_observations += 1
+                                natural_target_visibility_loss_observations += 1
+                                natural_visibility_pending = True
+                        elif not target_visible_in_render:
+                            consecutive_target_misses += 1
+                            natural_target_visibility_loss_observations += 1
+                            natural_target_visibility_loss_outside_dropout_observations += 1
+                            natural_visibility_pending = True
+                        else:
+                            consecutive_stale_tolerance_checks = 0
                             if injected_dropout_pending:
                                 injected_dropout_reacquired = True
                                 injected_dropout_pending = False
+                            if natural_visibility_pending:
+                                natural_target_reacquisitions += 1
+                                natural_visibility_pending = False
                             if consecutive_target_misses > 0:
                                 target_reacquisitions += 1
                             consecutive_target_misses = 0
@@ -391,6 +434,36 @@ def run_trials(
                                 -feedback_target_filter_window:
                             ]
                             pixel_xy = median_pixel_estimate(target_pixel_history)
+                        visibility_event = {
+                            "observation_index": iteration,
+                            "target_visible_in_render": target_visible_in_render,
+                            "injected_dropout": dropout_active,
+                            "target_measurement_used": (
+                                target_visible_in_render and not dropout_active
+                            ),
+                            "consecutive_target_misses": consecutive_target_misses,
+                            "stale_tolerance_checks": consecutive_stale_tolerance_checks,
+                            "completed_motion_updates": control_iterations,
+                            "joint_angles_rad": [
+                                round(float(data.qpos[shoulder_qpos]), 5),
+                                round(float(data.qpos[elbow_qpos]), 5),
+                            ],
+                        }
+                        target_visibility_trace.append(visibility_event)
+                        if consecutive_target_misses > FEEDBACK_TARGET_OCCLUSION_GRACE:
+                            controller_stop_reason = "target_not_visible"
+                            if dropout_active and target_visible_in_render:
+                                target_visibility_stop_cause = "injected_detector_dropout"
+                                controller_error = "injected target detector dropout"
+                            elif dropout_active:
+                                target_visibility_stop_cause = (
+                                    "injected_dropout_with_natural_visibility_loss"
+                                )
+                                controller_error = str(target_detection_error)
+                            else:
+                                target_visibility_stop_cause = "natural_target_visibility_loss"
+                                controller_error = str(target_detection_error)
+                            break
                     try:
                         end_effector_pixel_xy = detect_green_end_effector(rgb)
                     except RuntimeError as error:
@@ -401,19 +474,49 @@ def run_trials(
                         pixel_xy[0] - end_effector_pixel_xy[0],
                         pixel_xy[1] - end_effector_pixel_xy[1],
                     )
+                    visibility_event["image_error_px"] = round(math.hypot(*pixel_error), 2)
+                    visibility_event["target_pixel_xy_used"] = [
+                        round(value, 2) for value in pixel_xy
+                    ]
+                    visibility_event["end_effector_pixel_xy"] = [
+                        round(value, 2) for value in end_effector_pixel_xy
+                    ]
+                    visibility_event["joint_angles_rad"] = [
+                        round(float(data.qpos[shoulder_qpos]), 5),
+                        round(float(data.qpos[elbow_qpos]), 5),
+                    ]
                     if consecutive_target_misses > 0:
-                        # A stale target estimate may guide motion, but cannot
-                        # confirm that the target is reached while vision is lost.
+                        # The default policy requires a fresh target. The
+                        # experiment option tests whether recent target history
+                        # can safely confirm arrival during the grace window.
                         consecutive_tolerance_checks = 0
                         if math.hypot(*pixel_error) <= FEEDBACK_PIXEL_TOLERANCE:
+                            if feedback_allow_stale_target_confirmation:
+                                consecutive_stale_tolerance_checks += 1
+                                visibility_event["stale_tolerance_checks"] = (
+                                    consecutive_stale_tolerance_checks
+                                )
+                                if (
+                                    consecutive_stale_tolerance_checks
+                                    >= feedback_required_tolerance_checks
+                                ):
+                                    controller_stop_reason = (
+                                        "stale_target_tolerance_reached"
+                                    )
+                                    break
+                            else:
+                                consecutive_stale_tolerance_checks = 0
                             continue
+                        consecutive_stale_tolerance_checks = 0
                     elif math.hypot(*pixel_error) <= FEEDBACK_PIXEL_TOLERANCE:
+                        consecutive_stale_tolerance_checks = 0
                         consecutive_tolerance_checks += 1
                         if consecutive_tolerance_checks >= feedback_required_tolerance_checks:
                             controller_stop_reason = "pixel_tolerance_reached"
                             break
                         continue
                     else:
+                        consecutive_stale_tolerance_checks = 0
                         consecutive_tolerance_checks = 0
                     if control_iterations >= FEEDBACK_MAX_ITERATIONS:
                         controller_stop_reason = "iteration_limit"
@@ -534,8 +637,24 @@ def run_trials(
             "controller_error": controller_error,
             "target_reacquisitions": target_reacquisitions,
             "injected_dropout_reacquired": injected_dropout_reacquired,
+            "natural_target_visibility_loss_observations": (
+                natural_target_visibility_loss_observations
+            ),
+            "natural_target_visibility_loss_outside_dropout_observations": (
+                natural_target_visibility_loss_outside_dropout_observations
+            ),
+            "natural_target_reacquisitions": natural_target_reacquisitions,
+            "injected_dropout_visible_observations": injected_dropout_visible_observations,
+            "injected_dropout_occlusion_overlap_observations": (
+                injected_dropout_occlusion_overlap_observations
+            ),
+            "target_visibility_stop_cause": target_visibility_stop_cause,
+            "target_visibility_trace": target_visibility_trace,
             "target_dropout_start_observation": target_dropout_start_observation,
             "target_dropout_duration_observations": target_dropout_duration_observations,
+            "feedback_allow_stale_target_confirmation": (
+                feedback_allow_stale_target_confirmation
+            ),
         })
 
     renderer.close()
@@ -555,6 +674,9 @@ def run_trials(
         },
         "feedback_required_tolerance_checks": feedback_required_tolerance_checks,
         "feedback_max_joint_step_radians": feedback_max_joint_step_radians,
+        "feedback_allow_stale_target_confirmation": (
+            feedback_allow_stale_target_confirmation
+        ),
         "target_dropout_start_observation": target_dropout_start_observation,
         "target_dropout_duration_observations": target_dropout_duration_observations,
         "success_threshold_m": SUCCESS_THRESHOLD_METERS,
@@ -601,6 +723,11 @@ def main() -> int:
         type=float,
         default=FEEDBACK_MAX_JOINT_STEP_RADIANS,
         help="maximum joint-angle change for one feedback motion update",
+    )
+    parser.add_argument(
+        "--feedback-allow-stale-target-confirmation",
+        action="store_true",
+        help="experimental: allow arrival confirmation from the last target estimate during brief loss",
     )
     parser.add_argument(
         "--target-dropout-start-observation",
@@ -658,6 +785,11 @@ def main() -> int:
         parser.error("--target-dropout-start-observation is required for a non-zero dropout")
     if args.target_dropout_duration_observations and args.controller != "image_feedback":
         parser.error("target dropout requires --controller image_feedback")
+    if (
+        args.feedback_allow_stale_target_confirmation
+        and args.controller != "image_feedback"
+    ):
+        parser.error("stale-target confirmation requires --controller image_feedback")
 
     report = run_trials(
         args.episodes,
@@ -670,6 +802,9 @@ def main() -> int:
         feedback_target_filter_window=args.feedback_target_filter_window,
         feedback_required_tolerance_checks=args.feedback_required_tolerance_checks,
         feedback_max_joint_step_radians=args.feedback_max_joint_step_radians,
+        feedback_allow_stale_target_confirmation=(
+            args.feedback_allow_stale_target_confirmation
+        ),
         target_dropout_start_observation=args.target_dropout_start_observation,
         target_dropout_duration_observations=args.target_dropout_duration_observations,
     )
