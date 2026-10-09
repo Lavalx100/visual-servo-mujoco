@@ -19,6 +19,7 @@ from .controller import (
     median_pixel_estimate,
     predict_pixel_constant_acceleration,
     predict_pixel_constant_velocity,
+    predict_pixel_reversal_aware,
     pixel_to_table_xy,
     table_xy_to_pixel,
 )
@@ -85,13 +86,21 @@ def _step_with_target_motion(
     target_start_xy_m: tuple[float, float],
     target_motion_amplitude_m: float,
     target_motion_frequency_hz: float,
+    target_motion_profile: str = "sinusoidal",
 ) -> None:
-    """Advance one physics step while moving the target sinusoidally on x."""
+    """Advance one physics step while moving the target along table x."""
     if target_motion_amplitude_m:
         simulation_time = float(data.time + model.opt.timestep)
-        target_x = target_start_xy_m[0] + target_motion_amplitude_m * math.sin(
-            2.0 * math.pi * target_motion_frequency_hz * simulation_time
-        )
+        phase = 2.0 * math.pi * target_motion_frequency_hz * simulation_time
+        if target_motion_profile == "sinusoidal":
+            motion_fraction = math.sin(phase)
+        elif target_motion_profile == "piecewise_linear":
+            motion_fraction = 2.0 / math.pi * math.asin(math.sin(phase))
+        else:
+            raise ValueError(
+                "target_motion_profile must be 'sinusoidal' or 'piecewise_linear'"
+            )
+        target_x = target_start_xy_m[0] + target_motion_amplitude_m * motion_fraction
         data.mocap_pos[target_mocap_id] = (
             target_x,
             target_start_xy_m[1],
@@ -189,6 +198,7 @@ def run_trials(
     target_dropout_duration_observations: int = 0,
     target_motion_amplitude_m: float = 0.0,
     target_motion_frequency_hz: float = 0.25,
+    target_motion_profile: str = "sinusoidal",
     camera_observation_delay_observations: int = 0,
     target_motion_prediction: str = "none",
     use_current_end_effector_state: bool = False,
@@ -203,10 +213,10 @@ def run_trials(
     the tolerance-check count controls the stop confirmation; and the joint
     step value caps each commanded update. A target dropout skips detection for
     a specified range of feedback observations. These knobs do not change the
-    physics. The target can also move sinusoidally along the table's x axis,
-    and image feedback can consume delayed camera frames. Optional prediction
-    extrapolates timestamped target pixels; current end-effector pixels can
-    come from the measured joint state instead of the delayed image.
+    physics. The target can move along table x on a sinusoidal or piecewise
+    linear path, and image feedback can consume delayed camera frames. Optional
+    prediction extrapolates timestamped target pixels; current end-effector
+    pixels can come from the measured joint state instead of the delayed image.
     """
     if episodes <= 0:
         raise ValueError("episodes must be positive")
@@ -227,6 +237,10 @@ def run_trials(
         raise ValueError("target_motion_frequency_hz must be finite and non-negative")
     if target_motion_amplitude_m and target_motion_frequency_hz <= 0.0:
         raise ValueError("moving targets require a positive target_motion_frequency_hz")
+    if target_motion_profile not in {"sinusoidal", "piecewise_linear"}:
+        raise ValueError(
+            "target_motion_profile must be 'sinusoidal' or 'piecewise_linear'"
+        )
     if (
         isinstance(camera_observation_delay_observations, bool)
         or not isinstance(camera_observation_delay_observations, int)
@@ -239,10 +253,11 @@ def run_trials(
         "none",
         "constant_velocity",
         "constant_acceleration",
+        "reversal_aware",
     }:
         raise ValueError(
             "target_motion_prediction must be 'none', 'constant_velocity', "
-            "or 'constant_acceleration'"
+            "'constant_acceleration', or 'reversal_aware'"
         )
     if target_motion_prediction != "none" and controller != "image_feedback":
         raise ValueError("target motion prediction can only be used with image_feedback")
@@ -467,6 +482,7 @@ def run_trials(
                         (target_x, target_y),
                         target_motion_amplitude_m,
                         target_motion_frequency_hz,
+                        target_motion_profile,
                     )
                     if save_episode_media and step % video_step_interval == 0:
                         video_writer.write(
@@ -601,6 +617,11 @@ def run_trials(
                                         target_motion_observation_history,
                                         horizon_s=prediction_horizon_s,
                                     )
+                                elif target_motion_prediction == "reversal_aware":
+                                    pixel_xy = predict_pixel_reversal_aware(
+                                        target_motion_observation_history,
+                                        horizon_s=prediction_horizon_s,
+                                    )
                                 else:
                                     pixel_xy = predict_pixel_constant_velocity(
                                         target_motion_observation_history,
@@ -706,7 +727,13 @@ def run_trials(
                         and prediction_horizon_s > 1e-9
                     )
                     visibility_event["target_prediction_model_used"] = (
-                        "constant_acceleration"
+                        "reversal_aware"
+                        if (
+                            target_motion_prediction == "reversal_aware"
+                            and len(target_motion_observation_history) >= 3
+                            and prediction_horizon_s > 1e-9
+                        )
+                        else "constant_acceleration"
                         if (
                             target_motion_prediction == "constant_acceleration"
                             and len(target_motion_observation_history) >= 3
@@ -800,6 +827,7 @@ def run_trials(
                             (target_x, target_y),
                             target_motion_amplitude_m,
                             target_motion_frequency_hz,
+                            target_motion_profile,
                         )
                         if save_episode_media and step % video_step_interval == 0:
                             dropout_status = (
@@ -911,6 +939,7 @@ def run_trials(
             "target_dropout_duration_observations": target_dropout_duration_observations,
             "target_motion_amplitude_m": target_motion_amplitude_m,
             "target_motion_frequency_hz": target_motion_frequency_hz,
+            "target_motion_profile": target_motion_profile,
             "camera_observation_delay_observations": (
                 camera_observation_delay_observations
             ),
@@ -951,6 +980,7 @@ def run_trials(
         "target_dropout_duration_observations": target_dropout_duration_observations,
         "target_motion_amplitude_m": target_motion_amplitude_m,
         "target_motion_frequency_hz": target_motion_frequency_hz,
+        "target_motion_profile": target_motion_profile,
         "camera_observation_delay_observations": camera_observation_delay_observations,
         "camera_observation_delay_simulated_s": round(
             camera_observation_delay_observations
@@ -1028,13 +1058,19 @@ def main() -> int:
         "--target-motion-amplitude-m",
         type=float,
         default=0.0,
-        help="sinusoidal target-motion amplitude along table x, in metres",
+        help="target-motion amplitude along table x, in metres",
     )
     parser.add_argument(
         "--target-motion-frequency-hz",
         type=float,
         default=0.25,
-        help="sinusoidal target-motion frequency in hertz",
+        help="target-motion frequency in hertz",
+    )
+    parser.add_argument(
+        "--target-motion-profile",
+        choices=("sinusoidal", "piecewise_linear"),
+        default="sinusoidal",
+        help="target path used by moving-target experiments",
     )
     parser.add_argument(
         "--camera-observation-delay-observations",
@@ -1044,7 +1080,12 @@ def main() -> int:
     )
     parser.add_argument(
         "--target-motion-prediction",
-        choices=("none", "constant_velocity", "constant_acceleration"),
+        choices=(
+            "none",
+            "constant_velocity",
+            "constant_acceleration",
+            "reversal_aware",
+        ),
         default="none",
         help="experimental image-plane target prediction method",
     )
@@ -1145,6 +1186,7 @@ def main() -> int:
         target_dropout_duration_observations=args.target_dropout_duration_observations,
         target_motion_amplitude_m=args.target_motion_amplitude_m,
         target_motion_frequency_hz=args.target_motion_frequency_hz,
+        target_motion_profile=args.target_motion_profile,
         camera_observation_delay_observations=(
             args.camera_observation_delay_observations
         ),

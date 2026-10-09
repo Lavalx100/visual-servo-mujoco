@@ -156,6 +156,83 @@ def predict_pixel_constant_acceleration(
     return float(predicted[0]), float(predicted[1])
 
 
+def predict_pixel_reversal_aware(
+    observations: list[tuple[float, tuple[float, float]]],
+    *,
+    horizon_s: float,
+    window: int = 4,
+    min_reversal_displacement_px: float = 4.0,
+) -> tuple[float, float]:
+    """Extrapolate recent target motion while avoiding fits across reversals.
+
+    A sustained direction change in the recent track switches to the newest
+    two-point velocity estimate. If the direction change is plausible but its
+    displacement is too small to distinguish from pixel noise, this returns
+    the latest observation without extrapolation. Otherwise it uses the usual
+    least-squares constant-velocity estimate. The detector makes no assumption
+    about the target's trajectory or motion axis.
+    """
+    if not observations:
+        raise ValueError("at least one pixel observation is required")
+    if not math.isfinite(horizon_s) or horizon_s < 0.0:
+        raise ValueError("prediction horizon must be finite and non-negative")
+    if isinstance(window, bool) or not isinstance(window, int) or window <= 0:
+        raise ValueError("window must be a positive integer")
+    if (
+        not math.isfinite(min_reversal_displacement_px)
+        or min_reversal_displacement_px < 0.0
+    ):
+        raise ValueError("minimum reversal displacement must be finite and non-negative")
+
+    recent = observations[-window:]
+    samples = np.asarray(
+        [(timestamp, pixel[0], pixel[1]) for timestamp, pixel in recent],
+        dtype=float,
+    )
+    if samples.ndim != 2 or samples.shape[1] != 3 or not np.isfinite(samples).all():
+        raise ValueError("observations must contain finite timestamps and pixel pairs")
+    if np.any(np.diff(samples[:, 0]) <= 0.0):
+        raise ValueError("observation timestamps must be strictly increasing")
+    if len(samples) < 3:
+        return predict_pixel_constant_velocity(
+            recent,
+            horizon_s=horizon_s,
+            window=window,
+        )
+
+    displacements = np.diff(samples[:, 1:3], axis=0)
+    displacement_norms = np.linalg.norm(displacements, axis=1)
+    reversal_detected = False
+    ambiguous_reversal = False
+    for previous, current, previous_norm, current_norm in zip(
+        displacements[:-1],
+        displacements[1:],
+        displacement_norms[:-1],
+        displacement_norms[1:],
+        strict=True,
+    ):
+        scale = float(previous_norm * current_norm)
+        if scale == 0.0 or float(np.dot(previous, current)) > -0.5 * scale:
+            continue
+        if min(previous_norm, current_norm) >= min_reversal_displacement_px:
+            reversal_detected = True
+        else:
+            ambiguous_reversal = True
+
+    if ambiguous_reversal and not reversal_detected:
+        return float(samples[-1, 1]), float(samples[-1, 2])
+    if reversal_detected:
+        interval_s = float(samples[-1, 0] - samples[-2, 0])
+        velocity = (samples[-1, 1:3] - samples[-2, 1:3]) / interval_s
+        predicted = samples[-1, 1:3] + velocity * horizon_s
+        return float(predicted[0]), float(predicted[1])
+    return predict_pixel_constant_velocity(
+        recent,
+        horizon_s=horizon_s,
+        window=window,
+    )
+
+
 def median_pixel_estimate(
     pixel_samples: list[tuple[float, float]],
 ) -> tuple[float, float]:

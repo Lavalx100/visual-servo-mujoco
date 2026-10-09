@@ -21,6 +21,7 @@ visual-servo-demo = "visual_servo_mujoco.run:main"
 visual-servo-benchmark = "visual_servo_mujoco.benchmark:main"
 visual-servo-dynamic-benchmark = "visual_servo_mujoco.dynamic_benchmark:main"
 visual-servo-prediction-benchmark = "visual_servo_mujoco.prediction_benchmark:main"
+visual-servo-reversal-benchmark = "visual_servo_mujoco.reversal_benchmark:main"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

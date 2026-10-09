@@ -16,11 +16,13 @@ from visual_servo_mujoco.controller import (
     median_pixel_estimate,
     predict_pixel_constant_acceleration,
     predict_pixel_constant_velocity,
+    predict_pixel_reversal_aware,
     pixel_to_table_xy,
     table_xy_to_pixel,
 )
 from visual_servo_mujoco.dynamic_benchmark import run_dynamic_benchmark
 from visual_servo_mujoco.prediction_benchmark import run_prediction_benchmark
+from visual_servo_mujoco.reversal_benchmark import run_reversal_benchmark
 from visual_servo_mujoco.model import MODEL_XML
 from visual_servo_mujoco.run import (
     FEEDBACK_MAX_ITERATIONS,
@@ -549,6 +551,88 @@ def test_prediction_benchmark_pairs_baseline_and_prediction_runs(tmp_path):
         for row in moving_delay_one
     )
     assert (tmp_path / "prediction.json").is_file()
+
+
+def test_reversal_aware_prediction_switches_to_post_reversal_velocity():
+    observations = [
+        (0.0, (0.0, 20.0)),
+        (1.0, (10.0, 20.0)),
+        (2.0, (20.0, 20.0)),
+        (3.0, (10.0, 20.0)),
+    ]
+
+    assert predict_pixel_reversal_aware(observations, horizon_s=0.5) == pytest.approx(
+        (5.0, 20.0)
+    )
+
+
+def test_reversal_aware_prediction_holds_when_turn_is_below_noise_threshold():
+    observations = [
+        (0.0, (0.0, 20.0)),
+        (1.0, (10.0, 20.0)),
+        (2.0, (9.0, 20.0)),
+    ]
+
+    assert predict_pixel_reversal_aware(observations, horizon_s=0.5) == (9.0, 20.0)
+
+
+def test_piecewise_linear_target_profile_is_reported_and_moves(tmp_path):
+    report = run_trials(
+        episodes=1,
+        seed=7,
+        output_dir=tmp_path,
+        controller="image_feedback",
+        target_motion_amplitude_m=0.04,
+        target_motion_frequency_hz=0.25,
+        target_motion_profile="piecewise_linear",
+        camera_observation_delay_observations=1,
+        target_motion_prediction="reversal_aware",
+        use_current_end_effector_state=True,
+        save_media=False,
+    )
+
+    trace = report["results"][0]["target_visibility_trace"]
+    assert report["target_motion_profile"] == "piecewise_linear"
+    assert any(
+        event["target_position_xy_m_for_evaluation_only"]
+        != trace[0]["target_position_xy_m_for_evaluation_only"]
+        for event in trace
+    )
+    assert {event["target_prediction_model_used"] for event in trace} >= {
+        "constant_velocity",
+        "reversal_aware",
+    }
+
+
+def test_reversal_benchmark_pairs_predictor_runs_across_profiles_and_noise(tmp_path):
+    report = run_reversal_benchmark(
+        seeds=1,
+        episodes_per_seed=1,
+        output_path=tmp_path / "reversal.json",
+    )
+
+    assert report["benchmark"] == "target_motion_prediction_with_reversals_and_pixel_noise"
+    assert len(report["conditions"]) == 24
+    assert {row["target_motion_prediction"] for row in report["conditions"]} == {
+        "none",
+        "constant_velocity",
+        "reversal_aware",
+    }
+    reversal_rows = [
+        row for row in report["conditions"] if row["target_motion_prediction"] == "reversal_aware"
+    ]
+    assert all(row["paired_comparison_to_none"]["paired_trials"] == 1 for row in reversal_rows)
+    assert set(reversal_rows[0]["trial_results"][0]) == {
+        "seed",
+        "episode",
+        "reaching_error_m",
+        "success",
+    }
+    assert {row["condition"]["target_motion_profile"] for row in reversal_rows} == {
+        "sinusoidal",
+        "piecewise_linear",
+    }
+    assert (tmp_path / "reversal.json").is_file()
 
 
 def test_target_dropout_requires_valid_start_and_feedback_controller(tmp_path):
