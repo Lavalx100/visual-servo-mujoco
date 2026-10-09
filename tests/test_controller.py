@@ -16,6 +16,7 @@ from visual_servo_mujoco.controller import (
     median_pixel_estimate,
     pixel_to_table_xy,
 )
+from visual_servo_mujoco.dynamic_benchmark import run_dynamic_benchmark
 from visual_servo_mujoco.model import MODEL_XML
 from visual_servo_mujoco.run import (
     FEEDBACK_MAX_ITERATIONS,
@@ -343,6 +344,82 @@ def test_stale_target_confirmation_is_opt_in_for_natural_visibility_loss(tmp_pat
         event.get("stale_tolerance_checks", 0)
         for event in experimental_trial["target_visibility_trace"]
     ) == 3
+
+
+def test_moving_target_and_delayed_camera_trace_are_recorded(tmp_path):
+    report = run_trials(
+        episodes=1,
+        seed=7,
+        output_dir=tmp_path,
+        controller="image_feedback",
+        pixel_noise_std_px=2.0,
+        target_motion_amplitude_m=0.04,
+        target_motion_frequency_hz=0.25,
+        camera_observation_delay_observations=2,
+        save_media=False,
+    )
+
+    trial = report["results"][0]
+    trace = trial["target_visibility_trace"]
+    assert report["target_motion_amplitude_m"] == 0.04
+    assert report["camera_observation_delay_observations"] == 2
+    assert report["camera_observation_delay_simulated_s"] == 0.8
+    assert max(event["camera_observation_age_observations"] for event in trace) == 2
+    assert max(event["camera_observation_age_simulated_s"] for event in trace) == 0.8
+    assert any(
+        abs(
+            event["target_position_xy_m_for_evaluation_only"][0]
+            - trial["target_start_xy_m_for_evaluation_only"][0]
+        )
+        > 0.001
+        for event in trace
+    )
+    assert any(
+        event["target_position_xy_m_for_evaluation_only"]
+        != event["observed_target_position_xy_m_for_evaluation_only"]
+        for event in trace
+    )
+    assert trace[0]["target_pixel_xy_used"] == trace[1]["target_pixel_xy_used"]
+    assert trace[1]["target_pixel_xy_used"] == trace[2]["target_pixel_xy_used"]
+
+
+def test_camera_observation_delay_requires_image_feedback(tmp_path):
+    with pytest.raises(ValueError, match="only be used with image_feedback"):
+        run_trials(
+            episodes=1,
+            seed=7,
+            output_dir=tmp_path,
+            controller="open_loop",
+            camera_observation_delay_observations=1,
+            save_media=False,
+        )
+
+
+def test_dynamic_benchmark_pairs_policy_runs_and_reports_conditions(tmp_path):
+    report = run_dynamic_benchmark(
+        seeds=1,
+        episodes_per_seed=1,
+        output_path=tmp_path / "dynamic.json",
+    )
+
+    assert report["benchmark"] == "dynamic_target_camera_latency"
+    assert len(report["conditions"]) == 10
+    moving_delay_zero = next(
+        condition
+        for condition in report["conditions"]
+        if condition["policy"] == "strict_fresh_vision"
+        and condition["condition"]["name"] == "moving_delay_0"
+    )
+    moving_delay_two = next(
+        condition
+        for condition in report["conditions"]
+        if condition["policy"] == "strict_fresh_vision"
+        and condition["condition"]["name"] == "moving_delay_2"
+    )
+    assert moving_delay_zero["trial_results"][0]["target_start_xy_m_for_evaluation_only"] == (
+        moving_delay_two["trial_results"][0]["target_start_xy_m_for_evaluation_only"]
+    )
+    assert (tmp_path / "dynamic.json").is_file()
 
 
 def test_target_dropout_requires_valid_start_and_feedback_controller(tmp_path):

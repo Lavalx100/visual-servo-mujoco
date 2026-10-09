@@ -238,7 +238,7 @@ def run_benchmark(
                 })
 
     result = {
-        "schema_version": 8,
+        "schema_version": 9,
         "benchmark": "camera_based_reaching_robustness",
         "success_threshold_m": SUCCESS_THRESHOLD_METERS,
         "feedback_target_filter": {

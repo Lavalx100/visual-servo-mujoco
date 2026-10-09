@@ -29,6 +29,7 @@ uv run visual-servo-benchmark --feedback-required-tolerance-checks 2 --output ar
 uv run visual-servo-benchmark --feedback-max-joint-step-radians 0.25 --output artifacts/step-cap-025.json
 uv run visual-servo-benchmark --feedback-allow-stale-target-confirmation \
   --output artifacts/benchmark-stale-confirmation.json
+uv run visual-servo-dynamic-benchmark --output artifacts/dynamic-target-benchmark.json
 ```
 
 The command writes `artifacts/results.json`, `artifacts/camera_view.png`, and
@@ -41,10 +42,8 @@ image.
 ## Video demos
 
 The gallery includes paired controller examples, noisy and miscalibrated
-runs, a transparent failure case, a filter-window comparison, and two target
-dropout cases: one where vision returns and one where the controller reaches
-its visibility timeout. A final paired clip compares strict and stale-target
-arrival confirmation on the same clean trial.
+runs, a transparent failure case, filter-window and stale-target comparisons,
+two target-dropout cases, and a moving-target camera-latency comparison.
 Individual clips are rendered at 640×480 and 30 fps with the controller,
 sensor condition, pixel error, and final reaching result overlaid. The filter
 comparison is a labeled side-by-side video.
@@ -60,6 +59,7 @@ comparison is a labeled side-by-side video.
 | [Target dropout and recovery](assets/demos/feedback_target_dropout_recovery.mp4) | Target detection is suppressed for three feedback observations; the arm reuses its last target estimate, then reacquires vision. |
 | [Target dropout timeout](assets/demos/feedback_target_dropout_timeout.mp4) | A six-observation blackout exceeds the five-observation grace period, so visual confirmation stops safely. |
 | [Strict vs. stale-target stop](assets/demos/feedback_stale_confirmation_comparison.mp4) | Same target and camera sequence; strict mode stops on target loss, while the experimental rule confirms arrival from recent target history. |
+| [Moving target and camera delay](assets/demos/feedback_moving_target_latency.mp4) | Same seed and sinusoidal target: live feedback reaches within 1.4 cm, while a one-observation (0.4 s) delay misses by 4.95 cm. One illustrative trial. |
 
 Regenerate the gallery with:
 
@@ -67,6 +67,7 @@ Regenerate the gallery with:
 uv run python scripts/generate_demo_gallery.py
 uv run python scripts/generate_filter_comparison.py
 uv run python scripts/generate_stale_confirmation_comparison.py
+uv run python scripts/generate_latency_comparison.py
 ```
 
 To record a specific episode from a seeded batch, select it with
@@ -178,6 +179,10 @@ only after the motion to score the trial.
   filter clip shown above.
 - `scripts/generate_stale_confirmation_comparison.py` creates the strict-versus-
   experimental arrival-stop clip from one seeded target sequence.
+- `src/visual_servo_mujoco/dynamic_benchmark.py` compares arrival policies under
+  moving-target and camera-delay conditions.
+- `scripts/generate_latency_comparison.py` renders a paired moving-target video
+  with live and delayed camera feedback.
 
 ### First paired robustness baseline
 
@@ -404,12 +409,44 @@ did not improve physical success under 20 px noise, and seven 6-observation
 blackout trials stopped on the estimate before the detector returned. For
 5-observation blackouts, the detector reacquired in 93/100 trials with stale
 confirmation, compared with 100/100 under the strict policy; seven trials
-stopped on the estimate before vision returned. This trade-off supports
-keeping the option experimental until it is tested with a moving target,
-observation latency, and less idealized perception. Its report is written to
-`artifacts/benchmark-stale-confirmation.json`.
+stopped on the estimate before vision returned. The moving-target and latency
+tests are reported below; less idealized perception remains untested. The
+report is written to `artifacts/benchmark-stale-confirmation.json`.
 
-The demo tests visual reaching, not grasping or contact-rich manipulation. A
-next extension should add moving-target and latency tests for this stopping
-rule, then improve self-occlusion recovery before adding a gripper and exposing
-the scene through a reusable robotics environment interface.
+### Moving-target and camera-delay benchmark
+
+Run the separate paired stress suite with:
+
+```bash
+uv run visual-servo-dynamic-benchmark --output artifacts/dynamic-target-benchmark.json
+```
+
+The target follows `x(t) = x₀ + 0.04 sin(2π × 0.25 t)` metres, with a peak
+speed of 0.063 m/s. A feedback update advances 0.4 simulated seconds. The
+benchmark compares stationary and moving targets with 0, 0.4, and 0.8 seconds
+of camera-observation delay, under both strict fresh-vision and experimental
+stale-target stopping policies. Each row has 100 trials across five seeds.
+
+| Strict policy condition | Success | Median error | 95th percentile |
+| --- | ---: | ---: | ---: |
+| Stationary, no delay | 100% | 0.63 cm | 1.29 cm |
+| Stationary, 0.8 s delay | 92% | 1.75 cm | 5.47 cm |
+| Moving, no delay | 94% | 1.50 cm | 4.98 cm |
+| Moving, 0.4 s delay | 10% | 5.13 cm | 6.76 cm |
+| Moving, 0.8 s delay | 68% | 3.60 cm | 7.01 cm |
+
+The stale-confirmation policy had the same physical success rate in every
+condition; it produced 91 stale-estimate stops in the stationary/no-delay case
+and 32 in the moving/no-delay case, with none outside the 4.5 cm success
+radius. It did not correct delayed feedback. The 0.8 s result is better than
+the 0.4 s result because this test uses a periodic trajectory: each delay
+samples a different phase. That does not establish that larger delays are
+safer. The per-observation report records live target positions, the camera
+frame's target position, visibility, and frame age so the effect can be
+inspected directly.
+
+The [paired latency demo](assets/demos/feedback_moving_target_latency.mp4)
+shows the same seed and moving target with live camera feedback and a 0.4 s
+delay. The next controller experiment is to estimate target image velocity and
+predict its position to the current time, then rerun this benchmark. Grasping,
+contact-rich manipulation, and real-robot performance remain future work.

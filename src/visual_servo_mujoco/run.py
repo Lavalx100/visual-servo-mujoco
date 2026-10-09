@@ -73,6 +73,28 @@ def render_rgb(renderer: mujoco.Renderer, data: mujoco.MjData) -> np.ndarray:
     return renderer.render()
 
 
+def _step_with_target_motion(
+    model: mujoco.MjModel,
+    data: mujoco.MjData,
+    target_mocap_id: int,
+    target_start_xy_m: tuple[float, float],
+    target_motion_amplitude_m: float,
+    target_motion_frequency_hz: float,
+) -> None:
+    """Advance one physics step while moving the target sinusoidally on x."""
+    if target_motion_amplitude_m:
+        simulation_time = float(data.time + model.opt.timestep)
+        target_x = target_start_xy_m[0] + target_motion_amplitude_m * math.sin(
+            2.0 * math.pi * target_motion_frequency_hz * simulation_time
+        )
+        data.mocap_pos[target_mocap_id] = (
+            target_x,
+            target_start_xy_m[1],
+            TARGET_HEIGHT,
+        )
+    mujoco.mj_step(model, data)
+
+
 def annotated_frame(rgb: np.ndarray, pixel_xy: tuple[float, float]) -> np.ndarray:
     """Return an RGB frame with the pixel used by the controller marked."""
     frame = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
@@ -160,6 +182,9 @@ def run_trials(
     feedback_allow_stale_target_confirmation: bool = False,
     target_dropout_start_observation: int | None = None,
     target_dropout_duration_observations: int = 0,
+    target_motion_amplitude_m: float = 0.0,
+    target_motion_frequency_hz: float = 0.25,
+    camera_observation_delay_observations: int = 0,
     save_media: bool = True,
 ) -> dict:
     """Run reaching trials with optional perception and camera-calibration errors.
@@ -171,7 +196,9 @@ def run_trials(
     the tolerance-check count controls the stop confirmation; and the joint
     step value caps each commanded update. A target dropout skips detection for
     a specified range of feedback observations. These knobs do not change the
-    physics. Stale-target confirmation is an experimental option for the
+    physics. The target can also move sinusoidally along the table's x axis,
+    and image feedback can consume a camera frame from earlier feedback
+    observations. Stale-target confirmation is an experimental option for the
     stationary-target scene.
     """
     if episodes <= 0:
@@ -184,6 +211,23 @@ def run_trials(
         raise ValueError("controller must be 'open_loop' or 'image_feedback'")
     if not isinstance(feedback_allow_stale_target_confirmation, bool):
         raise ValueError("feedback_allow_stale_target_confirmation must be a boolean")
+    if (
+        not math.isfinite(target_motion_amplitude_m)
+        or not 0.0 <= target_motion_amplitude_m <= 0.16
+    ):
+        raise ValueError("target_motion_amplitude_m must be finite and between 0 and 0.16")
+    if not math.isfinite(target_motion_frequency_hz) or target_motion_frequency_hz < 0.0:
+        raise ValueError("target_motion_frequency_hz must be finite and non-negative")
+    if target_motion_amplitude_m and target_motion_frequency_hz <= 0.0:
+        raise ValueError("moving targets require a positive target_motion_frequency_hz")
+    if (
+        isinstance(camera_observation_delay_observations, bool)
+        or not isinstance(camera_observation_delay_observations, int)
+        or camera_observation_delay_observations < 0
+    ):
+        raise ValueError("camera_observation_delay_observations must be a non-negative integer")
+    if camera_observation_delay_observations and controller != "image_feedback":
+        raise ValueError("camera observation delay can only be used with image_feedback")
     if target_dropout_start_observation is not None and (
         isinstance(target_dropout_start_observation, bool)
         or not isinstance(target_dropout_start_observation, int)
@@ -236,6 +280,9 @@ def run_trials(
     data = mujoco.MjData(model)
     renderer = mujoco.Renderer(model, height=IMAGE_HEIGHT, width=IMAGE_WIDTH)
     target_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "target")
+    target_mocap_id = int(model.body_mocapid[target_id])
+    if target_mocap_id < 0:
+        raise RuntimeError("target body must be a MuJoCo mocap body")
     site_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SITE, "end_effector")
     shoulder_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT, "shoulder_joint")
     elbow_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT, "elbow_joint")
@@ -249,15 +296,28 @@ def run_trials(
     if not 0.0 < controller_camera_fovy < 180.0:
         raise ValueError("calibrated camera field of view must be between 0 and 180 degrees")
 
-    # Targets are kept inside both the table and the arm's reachable annulus.
+    # Keep the full target path inside the nominal x span and arm workspace.
     targets = []
     while len(targets) < episodes:
         candidate = (
-            float(target_rng.uniform(0.35, 0.67)),
+            float(
+                target_rng.uniform(
+                    0.35 + target_motion_amplitude_m,
+                    0.67 - target_motion_amplitude_m,
+                )
+            ),
             float(target_rng.uniform(-0.32, 0.32)),
         )
-        radius = math.hypot(*candidate)
-        if abs(LINK_LENGTHS[0] - LINK_LENGTHS[1]) + 0.02 < radius < sum(LINK_LENGTHS) - 0.04:
+        radii = [
+            math.hypot(candidate[0] + offset, candidate[1])
+            for offset in (-target_motion_amplitude_m, target_motion_amplitude_m)
+        ]
+        if all(
+            abs(LINK_LENGTHS[0] - LINK_LENGTHS[1]) + 0.02
+            < radius
+            < sum(LINK_LENGTHS) - 0.04
+            for radius in radii
+        ):
             targets.append(candidate)
 
     results = []
@@ -277,7 +337,7 @@ def run_trials(
 
     for index, (target_x, target_y) in enumerate(targets):
         mujoco.mj_resetData(model, data)
-        model.body_pos[target_id] = (target_x, target_y, TARGET_HEIGHT)
+        data.mocap_pos[target_mocap_id] = (target_x, target_y, TARGET_HEIGHT)
         data.qpos[shoulder_qpos] = HOME_JOINT_ANGLES[0]
         data.qpos[elbow_qpos] = HOME_JOINT_ANGLES[1]
         data.ctrl[0] = HOME_JOINT_ANGLES[0]
@@ -287,12 +347,15 @@ def run_trials(
         # The controller gets only the camera image. Ground truth is used below
         # for evaluation, never for target localization or control.
         rgb = render_rgb(renderer, data)
+        camera_frame_history = [rgb]
+        camera_target_position_history = [(target_x, target_y)]
         detected_pixel_xy = detect_red_target(rgb)
         noise = measurement_rng.normal(0.0, pixel_noise_std_px, size=2)
         pixel_xy = (
             float(detected_pixel_xy[0] + noise[0]),
             float(detected_pixel_xy[1] + noise[1]),
         )
+        camera_target_pixel_history: list[tuple[float, float] | None] = [pixel_xy]
         estimated_xy = pixel_to_table_xy(
             pixel_xy,
             (IMAGE_WIDTH, IMAGE_HEIGHT),
@@ -317,8 +380,16 @@ def run_trials(
             {
                 "observation_index": 0,
                 "target_visible_in_render": True,
+                "target_visible_in_observation": True,
                 "injected_dropout": False,
                 "target_measurement_used": True,
+                "camera_observation_age_observations": 0,
+                "camera_observation_age_simulated_s": 0.0,
+                "target_position_xy_m_for_evaluation_only": [target_x, target_y],
+                "observed_target_position_xy_m_for_evaluation_only": [
+                    target_x,
+                    target_y,
+                ],
                 "consecutive_target_misses": 0,
                 "completed_motion_updates": 0,
                 "joint_angles_rad": [
@@ -362,7 +433,14 @@ def run_trials(
                     1, round(1.0 / (float(model.opt.timestep) * VIDEO_FPS))
                 )
                 for step in range(SIMULATION_STEPS):
-                    mujoco.mj_step(model, data)
+                    _step_with_target_motion(
+                        model,
+                        data,
+                        target_mocap_id,
+                        (target_x, target_y),
+                        target_motion_amplitude_m,
+                        target_motion_frequency_hz,
+                    )
                     if save_episode_media and step % video_step_interval == 0:
                         video_writer.write(
                             demo_video_frame(
@@ -379,10 +457,16 @@ def run_trials(
                 consecutive_target_misses = 0
                 consecutive_tolerance_checks = 0
                 consecutive_stale_tolerance_checks = 0
+                observation_rgb = rgb
+                camera_observation_age = 0
                 for iteration in range(max_observations):
                     visibility_event = target_visibility_trace[0] if iteration == 0 else None
                     if iteration > 0:
                         rgb = render_rgb(renderer, data)
+                        camera_frame_history.append(rgb)
+                        camera_target_position_history.append(
+                            tuple(float(value) for value in data.xpos[target_id][:2])
+                        )
                         dropout_active = (
                             target_dropout_start_observation is not None
                             and target_dropout_start_observation
@@ -391,24 +475,55 @@ def run_trials(
                             + target_dropout_duration_observations
                         )
                         try:
-                            detected_pixel_xy = detect_red_target(rgb)
+                            current_detected_pixel_xy = detect_red_target(rgb)
                         except RuntimeError as error:
                             target_visible_in_render = False
-                            target_detection_error = error
+                            current_detection_error = error
+                            captured_target_pixel_xy = None
                         else:
                             target_visible_in_render = True
-                            target_detection_error = None
+                            current_detection_error = None
+                            noise = measurement_rng.normal(0.0, pixel_noise_std_px, size=2)
+                            captured_target_pixel_xy = (
+                                float(current_detected_pixel_xy[0] + noise[0]),
+                                float(current_detected_pixel_xy[1] + noise[1]),
+                            )
+                        camera_target_pixel_history.append(captured_target_pixel_xy)
+                        if len(camera_frame_history) > camera_observation_delay_observations + 1:
+                            camera_frame_history.pop(0)
+                            camera_target_position_history.pop(0)
+                            camera_target_pixel_history.pop(0)
+                        camera_observation_age = min(
+                            camera_observation_delay_observations, iteration
+                        )
+                        observation_rgb = camera_frame_history[
+                            -1 - camera_observation_age
+                        ]
+                        observed_target_position_xy = camera_target_position_history[
+                            -1 - camera_observation_age
+                        ]
+                        observed_target_pixel_xy = camera_target_pixel_history[
+                            -1 - camera_observation_age
+                        ]
+                        target_visible_in_observation = observed_target_pixel_xy is not None
+                        if target_visible_in_observation:
+                            detected_pixel_xy = observed_target_pixel_xy
+                        target_detection_error = (
+                            current_detection_error
+                            if camera_observation_age == 0
+                            else RuntimeError("delayed camera frame contains no red target")
+                        )
 
                         if dropout_active:
                             injected_dropout_pending = True
                             consecutive_target_misses += 1
-                            if target_visible_in_render:
+                            if target_visible_in_observation:
                                 injected_dropout_visible_observations += 1
                             else:
                                 injected_dropout_occlusion_overlap_observations += 1
                                 natural_target_visibility_loss_observations += 1
                                 natural_visibility_pending = True
-                        elif not target_visible_in_render:
+                        elif not target_visible_in_observation:
                             consecutive_target_misses += 1
                             natural_target_visibility_loss_observations += 1
                             natural_target_visibility_loss_outside_dropout_observations += 1
@@ -424,12 +539,7 @@ def run_trials(
                             if consecutive_target_misses > 0:
                                 target_reacquisitions += 1
                             consecutive_target_misses = 0
-                            noise = measurement_rng.normal(0.0, pixel_noise_std_px, size=2)
-                            measured_pixel_xy = (
-                                float(detected_pixel_xy[0] + noise[0]),
-                                float(detected_pixel_xy[1] + noise[1]),
-                            )
-                            target_pixel_history.append(measured_pixel_xy)
+                            target_pixel_history.append(detected_pixel_xy)
                             target_pixel_history = target_pixel_history[
                                 -feedback_target_filter_window:
                             ]
@@ -437,9 +547,25 @@ def run_trials(
                         visibility_event = {
                             "observation_index": iteration,
                             "target_visible_in_render": target_visible_in_render,
+                            "target_visible_in_observation": target_visible_in_observation,
                             "injected_dropout": dropout_active,
+                            "camera_observation_age_observations": camera_observation_age,
+                            "camera_observation_age_simulated_s": round(
+                                camera_observation_age
+                                * FEEDBACK_STEPS_PER_UPDATE
+                                * float(model.opt.timestep),
+                                4,
+                            ),
+                            "target_position_xy_m_for_evaluation_only": [
+                                round(float(value), 5)
+                                for value in data.xpos[target_id][:2]
+                            ],
+                            "observed_target_position_xy_m_for_evaluation_only": [
+                                round(float(value), 5)
+                                for value in observed_target_position_xy
+                            ],
                             "target_measurement_used": (
-                                target_visible_in_render and not dropout_active
+                                target_visible_in_observation and not dropout_active
                             ),
                             "consecutive_target_misses": consecutive_target_misses,
                             "stale_tolerance_checks": consecutive_stale_tolerance_checks,
@@ -452,7 +578,7 @@ def run_trials(
                         target_visibility_trace.append(visibility_event)
                         if consecutive_target_misses > FEEDBACK_TARGET_OCCLUSION_GRACE:
                             controller_stop_reason = "target_not_visible"
-                            if dropout_active and target_visible_in_render:
+                            if dropout_active and target_visible_in_observation:
                                 target_visibility_stop_cause = "injected_detector_dropout"
                                 controller_error = "injected target detector dropout"
                             elif dropout_active:
@@ -465,7 +591,7 @@ def run_trials(
                                 controller_error = str(target_detection_error)
                             break
                     try:
-                        end_effector_pixel_xy = detect_green_end_effector(rgb)
+                        end_effector_pixel_xy = detect_green_end_effector(observation_rgb)
                     except RuntimeError as error:
                         controller_stop_reason = "end_effector_not_visible"
                         controller_error = str(error)
@@ -546,7 +672,14 @@ def run_trials(
                         1, round(1.0 / (float(model.opt.timestep) * VIDEO_FPS))
                     )
                     for step in range(FEEDBACK_STEPS_PER_UPDATE):
-                        mujoco.mj_step(model, data)
+                        _step_with_target_motion(
+                            model,
+                            data,
+                            target_mocap_id,
+                            (target_x, target_y),
+                            target_motion_amplitude_m,
+                            target_motion_frequency_hz,
+                        )
                         if save_episode_media and step % video_step_interval == 0:
                             dropout_status = (
                                 f"TARGET LOST {consecutive_target_misses}/"
@@ -563,6 +696,7 @@ def run_trials(
                                     camera_fovy_error_deg=camera_fovy_error_deg,
                                     status=(
                                         f"{dropout_status}"
+                                        f"camera age {camera_observation_age} obs  |  "
                                         f"image error {math.hypot(*pixel_error):.1f} px  |  "
                                         f"motion update {control_iterations + 1}"
                                     ),
@@ -574,9 +708,10 @@ def run_trials(
                     controller_stop_reason = "iteration_limit"
 
         end_xy = data.site_xpos[site_id][:2].copy()
-        true_xy = model.body_pos[target_id][:2].copy()
+        true_xy = data.xpos[target_id][:2].copy()
         final_error = float(np.linalg.norm(end_xy - true_xy))
-        estimate_error = float(np.linalg.norm(np.asarray(estimated_xy) - true_xy))
+        initial_true_xy = np.asarray((target_x, target_y), dtype=float)
+        estimate_error = float(np.linalg.norm(np.asarray(estimated_xy) - initial_true_xy))
         simulated_steps = (
             SIMULATION_STEPS
             if controller == "open_loop" and controller_error is None
@@ -625,6 +760,7 @@ def run_trials(
             "controller_pixel_xy": [round(value, 2) for value in pixel_xy],
             "estimated_target_xy_m": [round(value, 4) for value in estimated_xy],
             "true_target_xy_m_for_evaluation_only": [round(float(value), 4) for value in true_xy],
+            "target_start_xy_m_for_evaluation_only": [target_x, target_y],
             "end_effector_xy_m": [round(float(value), 4) for value in end_xy],
             "perception_error_m": round(estimate_error, 4),
             "reaching_error_m": round(final_error, 4),
@@ -652,6 +788,17 @@ def run_trials(
             "target_visibility_trace": target_visibility_trace,
             "target_dropout_start_observation": target_dropout_start_observation,
             "target_dropout_duration_observations": target_dropout_duration_observations,
+            "target_motion_amplitude_m": target_motion_amplitude_m,
+            "target_motion_frequency_hz": target_motion_frequency_hz,
+            "camera_observation_delay_observations": (
+                camera_observation_delay_observations
+            ),
+            "camera_observation_delay_simulated_s": round(
+                camera_observation_delay_observations
+                * FEEDBACK_STEPS_PER_UPDATE
+                * float(model.opt.timestep),
+                4,
+            ),
             "feedback_allow_stale_target_confirmation": (
                 feedback_allow_stale_target_confirmation
             ),
@@ -679,6 +826,15 @@ def run_trials(
         ),
         "target_dropout_start_observation": target_dropout_start_observation,
         "target_dropout_duration_observations": target_dropout_duration_observations,
+        "target_motion_amplitude_m": target_motion_amplitude_m,
+        "target_motion_frequency_hz": target_motion_frequency_hz,
+        "camera_observation_delay_observations": camera_observation_delay_observations,
+        "camera_observation_delay_simulated_s": round(
+            camera_observation_delay_observations
+            * FEEDBACK_STEPS_PER_UPDATE
+            * float(model.opt.timestep),
+            4,
+        ),
         "success_threshold_m": SUCCESS_THRESHOLD_METERS,
         "successes": successes,
         "success_rate": successes / episodes,
@@ -727,7 +883,10 @@ def main() -> int:
     parser.add_argument(
         "--feedback-allow-stale-target-confirmation",
         action="store_true",
-        help="experimental: allow arrival confirmation from the last target estimate during brief loss",
+        help=(
+            "experimental: allow arrival confirmation from the last target estimate "
+            "during brief loss"
+        ),
     )
     parser.add_argument(
         "--target-dropout-start-observation",
@@ -739,6 +898,24 @@ def main() -> int:
         type=int,
         default=0,
         help="number of feedback observations with injected target detection loss",
+    )
+    parser.add_argument(
+        "--target-motion-amplitude-m",
+        type=float,
+        default=0.0,
+        help="sinusoidal target-motion amplitude along table x, in metres",
+    )
+    parser.add_argument(
+        "--target-motion-frequency-hz",
+        type=float,
+        default=0.25,
+        help="sinusoidal target-motion frequency in hertz",
+    )
+    parser.add_argument(
+        "--camera-observation-delay-observations",
+        type=int,
+        default=0,
+        help="number of feedback observations by which the camera frame lags",
     )
     parser.add_argument(
         "--controller",
@@ -786,6 +963,22 @@ def main() -> int:
     if args.target_dropout_duration_observations and args.controller != "image_feedback":
         parser.error("target dropout requires --controller image_feedback")
     if (
+        not math.isfinite(args.target_motion_amplitude_m)
+        or not 0.0 <= args.target_motion_amplitude_m <= 0.16
+    ):
+        parser.error("--target-motion-amplitude-m must be between 0 and 0.16")
+    if (
+        not math.isfinite(args.target_motion_frequency_hz)
+        or args.target_motion_frequency_hz < 0.0
+    ):
+        parser.error("--target-motion-frequency-hz must be finite and non-negative")
+    if args.target_motion_amplitude_m and args.target_motion_frequency_hz <= 0.0:
+        parser.error("moving targets require a positive --target-motion-frequency-hz")
+    if args.camera_observation_delay_observations < 0:
+        parser.error("--camera-observation-delay-observations must be non-negative")
+    if args.camera_observation_delay_observations and args.controller != "image_feedback":
+        parser.error("camera observation delay requires --controller image_feedback")
+    if (
         args.feedback_allow_stale_target_confirmation
         and args.controller != "image_feedback"
     ):
@@ -807,6 +1000,11 @@ def main() -> int:
         ),
         target_dropout_start_observation=args.target_dropout_start_observation,
         target_dropout_duration_observations=args.target_dropout_duration_observations,
+        target_motion_amplitude_m=args.target_motion_amplitude_m,
+        target_motion_frequency_hz=args.target_motion_frequency_hz,
+        camera_observation_delay_observations=(
+            args.camera_observation_delay_observations
+        ),
     )
     print(
         f"Camera-based reaching: {report['successes']}/{report['trials']} successful "
