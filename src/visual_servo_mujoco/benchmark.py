@@ -11,7 +11,7 @@ from pathlib import Path
 
 import numpy as np
 
-from .run import SUCCESS_THRESHOLD_METERS, run_trials
+from .run import FEEDBACK_TARGET_FILTER_WINDOW, SUCCESS_THRESHOLD_METERS, run_trials
 
 
 @dataclass(frozen=True)
@@ -126,9 +126,13 @@ def run_benchmark(
                 })
 
     result = {
-        "schema_version": 2,
+        "schema_version": 3,
         "benchmark": "camera_based_reaching_robustness",
         "success_threshold_m": SUCCESS_THRESHOLD_METERS,
+        "feedback_target_filter": {
+            "method": "rolling_coordinate_median",
+            "window": FEEDBACK_TARGET_FILTER_WINDOW,
+        },
         "base_seed": base_seed,
         "seeds": seeds,
         "episodes_per_seed": episodes_per_seed,

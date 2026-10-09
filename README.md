@@ -38,7 +38,9 @@ The benchmark compares two controllers on identical seeded target sequences:
 inverse kinematics; `image_feedback` repeatedly compares the red target and
 green end-effector marker in the image and applies a bounded damped-Jacobian
 joint update. The feedback controller stops when the image error is small or
-after 20 updates. Both start from the same joint pose.
+after 20 updates. It estimates the stationary target center from the
+coordinate-wise median of up to three recent detections, which suppresses
+isolated pixel outliers. Both controllers start from the same joint pose.
 
 Seven conditions test clean sensing, Gaussian target-pixel noise, and camera
 field-of-view calibration errors. Pixel noise is injected after target
@@ -65,6 +67,8 @@ largest was 3.04 cm. These are simulation results, not real-robot performance.
   end-effector marker; it is deterministic and easy to inspect.
 - The open-loop baseline localizes the target once before moving. The feedback
   controller observes the target and end effector again after each joint update.
+  It filters only the target detections; the end-effector measurement remains
+  current because the arm moves between updates.
 - If the arm briefly covers the target, image feedback reuses its last observed
   target position for up to five updates before stopping.
 
@@ -115,9 +119,39 @@ controller/condition pair (100 trials per row). Results:
 | Image feedback | 8 px noise and +5° FOV error | 96% | 1.4 cm | 3.8 cm | 14 | 5.6 s |
 
 In this scene, image feedback recovers from the tested calibration errors and
-reduces failures under pixel noise. At 20 px noise, it still fails 17% of the
-time, giving us a concrete next problem: improve noisy visual measurements
-without weakening the clean-sensing baseline.
+reduces failures under pixel noise. The initial feedback controller still
+failed 28% of trials at 20 px noise, which motivated the target-measurement
+filter experiment below.
+
+### Three-observation median filter experiment
+
+I reran the same five seeds and target sequences with a coordinate-wise median
+over the latest three target detections. Each result below uses 100 trials per
+condition; the paired comparison holds the controller and benchmark settings
+fixed and changes only the filter.
+
+| Condition | Success, no filter → median | Median error, no filter → median | 95th percentile, no filter → median |
+| --- | ---: | ---: | ---: |
+| Clean | 100% → 100% | 0.8 → 0.7 cm | 1.2 → 1.9 cm |
+| Pixel noise, 2 px | 100% → 100% | 0.8 → 0.7 cm | 1.8 → 1.7 cm |
+| Pixel noise, 8 px | 96% → 99% | 1.4 → 1.3 cm | 3.9 → 3.3 cm |
+| Pixel noise, 20 px | 72% → 78% | 3.4 → 2.9 cm | 7.1 → 7.1 cm |
+| FOV error, -5° | 100% → 100% | 0.7 → 0.7 cm | 1.3 → 1.8 cm |
+| FOV error, +5° | 100% → 100% | 0.8 → 0.7 cm | 1.1 → 2.1 cm |
+| Pixel noise 8 px and FOV error +5° | 96% → 99% | 1.4 → 1.4 cm | 3.8 → 3.8 cm |
+
+The filter gained 3 percentage points at 8 px noise and 6 points at 20 px,
+while preserving success on clean and calibration-only trials. Its 95th
+percentile error grew in clean and calibration-only runs, so it is a targeted
+noise-robustness improvement rather than a universal accuracy improvement. A
+five-observation window reached 79% success at 20 px noise but increased the
+clean median error to 1.0 cm; the three-observation window is the better
+overall compromise in these runs. These are deterministic simulation results,
+not a claim about real-camera noise.
+
+The next experiment is to reduce the remaining high-noise failures without
+increasing the clean-run error tail, for example by testing a convergence
+confirmation rule or a filter that adapts to observed measurement spread.
 
 The demo tests visual reaching, not grasping or contact-rich manipulation. A
 next extension could add a gripper and expose the scene as a LeRobot EnvHub

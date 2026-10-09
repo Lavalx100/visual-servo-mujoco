@@ -8,6 +8,7 @@ from visual_servo_mujoco.controller import (
     forward_kinematics,
     image_servo_joint_delta,
     inverse_kinematics,
+    median_pixel_estimate,
     pixel_to_table_xy,
 )
 from visual_servo_mujoco.model import MODEL_XML
@@ -52,6 +53,21 @@ def test_pixel_projection_has_expected_scale_and_vertical_direction():
     )
     assert right[0] > center[0]
     assert above[1] > center[1]
+
+
+def test_median_pixel_estimate_rejects_a_single_noisy_outlier():
+    estimate = median_pixel_estimate([(100.0, 200.0), (102.0, 199.0), (900.0, -500.0)])
+
+    assert estimate == pytest.approx((102.0, 199.0))
+
+
+def test_median_pixel_estimate_requires_finite_coordinate_pairs():
+    with pytest.raises(ValueError, match="at least one"):
+        median_pixel_estimate([])
+    with pytest.raises(ValueError, match="pairs"):
+        median_pixel_estimate([(1.0, 2.0, 3.0)])
+    with pytest.raises(ValueError, match="finite"):
+        median_pixel_estimate([(float("nan"), 0.0)])
 
 
 def test_red_target_detector_estimates_center_of_circular_component():
@@ -110,6 +126,10 @@ def test_robustness_benchmark_is_reproducible_and_pairs_trials():
     report = run_benchmark(seeds=1, episodes_per_seed=2, base_seed=13)
     replay = run_benchmark(seeds=1, episodes_per_seed=2, base_seed=13)
     assert report == replay
+    assert report["feedback_target_filter"] == {
+        "method": "rolling_coordinate_median",
+        "window": 3,
+    }
     assert len(report["conditions"]) == len(CONDITIONS) * len(CONTROLLERS)
     assert report["target_sequences_are_paired_across_controllers_and_conditions"] is True
 

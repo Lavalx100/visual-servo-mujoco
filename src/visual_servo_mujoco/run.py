@@ -15,6 +15,7 @@ from .controller import (
     camera_pixel_jacobian,
     image_servo_joint_delta,
     inverse_kinematics,
+    median_pixel_estimate,
     pixel_to_table_xy,
 )
 from .model import MODEL_XML
@@ -31,6 +32,7 @@ FEEDBACK_MAX_ITERATIONS = 20
 FEEDBACK_STEPS_PER_UPDATE = 200
 FEEDBACK_PIXEL_TOLERANCE = 8.0
 FEEDBACK_TARGET_OCCLUSION_GRACE = 5
+FEEDBACK_TARGET_FILTER_WINDOW = 3
 
 
 def detect_red_target(rgb_image: np.ndarray) -> tuple[float, float]:
@@ -211,6 +213,7 @@ def run_trials(
                         )
                         video_writer.write(frame)
             else:
+                target_pixel_history = [pixel_xy]
                 consecutive_target_misses = 0
                 for iteration in range(FEEDBACK_MAX_ITERATIONS):
                     if iteration > 0:
@@ -226,10 +229,15 @@ def run_trials(
                         else:
                             consecutive_target_misses = 0
                             noise = measurement_rng.normal(0.0, pixel_noise_std_px, size=2)
-                            pixel_xy = (
+                            measured_pixel_xy = (
                                 float(detected_pixel_xy[0] + noise[0]),
                                 float(detected_pixel_xy[1] + noise[1]),
                             )
+                            target_pixel_history.append(measured_pixel_xy)
+                            target_pixel_history = target_pixel_history[
+                                -FEEDBACK_TARGET_FILTER_WINDOW:
+                            ]
+                            pixel_xy = median_pixel_estimate(target_pixel_history)
                     try:
                         end_effector_pixel_xy = detect_green_end_effector(rgb)
                     except RuntimeError as error:

@@ -39,6 +39,21 @@ def pixel_to_table_xy(
     return world_x, world_y
 
 
+def median_pixel_estimate(
+    pixel_samples: list[tuple[float, float]],
+) -> tuple[float, float]:
+    """Return the coordinate-wise median of recent image-space measurements."""
+    if not pixel_samples:
+        raise ValueError("at least one pixel sample is required")
+    samples = np.asarray(pixel_samples, dtype=float)
+    if samples.ndim != 2 or samples.shape[1] != 2:
+        raise ValueError("pixel samples must be pairs of coordinates")
+    if not np.isfinite(samples).all():
+        raise ValueError("pixel samples must be finite")
+    median = np.median(samples, axis=0)
+    return float(median[0]), float(median[1])
+
+
 def inverse_kinematics(
     x: float,
     y: float,
