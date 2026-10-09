@@ -35,12 +35,7 @@ FEEDBACK_STEPS_PER_UPDATE = 200
 FEEDBACK_PIXEL_TOLERANCE = 8.0
 FEEDBACK_TARGET_OCCLUSION_GRACE = 5
 FEEDBACK_TARGET_FILTER_WINDOW = 3
-FEEDBACK_REQUIRED_TOLERANCE_CHECKS = 2
-# Allow a confirmation observation before each motion update and after the last.
-FEEDBACK_MAX_OBSERVATIONS = (
-    FEEDBACK_MAX_ITERATIONS * FEEDBACK_REQUIRED_TOLERANCE_CHECKS
-    + FEEDBACK_REQUIRED_TOLERANCE_CHECKS
-)
+FEEDBACK_REQUIRED_TOLERANCE_CHECKS = 3
 
 
 def detect_red_target(rgb_image: np.ndarray) -> tuple[float, float]:
@@ -144,6 +139,7 @@ def run_trials(
     controller: str = "open_loop",
     video_episode_index: int = 0,
     feedback_target_filter_window: int | None = None,
+    feedback_required_tolerance_checks: int | None = None,
     save_media: bool = True,
 ) -> dict:
     """Run reaching trials with optional perception and camera-calibration errors.
@@ -171,6 +167,18 @@ def run_trials(
         or feedback_target_filter_window <= 0
     ):
         raise ValueError("feedback_target_filter_window must be a positive integer")
+    if feedback_required_tolerance_checks is None:
+        feedback_required_tolerance_checks = FEEDBACK_REQUIRED_TOLERANCE_CHECKS
+    if (
+        isinstance(feedback_required_tolerance_checks, bool)
+        or not isinstance(feedback_required_tolerance_checks, int)
+        or feedback_required_tolerance_checks <= 0
+    ):
+        raise ValueError("feedback_required_tolerance_checks must be a positive integer")
+    max_observations = (
+        FEEDBACK_MAX_ITERATIONS * feedback_required_tolerance_checks
+        + feedback_required_tolerance_checks
+    )
     if not 0 <= video_episode_index < episodes:
         raise ValueError("video_episode_index must be within the requested episodes")
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -296,7 +304,7 @@ def run_trials(
                 target_pixel_history = [pixel_xy]
                 consecutive_target_misses = 0
                 consecutive_tolerance_checks = 0
-                for iteration in range(FEEDBACK_MAX_OBSERVATIONS):
+                for iteration in range(max_observations):
                     if iteration > 0:
                         rgb = render_rgb(renderer, data)
                         try:
@@ -331,7 +339,7 @@ def run_trials(
                     )
                     if math.hypot(*pixel_error) <= FEEDBACK_PIXEL_TOLERANCE:
                         consecutive_tolerance_checks += 1
-                        if consecutive_tolerance_checks >= FEEDBACK_REQUIRED_TOLERANCE_CHECKS:
+                        if consecutive_tolerance_checks >= feedback_required_tolerance_checks:
                             controller_stop_reason = "pixel_tolerance_reached"
                             break
                         continue
@@ -408,10 +416,11 @@ def run_trials(
         if failure_reason is None and not success:
             failure_reason = controller_stop_reason or "final_error_exceeded_threshold"
         if save_episode_media:
+            displayed_final_error = round(final_error, 4)
             final_status = (
-                f"SUCCESS | final error {final_error * 100.0:.1f} cm"
+                f"SUCCESS | final error {displayed_final_error * 100.0:.1f} cm"
                 if success
-                else f"NOT REACHED | final error {final_error * 100.0:.1f} cm"
+                else f"NOT REACHED | final error {displayed_final_error * 100.0:.1f} cm"
             )
             final_frame = demo_video_frame(
                 final_rgb,
@@ -461,6 +470,7 @@ def run_trials(
             "method": "rolling_coordinate_median",
             "window": feedback_target_filter_window,
         },
+        "feedback_required_tolerance_checks": feedback_required_tolerance_checks,
         "success_threshold_m": SUCCESS_THRESHOLD_METERS,
         "successes": successes,
         "success_rate": successes / episodes,
@@ -495,6 +505,12 @@ def main() -> int:
         help="number of recent target detections used by the feedback median",
     )
     parser.add_argument(
+        "--feedback-required-tolerance-checks",
+        type=int,
+        default=FEEDBACK_REQUIRED_TOLERANCE_CHECKS,
+        help="consecutive image-space checks required before stopping",
+    )
+    parser.add_argument(
         "--controller",
         choices=("open_loop", "image_feedback"),
         default="open_loop",
@@ -521,6 +537,8 @@ def main() -> int:
         parser.error("--camera-fovy-error-deg must be finite")
     if args.feedback_target_filter_window <= 0:
         parser.error("--feedback-target-filter-window must be a positive integer")
+    if args.feedback_required_tolerance_checks <= 0:
+        parser.error("--feedback-required-tolerance-checks must be a positive integer")
 
     report = run_trials(
         args.episodes,
@@ -531,6 +549,7 @@ def main() -> int:
         controller=args.controller,
         video_episode_index=args.video_episode_index,
         feedback_target_filter_window=args.feedback_target_filter_window,
+        feedback_required_tolerance_checks=args.feedback_required_tolerance_checks,
     )
     print(
         f"Camera-based reaching: {report['successes']}/{report['trials']} successful "

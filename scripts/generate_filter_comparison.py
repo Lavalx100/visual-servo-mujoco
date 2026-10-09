@@ -11,9 +11,9 @@ import numpy as np
 from visual_servo_mujoco.run import IMAGE_HEIGHT, IMAGE_WIDTH, VIDEO_FPS, run_trials
 
 
-SEED = 4
-EPISODES = 13
-EPISODE_INDEX = 12
+SEED = 1
+EPISODES = 8
+EPISODE_INDEX = 7
 PIXEL_NOISE_STD_PX = 20.0
 FILTER_WINDOWS = (3, 5)
 HEADER_HEIGHT = 56
@@ -60,7 +60,7 @@ def _compose_videos(
             )
             cv2.putText(
                 canvas,
-                "Same target and noise sequence | seed 4, episode 12 | 20 px noise",
+                "Same target and noise sequence | seed 1, episode 7 | 20 px noise",
                 (18, 23),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.55,
@@ -75,7 +75,7 @@ def _compose_videos(
                     label,
                     (18 + x, 47),
                     cv2.FONT_HERSHEY_SIMPLEX,
-                    0.62,
+                    0.5,
                     color,
                     2,
                     cv2.LINE_AA,
@@ -117,9 +117,9 @@ def main() -> int:
                 save_media=True,
             )
             trial = report["results"][EPISODE_INDEX]
-            status = "SUCCESS" if trial["success"] else "NOT REACHED"
+            status = "REACHED" if trial["success"] else "MISS"
             label = (
-                f"{window}-sample median | {status} | "
+                f"{window}-sample | {status} | "
                 f"{trial['reaching_error_m'] * 100.0:.1f} cm error"
             )
             color = (80, 220, 110) if trial["success"] else (90, 130, 255)

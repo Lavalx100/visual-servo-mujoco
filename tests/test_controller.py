@@ -135,7 +135,7 @@ def test_robustness_benchmark_is_reproducible_and_pairs_trials():
         "method": "rolling_coordinate_median",
         "window": 3,
     }
-    assert report["feedback_required_tolerance_checks"] == 2
+    assert report["feedback_required_tolerance_checks"] == 3
     assert report["feedback_max_joint_step_radians"] == 0.25
     assert len(report["conditions"]) == len(CONDITIONS) * len(CONTROLLERS)
     assert report["target_sequences_are_paired_across_controllers_and_conditions"] is True
@@ -175,9 +175,11 @@ def test_benchmark_records_selected_feedback_filter_window():
         seeds=1,
         episodes_per_seed=1,
         feedback_target_filter_window=5,
+        feedback_required_tolerance_checks=2,
     )
 
     assert report["feedback_target_filter"]["window"] == 5
+    assert report["feedback_required_tolerance_checks"] == 2
 
 
 def test_unreachable_camera_estimate_is_recorded_as_trial_failure(tmp_path):
@@ -203,6 +205,7 @@ def test_feedback_filter_window_can_be_selected_and_is_recorded(tmp_path):
         output_dir=tmp_path,
         controller="image_feedback",
         feedback_target_filter_window=5,
+        feedback_required_tolerance_checks=2,
         save_media=False,
     )
 
@@ -210,6 +213,7 @@ def test_feedback_filter_window_can_be_selected_and_is_recorded(tmp_path):
         "method": "rolling_coordinate_median",
         "window": 5,
     }
+    assert report["feedback_required_tolerance_checks"] == 2
 
 
 def test_feedback_filter_window_must_be_positive(tmp_path):
@@ -219,6 +223,17 @@ def test_feedback_filter_window_must_be_positive(tmp_path):
             seed=13,
             output_dir=tmp_path,
             feedback_target_filter_window=0,
+            save_media=False,
+        )
+
+
+def test_feedback_tolerance_confirmation_count_must_be_positive(tmp_path):
+    with pytest.raises(ValueError, match="positive integer"):
+        run_trials(
+            episodes=1,
+            seed=13,
+            output_dir=tmp_path,
+            feedback_required_tolerance_checks=0,
             save_media=False,
         )
 

@@ -25,6 +25,7 @@ uv run visual-servo-demo --episodes 20 --seed 7
 uv run visual-servo-demo --controller image_feedback --episodes 20 --seed 7
 uv run visual-servo-benchmark --seeds 5 --episodes-per-seed 20
 uv run visual-servo-benchmark --feedback-target-filter-window 5 --output artifacts/filter-window-5.json
+uv run visual-servo-benchmark --feedback-required-tolerance-checks 2 --output artifacts/two-check-stop.json
 ```
 
 The command writes `artifacts/results.json`, `artifacts/camera_view.png`, and
@@ -73,7 +74,7 @@ The benchmark compares two controllers on identical seeded target sequences:
 `open_loop` projects one target detection into table coordinates and solves
 inverse kinematics; `image_feedback` repeatedly compares the red target and
 green end-effector marker in the image and applies a bounded damped-Jacobian
-joint update. It requires two consecutive image-space checks inside an 8 px
+joint update. It requires three consecutive image-space checks inside an 8 px
 tolerance before stopping, or stops after 20 motion updates. It estimates the
 stationary target center from up to three recent detections using a
 coordinate-wise median, which suppresses isolated pixel outliers. Both
@@ -236,8 +237,8 @@ and these remaining failure cases, while retaining the paired-seed benchmark.
 
 The benchmark and demo commands accept
 `--feedback-target-filter-window` so filter sizes can be compared without
-changing controller code. I compared windows 3 and 5 with the two-check stop
-and 0.25 rad step cap held fixed. The first group is the benchmark's original
+changing controller code. I compared windows 3 and 5 with the then-current
+two-check stop and 0.25 rad step cap held fixed. The first group is the benchmark's original
 seed range; the second uses ten additional seeds and 200 high-noise trials.
 
 | Seeds, 20 px noise | Window | Success | Median error | 95th percentile | Worst error | Median updates | False pixel-tolerance stops |
@@ -250,8 +251,43 @@ seed range; the second uses ten additional seeds and 200 high-noise trials.
 The five-sample window reduced median motion updates, but did not improve
 success on the additional seeds and produced more false pixel-tolerance stops.
 Its small 95th-percentile change does not justify replacing the three-sample
-default. The side-by-side clip shows one paired episode where the outcomes
-differ; the table is the evidence for the overall comparison.
+filter default. The side-by-side clip shows one paired episode where the
+outcomes differ; the table is the evidence for the overall comparison.
+
+### Three-check stopping rule
+
+I tested three consecutive image-space checks instead of two, leaving the
+three-sample median and 0.25 rad joint-step cap unchanged. The original 100
+high-noise trials kept the same 85% success rate, while the 95th-percentile
+error improved from 6.03 to 5.92 cm and false pixel-tolerance stops fell from
+7 to 3. Update-limit failures rose from 8 to 12, and median motion time rose
+from 7.4 to 8.0 s.
+
+On ten additional seeds (200 high-noise trials), success rose from 163/200
+(81.5%) to 169/200 (84.5%). Median reaching error fell from 2.60 to 2.29 cm,
+95th-percentile error from 6.20 to 5.94 cm, and false pixel-tolerance stops
+from 14 to 5. Clean success and the ±5° FOV-only results were unchanged; the
+8 px-noise and combined-noise median and tail errors also improved. Three
+checks are now the default, while `--feedback-required-tolerance-checks` keeps
+the ablation reproducible. A tighter 6 px tolerance with two checks cut false
+stops but reduced success to 161/200 and increased update-limit failures from
+23 to 32, so I kept the 8 px threshold and added another confirmation instead.
+
+### Current default benchmark
+
+The current defaults are a three-observation median, three consecutive checks
+within 8 px, and a 0.25 rad joint-step cap. This table summarizes the 100 paired
+image-feedback trials per condition in `artifacts/benchmark.json`.
+
+| Condition | Success | Median error | 95th percentile | Median updates | Simulated motion |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Clean | 100% | 0.67 cm | 1.31 cm | 13 | 5.2 s |
+| Pixel noise, 2 px | 100% | 0.60 cm | 1.21 cm | 13 | 5.2 s |
+| Pixel noise, 8 px | 100% | 0.92 cm | 2.58 cm | 14 | 5.6 s |
+| Pixel noise, 20 px | 85% | 2.34 cm | 5.92 cm | 20 | 8.0 s |
+| Camera FOV error, -5° | 100% | 0.58 cm | 1.22 cm | 14 | 5.6 s |
+| Camera FOV error, +5° | 100% | 0.58 cm | 1.24 cm | 12 | 4.8 s |
+| 8 px noise and +5° FOV error | 100% | 0.95 cm | 2.71 cm | 13 | 5.2 s |
 
 The demo tests visual reaching, not grasping or contact-rich manipulation. A
 next extension could add a gripper and expose the scene as a LeRobot EnvHub
