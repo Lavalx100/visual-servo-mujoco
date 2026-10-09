@@ -30,6 +30,7 @@ uv run visual-servo-benchmark --feedback-max-joint-step-radians 0.25 --output ar
 uv run visual-servo-benchmark --feedback-allow-stale-target-confirmation \
   --output artifacts/benchmark-stale-confirmation.json
 uv run visual-servo-dynamic-benchmark --output artifacts/dynamic-target-benchmark.json
+uv run visual-servo-prediction-benchmark --output artifacts/prediction-benchmark.json
 ```
 
 The command writes `artifacts/results.json`, `artifacts/camera_view.png`, and
@@ -60,6 +61,7 @@ comparison is a labeled side-by-side video.
 | [Target dropout timeout](assets/demos/feedback_target_dropout_timeout.mp4) | A six-observation blackout exceeds the five-observation grace period, so visual confirmation stops safely. |
 | [Strict vs. stale-target stop](assets/demos/feedback_stale_confirmation_comparison.mp4) | Same target and camera sequence; strict mode stops on target loss, while the experimental rule confirms arrival from recent target history. |
 | [Moving target and camera delay](assets/demos/feedback_moving_target_latency.mp4) | Same seed and sinusoidal target: live feedback reaches within 1.4 cm, while a one-observation (0.4 s) delay misses by 4.95 cm. One illustrative trial. |
+| [Delayed-target prediction](assets/demos/feedback_target_prediction.mp4) | Same delayed target stream and arm state with measured, constant-velocity, and constant-acceleration estimates. One illustrative trial. |
 
 Regenerate the gallery with:
 
@@ -68,6 +70,7 @@ uv run python scripts/generate_demo_gallery.py
 uv run python scripts/generate_filter_comparison.py
 uv run python scripts/generate_stale_confirmation_comparison.py
 uv run python scripts/generate_latency_comparison.py
+uv run python scripts/generate_prediction_comparison.py
 ```
 
 To record a specific episode from a seeded batch, select it with
@@ -144,8 +147,9 @@ largest was 3.04 cm. These are simulation results, not real-robot performance.
   end-effector marker; it is deterministic and easy to inspect.
 - The open-loop baseline localizes the target once before moving. The feedback
   controller observes the target and end effector again after each joint update.
-  It filters only the target detections; the end-effector measurement remains
-  current because the arm moves between updates.
+  It filters only target detections. The separate prediction benchmark uses a
+  current joint-state projection for the end effector while target pixels are
+  delayed.
 - If the arm briefly covers the target, image feedback reuses its last observed
   target position for up to five updates before stopping.
 
@@ -183,6 +187,10 @@ only after the motion to score the trial.
   moving-target and camera-delay conditions.
 - `scripts/generate_latency_comparison.py` renders a paired moving-target video
   with live and delayed camera feedback.
+- `src/visual_servo_mujoco/prediction_benchmark.py` compares measured target
+  positions with constant-velocity and constant-acceleration image estimates.
+- `scripts/generate_prediction_comparison.py` renders the three-way delayed-
+  target prediction demo.
 
 ### First paired robustness baseline
 
@@ -410,8 +418,9 @@ blackout trials stopped on the estimate before the detector returned. For
 5-observation blackouts, the detector reacquired in 93/100 trials with stale
 confirmation, compared with 100/100 under the strict policy; seven trials
 stopped on the estimate before vision returned. The moving-target and latency
-tests are reported below; less idealized perception remains untested. The
-report is written to `artifacts/benchmark-stale-confirmation.json`.
+tests below also evaluate stale confirmation in this simulator; they do not
+model real-camera timing or detector behavior. The report is written to
+`artifacts/benchmark-stale-confirmation.json`.
 
 ### Moving-target and camera-delay benchmark
 
@@ -447,6 +456,40 @@ inspected directly.
 
 The [paired latency demo](assets/demos/feedback_moving_target_latency.mp4)
 shows the same seed and moving target with live camera feedback and a 0.4 s
-delay. The next controller experiment is to estimate target image velocity and
-predict its position to the current time, then rerun this benchmark. Grasping,
-contact-rich manipulation, and real-robot performance remain future work.
+delay. This benchmark delays both target and end-effector pixels, modeling a
+fully delayed camera stream.
+
+### Target-motion prediction experiment
+
+Run a paired comparison of the rolling-median baseline, a constant-velocity
+fit, and a constant-acceleration fit with:
+
+```bash
+uv run visual-servo-prediction-benchmark --output artifacts/prediction-benchmark.json
+```
+
+It uses five seeds and 20 targets per row (1,500 trials total), with noise-free
+target pixels. All three modes use the same current joint-state projection for
+the arm tip, so this isolates delayed target estimation from stale arm-pose
+feedback. This hybrid setup is distinct from the fully delayed-camera
+benchmark above. Prediction fits the last four distinct camera-capture times;
+the acceleration model falls back to a velocity fit until three samples exist.
+
+| Target and delay | Median baseline | Median velocity | Median acceleration | Success baseline / velocity / acceleration |
+| --- | ---: | ---: | ---: | ---: |
+| Stationary, 0 s | 0.65 cm | 0.61 cm | 0.81 cm | 100% / 100% / 100% |
+| Stationary, 0.8 s | 0.83 cm | 0.83 cm | 1.13 cm | 100% / 100% / 93% |
+| Moving, 0 s | 2.16 cm | 3.11 cm | 2.33 cm | 92% / 83% / 92% |
+| Moving, 0.4 s | 2.70 cm | 6.48 cm | 2.26 cm | 85% / 10% / 76% |
+| Moving, 0.8 s | 2.60 cm | 6.37 cm | 8.13 cm | 85% / 5% / 20% |
+
+The constant-velocity fit performs poorly when the sinusoidal target reverses
+direction within the prediction horizon. At 0.4 s delay, the acceleration fit
+improves median error (2.26 cm vs. 2.70 cm baseline) but has a worse P95
+(8.61 cm vs. 5.20 cm) and lower success (77% vs. 85%). Both predictors degrade
+success at 0.8 s. They remain experimental and off by default. The
+[three-way demo](assets/demos/feedback_target_prediction.mp4)
+shows one seed, not an aggregate result. Next, test reversal-aware prediction
+with pixel noise and piecewise-linear target paths before choosing a model.
+Grasping, contact-rich manipulation, and real-robot performance remain future
+work.

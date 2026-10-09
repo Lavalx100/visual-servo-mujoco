@@ -14,9 +14,13 @@ from visual_servo_mujoco.controller import (
     image_servo_joint_delta,
     inverse_kinematics,
     median_pixel_estimate,
+    predict_pixel_constant_acceleration,
+    predict_pixel_constant_velocity,
     pixel_to_table_xy,
+    table_xy_to_pixel,
 )
 from visual_servo_mujoco.dynamic_benchmark import run_dynamic_benchmark
+from visual_servo_mujoco.prediction_benchmark import run_prediction_benchmark
 from visual_servo_mujoco.model import MODEL_XML
 from visual_servo_mujoco.run import (
     FEEDBACK_MAX_ITERATIONS,
@@ -64,6 +68,55 @@ def test_pixel_projection_has_expected_scale_and_vertical_direction():
     )
     assert right[0] > center[0]
     assert above[1] > center[1]
+
+
+def test_table_pixel_projection_round_trips_at_a_known_height():
+    world_xy = (0.52, -0.17)
+    pixel_xy = table_xy_to_pixel(
+        world_xy,
+        (640, 480),
+        camera_height=2.0,
+        point_height=0.165,
+        vertical_fov_degrees=45.0,
+    )
+
+    assert pixel_to_table_xy(
+        pixel_xy,
+        (640, 480),
+        camera_height=2.0,
+        target_height=0.165,
+        vertical_fov_degrees=45.0,
+    ) == pytest.approx(world_xy, abs=1e-12)
+
+
+def test_constant_velocity_prediction_extrapolates_recent_pixels():
+    observations = [(0.0, (10.0, 20.0)), (0.5, (15.0, 18.0))]
+
+    assert predict_pixel_constant_velocity(observations, horizon_s=0.5) == pytest.approx(
+        (20.0, 16.0)
+    )
+    assert predict_pixel_constant_velocity(observations[:1], horizon_s=1.0) == (10.0, 20.0)
+
+
+def test_constant_velocity_prediction_rejects_duplicate_timestamps():
+    with pytest.raises(ValueError, match="strictly increasing"):
+        predict_pixel_constant_velocity(
+            [(0.0, (1.0, 2.0)), (0.0, (3.0, 4.0))],
+            horizon_s=0.1,
+        )
+
+
+def test_constant_acceleration_prediction_fits_a_quadratic_path():
+    observations = [
+        (0.0, (0.0, 0.0)),
+        (1.0, (1.0, -1.0)),
+        (2.0, (4.0, -4.0)),
+    ]
+
+    assert predict_pixel_constant_acceleration(
+        observations,
+        horizon_s=1.0,
+    ) == pytest.approx((9.0, -9.0))
 
 
 def test_median_pixel_estimate_rejects_a_single_noisy_outlier():
@@ -395,6 +448,55 @@ def test_camera_observation_delay_requires_image_feedback(tmp_path):
         )
 
 
+def test_constant_velocity_prediction_uses_timestamped_target_frames(tmp_path):
+    report = run_trials(
+        episodes=1,
+        seed=7,
+        output_dir=tmp_path,
+        controller="image_feedback",
+        target_motion_amplitude_m=0.04,
+        target_motion_frequency_hz=0.25,
+        camera_observation_delay_observations=1,
+        target_motion_prediction="constant_velocity",
+        use_current_end_effector_state=True,
+        save_media=False,
+    )
+
+    trial = report["results"][0]
+    predicted_events = [
+        event
+        for event in trial["target_visibility_trace"]
+        if event["target_motion_prediction_applied"]
+    ]
+    assert report["target_motion_prediction"] == "constant_velocity"
+    assert report["use_current_end_effector_state"] is True
+    assert predicted_events
+    assert any(
+        event["target_prediction_horizon_s"] == 0.4 for event in predicted_events
+    )
+    assert any(
+        event["end_effector_pixel_source"] == "current_joint_state_projection"
+        for event in predicted_events
+    )
+    assert any(
+        event["target_pixel_xy_raw_used"] != event["target_pixel_xy_used"]
+        for event in predicted_events
+        if event["target_pixel_xy_raw_used"] is not None
+    )
+
+
+def test_target_motion_prediction_requires_image_feedback(tmp_path):
+    with pytest.raises(ValueError, match="only be used with image_feedback"):
+        run_trials(
+            episodes=1,
+            seed=7,
+            output_dir=tmp_path,
+            controller="open_loop",
+            target_motion_prediction="constant_velocity",
+            save_media=False,
+        )
+
+
 def test_dynamic_benchmark_pairs_policy_runs_and_reports_conditions(tmp_path):
     report = run_dynamic_benchmark(
         seeds=1,
@@ -420,6 +522,33 @@ def test_dynamic_benchmark_pairs_policy_runs_and_reports_conditions(tmp_path):
         moving_delay_two["trial_results"][0]["target_start_xy_m_for_evaluation_only"]
     )
     assert (tmp_path / "dynamic.json").is_file()
+
+
+def test_prediction_benchmark_pairs_baseline_and_prediction_runs(tmp_path):
+    report = run_prediction_benchmark(
+        seeds=1,
+        episodes_per_seed=1,
+        output_path=tmp_path / "prediction.json",
+    )
+
+    assert report["benchmark"] == "target_motion_prediction_under_latency"
+    assert len(report["conditions"]) == 15
+    moving_delay_one = [
+        row
+        for row in report["conditions"]
+        if row["condition"]["name"] == "moving_delay_1"
+    ]
+    assert {row["target_motion_prediction"] for row in moving_delay_one} == {
+        "none",
+        "constant_velocity",
+        "constant_acceleration",
+    }
+    assert all(
+        row["trial_results"][0]["target_start_xy_m_for_evaluation_only"]
+        == moving_delay_one[0]["trial_results"][0]["target_start_xy_m_for_evaluation_only"]
+        for row in moving_delay_one
+    )
+    assert (tmp_path / "prediction.json").is_file()
 
 
 def test_target_dropout_requires_valid_start_and_feedback_controller(tmp_path):

@@ -39,6 +39,123 @@ def pixel_to_table_xy(
     return world_x, world_y
 
 
+def table_xy_to_pixel(
+    world_xy: tuple[float, float],
+    image_size: tuple[int, int],
+    *,
+    camera_height: float,
+    point_height: float,
+    vertical_fov_degrees: float,
+) -> tuple[float, float]:
+    """Project a point on the table into the top-down camera image."""
+    width, height = image_size
+    if width <= 0 or height <= 0:
+        raise ValueError("image dimensions must be positive")
+    if camera_height <= point_height:
+        raise ValueError("camera must be above the projected point")
+    if not 0.0 < vertical_fov_degrees < 180.0:
+        raise ValueError("vertical field of view must be between 0 and 180 degrees")
+
+    half_height = (camera_height - point_height) * math.tan(
+        math.radians(vertical_fov_degrees) / 2.0
+    )
+    half_width = half_height * width / height
+    world_x, world_y = world_xy
+    pixel_x = ((world_x / half_width + 1.0) * width / 2.0) - 0.5
+    pixel_y = ((1.0 - world_y / half_height) * height / 2.0) - 0.5
+    return pixel_x, pixel_y
+
+
+def predict_pixel_constant_velocity(
+    observations: list[tuple[float, tuple[float, float]]],
+    *,
+    horizon_s: float,
+    window: int = 4,
+) -> tuple[float, float]:
+    """Linearly extrapolate recent timestamped pixel observations.
+
+    Repeated delayed frames should be omitted by the caller so timestamps are
+    strictly increasing. A least-squares line over recent observations reduces
+    measurement noise while estimating image-plane velocity.
+    """
+    if not observations:
+        raise ValueError("at least one pixel observation is required")
+    if not math.isfinite(horizon_s) or horizon_s < 0.0:
+        raise ValueError("prediction horizon must be finite and non-negative")
+    if isinstance(window, bool) or not isinstance(window, int) or window <= 0:
+        raise ValueError("window must be a positive integer")
+
+    recent = observations[-window:]
+    samples = np.asarray(
+        [(timestamp, pixel[0], pixel[1]) for timestamp, pixel in recent],
+        dtype=float,
+    )
+    if samples.ndim != 2 or samples.shape[1] != 3 or not np.isfinite(samples).all():
+        raise ValueError("observations must contain finite timestamps and pixel pairs")
+    if np.any(np.diff(samples[:, 0]) <= 0.0):
+        raise ValueError("observation timestamps must be strictly increasing")
+
+    latest_time = samples[-1, 0]
+    if len(samples) == 1:
+        return float(samples[-1, 1]), float(samples[-1, 2])
+
+    relative_times = samples[:, 0] - latest_time
+    centered_times = relative_times - float(np.mean(relative_times))
+    time_variance = float(np.dot(centered_times, centered_times))
+    centered_pixels = samples[:, 1:3] - np.mean(samples[:, 1:3], axis=0)
+    velocity = np.sum(centered_times[:, None] * centered_pixels, axis=0) / time_variance
+    fitted_at_latest = np.mean(samples[:, 1:3], axis=0) + velocity * (
+        latest_time - float(np.mean(samples[:, 0]))
+    )
+    predicted = fitted_at_latest + velocity * horizon_s
+    return float(predicted[0]), float(predicted[1])
+
+
+def predict_pixel_constant_acceleration(
+    observations: list[tuple[float, tuple[float, float]]],
+    *,
+    horizon_s: float,
+    window: int = 4,
+) -> tuple[float, float]:
+    """Quadratically extrapolate recent timestamped pixel observations.
+
+    With fewer than three distinct observations, this falls back to the
+    constant-velocity estimate. The quadratic fit models local acceleration;
+    it does not assume that the target follows a sinusoid.
+    """
+    if not observations:
+        raise ValueError("at least one pixel observation is required")
+    if not math.isfinite(horizon_s) or horizon_s < 0.0:
+        raise ValueError("prediction horizon must be finite and non-negative")
+    if isinstance(window, bool) or not isinstance(window, int) or window <= 0:
+        raise ValueError("window must be a positive integer")
+
+    recent = observations[-window:]
+    samples = np.asarray(
+        [(timestamp, pixel[0], pixel[1]) for timestamp, pixel in recent],
+        dtype=float,
+    )
+    if samples.ndim != 2 or samples.shape[1] != 3 or not np.isfinite(samples).all():
+        raise ValueError("observations must contain finite timestamps and pixel pairs")
+    if np.any(np.diff(samples[:, 0]) <= 0.0):
+        raise ValueError("observation timestamps must be strictly increasing")
+    if len(samples) < 3:
+        return predict_pixel_constant_velocity(
+            recent,
+            horizon_s=horizon_s,
+            window=window,
+        )
+
+    relative_times = samples[:, 0] - samples[-1, 0]
+    design = np.column_stack(
+        (relative_times**2, relative_times, np.ones_like(relative_times))
+    )
+    coefficients, _, _, _ = np.linalg.lstsq(design, samples[:, 1:3], rcond=None)
+    future = np.array((horizon_s**2, horizon_s, 1.0), dtype=float)
+    predicted = future @ coefficients
+    return float(predicted[0]), float(predicted[1])
+
+
 def median_pixel_estimate(
     pixel_samples: list[tuple[float, float]],
 ) -> tuple[float, float]:

@@ -13,10 +13,14 @@ import numpy as np
 
 from .controller import (
     camera_pixel_jacobian,
+    forward_kinematics,
     image_servo_joint_delta,
     inverse_kinematics,
     median_pixel_estimate,
+    predict_pixel_constant_acceleration,
+    predict_pixel_constant_velocity,
     pixel_to_table_xy,
+    table_xy_to_pixel,
 )
 from .model import MODEL_XML
 
@@ -24,6 +28,7 @@ IMAGE_WIDTH = 640
 IMAGE_HEIGHT = 480
 CAMERA_HEIGHT = 2.0
 TARGET_HEIGHT = 0.165
+END_EFFECTOR_HEIGHT = 0.21
 LINK_LENGTHS = (0.42, 0.34)
 SIMULATION_STEPS = 1200
 VIDEO_FPS = 30.0
@@ -185,6 +190,8 @@ def run_trials(
     target_motion_amplitude_m: float = 0.0,
     target_motion_frequency_hz: float = 0.25,
     camera_observation_delay_observations: int = 0,
+    target_motion_prediction: str = "none",
+    use_current_end_effector_state: bool = False,
     save_media: bool = True,
 ) -> dict:
     """Run reaching trials with optional perception and camera-calibration errors.
@@ -197,9 +204,9 @@ def run_trials(
     step value caps each commanded update. A target dropout skips detection for
     a specified range of feedback observations. These knobs do not change the
     physics. The target can also move sinusoidally along the table's x axis,
-    and image feedback can consume a camera frame from earlier feedback
-    observations. Stale-target confirmation is an experimental option for the
-    stationary-target scene.
+    and image feedback can consume delayed camera frames. Optional prediction
+    extrapolates timestamped target pixels; current end-effector pixels can
+    come from the measured joint state instead of the delayed image.
     """
     if episodes <= 0:
         raise ValueError("episodes must be positive")
@@ -228,6 +235,21 @@ def run_trials(
         raise ValueError("camera_observation_delay_observations must be a non-negative integer")
     if camera_observation_delay_observations and controller != "image_feedback":
         raise ValueError("camera observation delay can only be used with image_feedback")
+    if target_motion_prediction not in {
+        "none",
+        "constant_velocity",
+        "constant_acceleration",
+    }:
+        raise ValueError(
+            "target_motion_prediction must be 'none', 'constant_velocity', "
+            "or 'constant_acceleration'"
+        )
+    if target_motion_prediction != "none" and controller != "image_feedback":
+        raise ValueError("target motion prediction can only be used with image_feedback")
+    if not isinstance(use_current_end_effector_state, bool):
+        raise ValueError("use_current_end_effector_state must be a boolean")
+    if use_current_end_effector_state and controller != "image_feedback":
+        raise ValueError("current end-effector state requires image_feedback")
     if target_dropout_start_observation is not None and (
         isinstance(target_dropout_start_observation, bool)
         or not isinstance(target_dropout_start_observation, int)
@@ -344,11 +366,13 @@ def run_trials(
         data.ctrl[1] = HOME_JOINT_ANGLES[1]
         mujoco.mj_forward(model, data)
 
-        # The controller gets only the camera image. Ground truth is used below
-        # for evaluation, never for target localization or control.
+        # Target localization comes from the camera. Ground-truth target state
+        # is reserved for evaluation; an optional current arm-pose projection
+        # uses joint state rather than target ground truth.
         rgb = render_rgb(renderer, data)
         camera_frame_history = [rgb]
         camera_target_position_history = [(target_x, target_y)]
+        camera_capture_time_history = [float(data.time)]
         detected_pixel_xy = detect_red_target(rgb)
         noise = measurement_rng.normal(0.0, pixel_noise_std_px, size=2)
         pixel_xy = (
@@ -356,6 +380,7 @@ def run_trials(
             float(detected_pixel_xy[1] + noise[1]),
         )
         camera_target_pixel_history: list[tuple[float, float] | None] = [pixel_xy]
+        target_motion_observation_history = [(float(data.time), pixel_xy)]
         estimated_xy = pixel_to_table_xy(
             pixel_xy,
             (IMAGE_WIDTH, IMAGE_HEIGHT),
@@ -385,6 +410,8 @@ def run_trials(
                 "target_measurement_used": True,
                 "camera_observation_age_observations": 0,
                 "camera_observation_age_simulated_s": 0.0,
+                "camera_capture_time_simulated_s": float(data.time),
+                "target_prediction_horizon_s": 0.0,
                 "target_position_xy_m_for_evaluation_only": [target_x, target_y],
                 "observed_target_position_xy_m_for_evaluation_only": [
                     target_x,
@@ -458,7 +485,9 @@ def run_trials(
                 consecutive_tolerance_checks = 0
                 consecutive_stale_tolerance_checks = 0
                 observation_rgb = rgb
+                observed_target_pixel_xy = pixel_xy
                 camera_observation_age = 0
+                prediction_horizon_s = 0.0
                 for iteration in range(max_observations):
                     visibility_event = target_visibility_trace[0] if iteration == 0 else None
                     if iteration > 0:
@@ -467,6 +496,7 @@ def run_trials(
                         camera_target_position_history.append(
                             tuple(float(value) for value in data.xpos[target_id][:2])
                         )
+                        camera_capture_time_history.append(float(data.time))
                         dropout_active = (
                             target_dropout_start_observation is not None
                             and target_dropout_start_observation
@@ -492,6 +522,7 @@ def run_trials(
                         if len(camera_frame_history) > camera_observation_delay_observations + 1:
                             camera_frame_history.pop(0)
                             camera_target_position_history.pop(0)
+                            camera_capture_time_history.pop(0)
                             camera_target_pixel_history.pop(0)
                         camera_observation_age = min(
                             camera_observation_delay_observations, iteration
@@ -500,6 +531,9 @@ def run_trials(
                             -1 - camera_observation_age
                         ]
                         observed_target_position_xy = camera_target_position_history[
+                            -1 - camera_observation_age
+                        ]
+                        observed_frame_time_s = camera_capture_time_history[
                             -1 - camera_observation_age
                         ]
                         observed_target_pixel_xy = camera_target_pixel_history[
@@ -544,6 +578,36 @@ def run_trials(
                                 -feedback_target_filter_window:
                             ]
                             pixel_xy = median_pixel_estimate(target_pixel_history)
+                        if target_motion_prediction != "none":
+                            if target_visible_in_observation and not dropout_active:
+                                if (
+                                    observed_frame_time_s
+                                    > target_motion_observation_history[-1][0] + 1e-9
+                                ):
+                                    target_motion_observation_history.append(
+                                        (observed_frame_time_s, detected_pixel_xy)
+                                    )
+                                    target_motion_observation_history = (
+                                        target_motion_observation_history[-4:]
+                                    )
+                            prediction_horizon_s = max(
+                                0.0,
+                                float(data.time) - target_motion_observation_history[-1][0],
+                            )
+                            model_ready = len(target_motion_observation_history) >= 2
+                            if prediction_horizon_s > 1e-9 and model_ready:
+                                if target_motion_prediction == "constant_acceleration":
+                                    pixel_xy = predict_pixel_constant_acceleration(
+                                        target_motion_observation_history,
+                                        horizon_s=prediction_horizon_s,
+                                    )
+                                else:
+                                    pixel_xy = predict_pixel_constant_velocity(
+                                        target_motion_observation_history,
+                                        horizon_s=prediction_horizon_s,
+                                    )
+                        else:
+                            prediction_horizon_s = 0.0
                         visibility_event = {
                             "observation_index": iteration,
                             "target_visible_in_render": target_visible_in_render,
@@ -551,10 +615,14 @@ def run_trials(
                             "injected_dropout": dropout_active,
                             "camera_observation_age_observations": camera_observation_age,
                             "camera_observation_age_simulated_s": round(
-                                camera_observation_age
-                                * FEEDBACK_STEPS_PER_UPDATE
-                                * float(model.opt.timestep),
+                                max(0.0, float(data.time) - observed_frame_time_s),
                                 4,
+                            ),
+                            "camera_capture_time_simulated_s": round(
+                                observed_frame_time_s, 4
+                            ),
+                            "target_prediction_horizon_s": round(
+                                prediction_horizon_s, 4
                             ),
                             "target_position_xy_m_for_evaluation_only": [
                                 round(float(value), 5)
@@ -591,7 +659,26 @@ def run_trials(
                                 controller_error = str(target_detection_error)
                             break
                     try:
-                        end_effector_pixel_xy = detect_green_end_effector(observation_rgb)
+                        if use_current_end_effector_state:
+                            current_angles = (
+                                float(data.qpos[shoulder_qpos]),
+                                float(data.qpos[elbow_qpos]),
+                            )
+                            current_end_effector_xy = forward_kinematics(
+                                *current_angles,
+                                link_lengths=LINK_LENGTHS,
+                            )
+                            end_effector_pixel_xy = table_xy_to_pixel(
+                                current_end_effector_xy,
+                                (IMAGE_WIDTH, IMAGE_HEIGHT),
+                                camera_height=CAMERA_HEIGHT,
+                                point_height=END_EFFECTOR_HEIGHT,
+                                vertical_fov_degrees=controller_camera_fovy,
+                            )
+                        else:
+                            end_effector_pixel_xy = detect_green_end_effector(
+                                observation_rgb
+                            )
                     except RuntimeError as error:
                         controller_stop_reason = "end_effector_not_visible"
                         controller_error = str(error)
@@ -604,9 +691,43 @@ def run_trials(
                     visibility_event["target_pixel_xy_used"] = [
                         round(value, 2) for value in pixel_xy
                     ]
+                    visibility_event["target_pixel_xy_raw_used"] = (
+                        [round(value, 2) for value in observed_target_pixel_xy]
+                        if iteration == 0
+                        or (
+                            target_visible_in_observation
+                            and not visibility_event["injected_dropout"]
+                        )
+                        else None
+                    )
+                    visibility_event["target_motion_prediction_applied"] = (
+                        target_motion_prediction != "none"
+                        and len(target_motion_observation_history) >= 2
+                        and prediction_horizon_s > 1e-9
+                    )
+                    visibility_event["target_prediction_model_used"] = (
+                        "constant_acceleration"
+                        if (
+                            target_motion_prediction == "constant_acceleration"
+                            and len(target_motion_observation_history) >= 3
+                            and prediction_horizon_s > 1e-9
+                        )
+                        else "constant_velocity"
+                        if (
+                            target_motion_prediction != "none"
+                            and len(target_motion_observation_history) >= 2
+                            and prediction_horizon_s > 1e-9
+                        )
+                        else "none"
+                    )
                     visibility_event["end_effector_pixel_xy"] = [
                         round(value, 2) for value in end_effector_pixel_xy
                     ]
+                    visibility_event["end_effector_pixel_source"] = (
+                        "current_joint_state_projection"
+                        if use_current_end_effector_state
+                        else "camera_observation"
+                    )
                     visibility_event["joint_angles_rad"] = [
                         round(float(data.qpos[shoulder_qpos]), 5),
                         round(float(data.qpos[elbow_qpos]), 5),
@@ -799,6 +920,8 @@ def run_trials(
                 * float(model.opt.timestep),
                 4,
             ),
+            "target_motion_prediction": target_motion_prediction,
+            "use_current_end_effector_state": use_current_end_effector_state,
             "feedback_allow_stale_target_confirmation": (
                 feedback_allow_stale_target_confirmation
             ),
@@ -835,6 +958,8 @@ def run_trials(
             * float(model.opt.timestep),
             4,
         ),
+        "target_motion_prediction": target_motion_prediction,
+        "use_current_end_effector_state": use_current_end_effector_state,
         "success_threshold_m": SUCCESS_THRESHOLD_METERS,
         "successes": successes,
         "success_rate": successes / episodes,
@@ -918,6 +1043,20 @@ def main() -> int:
         help="number of feedback observations by which the camera frame lags",
     )
     parser.add_argument(
+        "--target-motion-prediction",
+        choices=("none", "constant_velocity", "constant_acceleration"),
+        default="none",
+        help="experimental image-plane target prediction method",
+    )
+    parser.add_argument(
+        "--use-current-end-effector-state",
+        action="store_true",
+        help=(
+            "project current joint state for end-effector pixels instead of "
+            "using the delayed camera image"
+        ),
+    )
+    parser.add_argument(
         "--controller",
         choices=("open_loop", "image_feedback"),
         default="open_loop",
@@ -978,6 +1117,10 @@ def main() -> int:
         parser.error("--camera-observation-delay-observations must be non-negative")
     if args.camera_observation_delay_observations and args.controller != "image_feedback":
         parser.error("camera observation delay requires --controller image_feedback")
+    if args.target_motion_prediction != "none" and args.controller != "image_feedback":
+        parser.error("target motion prediction requires --controller image_feedback")
+    if args.use_current_end_effector_state and args.controller != "image_feedback":
+        parser.error("current end-effector state requires --controller image_feedback")
     if (
         args.feedback_allow_stale_target_confirmation
         and args.controller != "image_feedback"
@@ -1005,6 +1148,8 @@ def main() -> int:
         camera_observation_delay_observations=(
             args.camera_observation_delay_observations
         ),
+        target_motion_prediction=args.target_motion_prediction,
+        use_current_end_effector_state=args.use_current_end_effector_state,
     )
     print(
         f"Camera-based reaching: {report['successes']}/{report['trials']} successful "
