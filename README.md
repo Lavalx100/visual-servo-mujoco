@@ -38,9 +38,10 @@ image.
 
 ## Video demos
 
-The gallery includes paired controller examples, a successful high-noise run,
-a combined noise and calibration-error run, one transparent failure case, and
-a side-by-side filter-window comparison on the same noisy trial.
+The gallery includes paired controller examples, noisy and miscalibrated
+runs, a transparent failure case, a filter-window comparison, and two target
+dropout cases: one where vision returns and one where the controller reaches
+its visibility timeout.
 Individual clips are rendered at 640×480 and 30 fps with the controller,
 sensor condition, pixel error, and final reaching result overlaid. The filter
 comparison is a labeled side-by-side video.
@@ -53,6 +54,8 @@ comparison is a labeled side-by-side video.
 | [Noise and +5° FOV error](assets/demos/feedback_noise_and_fov_error.mp4) | Feedback with both sensor noise and a camera-model calibration error. |
 | [High-noise failure](assets/demos/feedback_high_noise_failure.mp4) | A recorded benchmark failure that reaches the motion-update limit. |
 | [3 vs. 5 observation filter](assets/demos/feedback_filter_window_comparison.mp4) | Same seed and noise: three samples miss by 4.8 cm; five samples reach 0.1 cm. One illustrative trial, not an aggregate result. |
+| [Target dropout and recovery](assets/demos/feedback_target_dropout_recovery.mp4) | Target detection is suppressed for three feedback observations; the arm reuses its last target estimate, then reacquires vision. |
+| [Target dropout timeout](assets/demos/feedback_target_dropout_timeout.mp4) | A six-observation blackout exceeds the five-observation grace period, so visual confirmation stops safely. |
 
 Regenerate the gallery with:
 
@@ -76,22 +79,42 @@ The benchmark compares two controllers on identical seeded target sequences:
 inverse kinematics; `image_feedback` repeatedly compares the red target and
 green end-effector marker in the image and applies a bounded damped-Jacobian
 joint update. It requires three consecutive image-space checks inside an 8 px
-tolerance before stopping, or stops after 20 motion updates. It estimates the
-stationary target center from up to three recent detections using a
-coordinate-wise median, which suppresses isolated pixel outliers. Both
-controllers start from the same joint pose.
+tolerance before stopping, or stops after 20 motion updates. If the target
+detector temporarily loses the target, feedback can reuse its last measured
+position for up to five observations. A stale estimate may guide motion, but
+it cannot confirm arrival; the controller requires fresh vision for its
+consecutive-tolerance stop. It estimates the stationary target center from up
+to three recent detections using a coordinate-wise median, which suppresses
+isolated pixel outliers. Both controllers start from the same joint pose.
 
-Seven conditions test clean sensing, Gaussian target-pixel noise, and camera
-field-of-view calibration errors. Pixel noise is injected after target
-detection at each observation; the calibration perturbation changes the
-controller's camera model, not the simulated camera. Each controller/condition
-pair has 100 trials across five seeds, for 1,400 trials total. The report
+Seven paired conditions test clean sensing, Gaussian target-pixel noise, and
+camera field-of-view calibration errors. Four additional feedback-only
+conditions suppress target detection for 1, 3, 5, or 6 observations. Pixel
+noise is injected after target detection at each observation; the calibration
+perturbation changes the controller's camera model, not the simulated camera.
+Each standard controller/condition pair and each dropout condition has 100
+trials across five seeds, for 1,800 trials total. The report
 includes success rate, error percentiles, failure reasons, update counts,
 simulated motion time, and per-seed/per-trial details in
 `artifacts/benchmark.json`. Simulated motion time is robot-task time, not wall
 clock runtime. Benchmark trials do not save videos. These controlled tests
 isolate specific errors; they do not claim to reproduce real camera noise or
 lighting.
+
+Target dropout is software fault injection: the simulated scene and physics
+continue normally, but selected camera observations are withheld from the red
+target detector. During the gap, the arm reuses the last target location to
+keep moving. It suspends arrival confirmation until the detector sees the
+target again. The benchmark tests gaps up to the five-observation grace limit
+and one longer gap that stops with `target_not_visible`. Run a recovery example
+locally with:
+
+```bash
+uv run visual-servo-demo --controller image_feedback --seed 7 --episodes 1 \
+  --target-dropout-start-observation 1 \
+  --target-dropout-duration-observations 3 \
+  --output-dir artifacts/dropout-recovery
+```
 
 On the included deterministic setup (`--episodes 20 --seed 7`), the current run
 reached all 20 targets within 4.5 cm. Median end-effector error was 0.9 cm; the
@@ -131,7 +154,8 @@ only after the motion to score the trial.
 - `src/visual_servo_mujoco/controller.py` contains the pixel projection, inverse
   and forward kinematics, image Jacobian, and damped joint update.
 - `src/visual_servo_mujoco/run.py` implements color detection, both controllers,
-  randomized trials, and per-trial scoring.
+  randomized trials, deterministic target-dropout injection, and per-trial
+  scoring.
 - `src/visual_servo_mujoco/benchmark.py` runs paired seeds across controllers
   and stress conditions, then writes the JSON summary.
 - `scripts/generate_demo_gallery.py` regenerates the deterministic clips in
@@ -306,6 +330,30 @@ image-feedback trials per condition in `artifacts/benchmark.json`.
 | Camera FOV error, +5° | 100% | 0.69 cm | 1.39 cm | 11 | 4.4 s |
 | 8 px noise and +5° FOV error | 100% | 1.05 cm | 2.56 cm | 12 | 4.8 s |
 
+### Target-detector dropout benchmark
+
+I injected a blackout beginning at feedback observation 1 and varied its
+duration over 100 paired trials per case. The detector recovers from each gap
+at or below the five-observation grace limit in all trials. A six-observation
+gap stops on the visibility timeout in all trials.
+
+| Injected gap | Physical success | Reacquired after injected gap | Median error | 95th percentile |
+| ---: | ---: | ---: | ---: | ---: |
+| 1 observation | 100% | 100/100 | 0.64 cm | 1.09 cm |
+| 3 observations | 100% | 100/100 | 0.63 cm | 1.05 cm |
+| 5 observations | 100% | 100/100 | 0.65 cm | 1.18 cm |
+| 6 observations | 33% | 0/100 | 6.88 cm | 29.23 cm |
+
+“Physical success” means the final end-effector position is within 4.5 cm of
+the target, measured from MuJoCo ground truth after control stops. In 92–94%
+of the 1-, 3-, and 5-observation trials, the controller later stopped because
+the arm naturally hid the target as it converged; the final position was still
+within the success radius. The six-observation condition shows the difference
+between physical proximity and visual confirmation: 33 trials were close
+enough at stop, but the controller correctly reported that it had lost the
+target before it could confirm arrival. This is a conservative stopping rule,
+not a claim that the simulated camera models all real occlusions.
+
 The demo tests visual reaching, not grasping or contact-rich manipulation. A
-next extension could add a gripper and expose the scene as a LeRobot EnvHub
-environment.
+next extension should improve recovery and stopping around self-occlusion,
+then add a gripper and expose the scene as a LeRobot EnvHub environment.

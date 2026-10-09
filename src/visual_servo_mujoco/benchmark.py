@@ -28,6 +28,8 @@ class StressCondition:
     name: str
     pixel_noise_std_px: float = 0.0
     camera_fovy_error_deg: float = 0.0
+    target_dropout_start_observation: int | None = None
+    target_dropout_duration_observations: int = 0
 
 
 CONDITIONS = (
@@ -42,6 +44,14 @@ CONDITIONS = (
         pixel_noise_std_px=8.0,
         camera_fovy_error_deg=5.0,
     ),
+)
+TARGET_DROPOUT_CONDITIONS = tuple(
+    StressCondition(
+        f"target_dropout_{duration}_observations",
+        target_dropout_start_observation=1,
+        target_dropout_duration_observations=duration,
+    )
+    for duration in (1, 3, 5, 6)
 )
 CONTROLLERS = ("open_loop", "image_feedback")
 
@@ -74,6 +84,21 @@ def _summarize(trials: list[dict], threshold_m: float) -> dict:
         "final_pixel_error_observations": len(final_pixel_errors),
         "median_perception_error_m": float(
             np.median([trial["perception_error_m"] for trial in trials])
+        ),
+        "target_reacquisition_trials": sum(
+            trial.get("target_reacquisitions", 0) > 0 for trial in trials
+        ),
+        "target_reacquisitions": sum(
+            trial.get("target_reacquisitions", 0) for trial in trials
+        ),
+        "injected_dropout_trials": sum(
+            trial.get("target_dropout_duration_observations", 0) > 0 for trial in trials
+        ),
+        "injected_dropout_recovery_trials": sum(
+            trial.get("injected_dropout_reacquired", False) for trial in trials
+        ),
+        "target_visibility_timeout_trials": sum(
+            trial.get("controller_stop_reason") == "target_not_visible" for trial in trials
         ),
         "failure_reasons": dict(
             Counter(
@@ -123,7 +148,10 @@ def run_benchmark(
     condition_reports = []
     with tempfile.TemporaryDirectory(prefix="visual-servo-benchmark-") as temp_dir:
         for controller in CONTROLLERS:
-            for condition in CONDITIONS:
+            controller_conditions = CONDITIONS + (
+                TARGET_DROPOUT_CONDITIONS if controller == "image_feedback" else ()
+            )
+            for condition in controller_conditions:
                 trials = []
                 for seed in range(base_seed, base_seed + seeds):
                     report = run_trials(
@@ -136,6 +164,12 @@ def run_benchmark(
                         feedback_target_filter_window=feedback_target_filter_window,
                         feedback_required_tolerance_checks=feedback_required_tolerance_checks,
                         feedback_max_joint_step_radians=feedback_max_joint_step_radians,
+                        target_dropout_start_observation=(
+                            condition.target_dropout_start_observation
+                        ),
+                        target_dropout_duration_observations=(
+                            condition.target_dropout_duration_observations
+                        ),
                         save_media=False,
                     )
                     trials.extend({"seed": seed, **trial} for trial in report["results"])
@@ -158,7 +192,7 @@ def run_benchmark(
                 })
 
     result = {
-        "schema_version": 5,
+        "schema_version": 6,
         "benchmark": "camera_based_reaching_robustness",
         "success_threshold_m": SUCCESS_THRESHOLD_METERS,
         "feedback_target_filter": {
@@ -244,6 +278,13 @@ def main() -> int:
             f"  {condition['median_controller_iterations']:6.1f}"
             f"  {condition['median_simulated_motion_time_s']:5.2f}"
         )
+        if condition["injected_dropout_trials"]:
+            print(
+                f"  injected dropout reacquired: "
+                f"{condition['injected_dropout_recovery_trials']}/"
+                f"{condition['injected_dropout_trials']}; "
+                f"target-not-visible stops: {condition['target_visibility_timeout_trials']}"
+            )
     print(f"Saved benchmark report to {args.output}")
     return 0
 

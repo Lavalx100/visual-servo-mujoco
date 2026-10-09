@@ -45,6 +45,22 @@ DEMOS = (
         "pixel_noise_std_px": 20.0,
         "video_episode_index": 5,
     },
+    {
+        "name": "feedback_target_dropout_recovery",
+        "controller": "image_feedback",
+        "seed": 7,
+        "episodes": 1,
+        "target_dropout_start_observation": 1,
+        "target_dropout_duration_observations": 3,
+    },
+    {
+        "name": "feedback_target_dropout_timeout",
+        "controller": "image_feedback",
+        "seed": 7,
+        "episodes": 1,
+        "target_dropout_start_observation": 1,
+        "target_dropout_duration_observations": 6,
+    },
 )
 
 
@@ -60,6 +76,8 @@ def main() -> int:
                 "pixel_noise_std_px": 0.0,
                 "camera_fovy_error_deg": 0.0,
                 "video_episode_index": 0,
+                "target_dropout_start_observation": None,
+                "target_dropout_duration_observations": 0,
                 **demo,
             }
             name = parameters.pop("name")
@@ -85,6 +103,8 @@ def main() -> int:
                 f"{destination.relative_to(repository)}: "
                 f"{'success' if trial['success'] else 'not reached'}, "
                 f"{trial['reaching_error_m'] * 100.0:.1f} cm, "
+                f"injected-dropout-recovered={trial['injected_dropout_reacquired']}, "
+                f"stop={trial['controller_stop_reason']}, "
                 f"{destination.stat().st_size / 1024:.0f} KiB"
             )
     return 0

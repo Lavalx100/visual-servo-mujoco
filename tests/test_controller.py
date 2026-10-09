@@ -2,7 +2,12 @@ import cv2
 import numpy as np
 import pytest
 
-from visual_servo_mujoco.benchmark import CONDITIONS, CONTROLLERS, run_benchmark
+from visual_servo_mujoco.benchmark import (
+    CONDITIONS,
+    CONTROLLERS,
+    TARGET_DROPOUT_CONDITIONS,
+    run_benchmark,
+)
 from visual_servo_mujoco.controller import (
     camera_pixel_jacobian,
     forward_kinematics,
@@ -137,8 +142,20 @@ def test_robustness_benchmark_is_reproducible_and_pairs_trials():
     }
     assert report["feedback_required_tolerance_checks"] == 3
     assert report["feedback_max_joint_step_radians"] == 0.3
-    assert len(report["conditions"]) == len(CONDITIONS) * len(CONTROLLERS)
+    assert len(report["conditions"]) == (
+        len(CONDITIONS) * len(CONTROLLERS) + len(TARGET_DROPOUT_CONDITIONS)
+    )
     assert report["target_sequences_are_paired_across_controllers_and_conditions"] is True
+
+    dropout_timeout = next(
+        condition
+        for condition in report["conditions"]
+        if condition["controller"] == "image_feedback"
+        and condition["condition"]["name"] == "target_dropout_6_observations"
+    )
+    assert dropout_timeout["injected_dropout_trials"] == 2
+    assert dropout_timeout["injected_dropout_recovery_trials"] == 0
+    assert dropout_timeout["target_visibility_timeout_trials"] == 2
 
     clean = next(
         condition
@@ -249,6 +266,61 @@ def test_feedback_joint_step_cap_must_be_positive_and_finite(tmp_path):
             seed=13,
             output_dir=tmp_path,
             feedback_max_joint_step_radians=float("inf"),
+            save_media=False,
+        )
+
+
+def test_feedback_reacquires_target_after_temporary_dropout(tmp_path):
+    report = run_trials(
+        episodes=1,
+        seed=7,
+        output_dir=tmp_path,
+        controller="image_feedback",
+        target_dropout_start_observation=1,
+        target_dropout_duration_observations=3,
+        save_media=False,
+    )
+
+    trial = report["results"][0]
+    assert trial["target_reacquisitions"] >= 1
+    assert trial["injected_dropout_reacquired"] is True
+
+
+def test_feedback_stops_after_dropout_exceeds_visibility_grace(tmp_path):
+    report = run_trials(
+        episodes=1,
+        seed=7,
+        output_dir=tmp_path,
+        controller="image_feedback",
+        target_dropout_start_observation=1,
+        target_dropout_duration_observations=6,
+        save_media=False,
+    )
+
+    trial = report["results"][0]
+    assert trial["target_reacquisitions"] == 0
+    assert trial["injected_dropout_reacquired"] is False
+    assert trial["controller_stop_reason"] == "target_not_visible"
+
+
+def test_target_dropout_requires_valid_start_and_feedback_controller(tmp_path):
+    with pytest.raises(ValueError, match="start observation is required"):
+        run_trials(
+            episodes=1,
+            seed=7,
+            output_dir=tmp_path,
+            controller="image_feedback",
+            target_dropout_duration_observations=1,
+            save_media=False,
+        )
+    with pytest.raises(ValueError, match="only be used with image_feedback"):
+        run_trials(
+            episodes=1,
+            seed=7,
+            output_dir=tmp_path,
+            controller="open_loop",
+            target_dropout_start_observation=1,
+            target_dropout_duration_observations=1,
             save_media=False,
         )
 

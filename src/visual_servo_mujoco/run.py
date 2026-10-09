@@ -91,10 +91,26 @@ def demo_video_frame(
     pixel_noise_std_px: float,
     camera_fovy_error_deg: float,
     status: str,
+    target_detection_missing: bool = False,
 ) -> np.ndarray:
     """Add a readable controller, sensor-condition, and status overlay."""
     frame = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
     center = tuple(int(round(value)) for value in pixel_xy)
+    if target_detection_missing:
+        # The target remains in the simulated scene; this overlay makes the
+        # injected perception blackout visible in the recorded demonstration.
+        cv2.circle(frame, center, 18, (48, 48, 48), thickness=-1)
+        cv2.circle(frame, center, 18, (190, 190, 190), thickness=2)
+        cv2.putText(
+            frame,
+            "TARGET LOST",
+            (max(8, center[0] - 48), max(98, center[1] - 24)),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.42,
+            (235, 235, 235),
+            1,
+            cv2.LINE_AA,
+        )
     cv2.drawMarker(frame, center, (0, 255, 255), cv2.MARKER_CROSS, 16, 2)
     overlay = frame.copy()
     cv2.rectangle(overlay, (0, 0), (IMAGE_WIDTH, 78), (22, 27, 34), thickness=-1)
@@ -141,6 +157,8 @@ def run_trials(
     feedback_target_filter_window: int | None = None,
     feedback_required_tolerance_checks: int | None = None,
     feedback_max_joint_step_radians: float | None = None,
+    target_dropout_start_observation: int | None = None,
+    target_dropout_duration_observations: int = 0,
     save_media: bool = True,
 ) -> dict:
     """Run reaching trials with optional perception and camera-calibration errors.
@@ -150,7 +168,9 @@ def run_trials(
     the controller while leaving the simulated camera unchanged. The feedback
     filter window controls how many recent target detections feed its median;
     the tolerance-check count controls the stop confirmation; and the joint
-    step value caps each commanded update. These knobs do not change the physics.
+    step value caps each commanded update. A target dropout skips detection for
+    a specified range of feedback observations. These knobs do not change the
+    physics.
     """
     if episodes <= 0:
         raise ValueError("episodes must be positive")
@@ -160,6 +180,22 @@ def run_trials(
         raise ValueError("camera_fovy_error_deg must be finite")
     if controller not in {"open_loop", "image_feedback"}:
         raise ValueError("controller must be 'open_loop' or 'image_feedback'")
+    if target_dropout_start_observation is not None and (
+        isinstance(target_dropout_start_observation, bool)
+        or not isinstance(target_dropout_start_observation, int)
+        or target_dropout_start_observation < 1
+    ):
+        raise ValueError("target_dropout_start_observation must be a positive integer")
+    if (
+        isinstance(target_dropout_duration_observations, bool)
+        or not isinstance(target_dropout_duration_observations, int)
+        or target_dropout_duration_observations < 0
+    ):
+        raise ValueError("target_dropout_duration_observations must be a non-negative integer")
+    if target_dropout_duration_observations and target_dropout_start_observation is None:
+        raise ValueError("a dropout start observation is required for a non-zero duration")
+    if target_dropout_duration_observations and controller != "image_feedback":
+        raise ValueError("target dropout can only be used with image_feedback")
     if feedback_target_filter_window is None:
         feedback_target_filter_window = FEEDBACK_TARGET_FILTER_WINDOW
     if (
@@ -289,6 +325,9 @@ def run_trials(
                 video_writer.write(initial_frame)
 
         control_iterations = 0
+        target_reacquisitions = 0
+        injected_dropout_pending = False
+        injected_dropout_reacquired = False
         if failure_reason is None:
             if controller == "open_loop":
                 control_iterations = 1
@@ -318,6 +357,16 @@ def run_trials(
                     if iteration > 0:
                         rgb = render_rgb(renderer, data)
                         try:
+                            dropout_active = (
+                                target_dropout_start_observation is not None
+                                and target_dropout_start_observation
+                                <= iteration
+                                < target_dropout_start_observation
+                                + target_dropout_duration_observations
+                            )
+                            if dropout_active:
+                                injected_dropout_pending = True
+                                raise RuntimeError("injected target detector dropout")
                             detected_pixel_xy = detect_red_target(rgb)
                         except RuntimeError as error:
                             consecutive_target_misses += 1
@@ -326,6 +375,11 @@ def run_trials(
                                 controller_error = str(error)
                                 break
                         else:
+                            if injected_dropout_pending:
+                                injected_dropout_reacquired = True
+                                injected_dropout_pending = False
+                            if consecutive_target_misses > 0:
+                                target_reacquisitions += 1
                             consecutive_target_misses = 0
                             noise = measurement_rng.normal(0.0, pixel_noise_std_px, size=2)
                             measured_pixel_xy = (
@@ -347,13 +401,20 @@ def run_trials(
                         pixel_xy[0] - end_effector_pixel_xy[0],
                         pixel_xy[1] - end_effector_pixel_xy[1],
                     )
-                    if math.hypot(*pixel_error) <= FEEDBACK_PIXEL_TOLERANCE:
+                    if consecutive_target_misses > 0:
+                        # A stale target estimate may guide motion, but cannot
+                        # confirm that the target is reached while vision is lost.
+                        consecutive_tolerance_checks = 0
+                        if math.hypot(*pixel_error) <= FEEDBACK_PIXEL_TOLERANCE:
+                            continue
+                    elif math.hypot(*pixel_error) <= FEEDBACK_PIXEL_TOLERANCE:
                         consecutive_tolerance_checks += 1
                         if consecutive_tolerance_checks >= feedback_required_tolerance_checks:
                             controller_stop_reason = "pixel_tolerance_reached"
                             break
                         continue
-                    consecutive_tolerance_checks = 0
+                    else:
+                        consecutive_tolerance_checks = 0
                     if control_iterations >= FEEDBACK_MAX_ITERATIONS:
                         controller_stop_reason = "iteration_limit"
                         break
@@ -384,6 +445,12 @@ def run_trials(
                     for step in range(FEEDBACK_STEPS_PER_UPDATE):
                         mujoco.mj_step(model, data)
                         if save_episode_media and step % video_step_interval == 0:
+                            dropout_status = (
+                                f"TARGET LOST {consecutive_target_misses}/"
+                                f"{FEEDBACK_TARGET_OCCLUSION_GRACE} | reusing last target  |  "
+                                if consecutive_target_misses > 0
+                                else ""
+                            )
                             video_writer.write(
                                 demo_video_frame(
                                     render_rgb(renderer, data),
@@ -392,9 +459,11 @@ def run_trials(
                                     pixel_noise_std_px=pixel_noise_std_px,
                                     camera_fovy_error_deg=camera_fovy_error_deg,
                                     status=(
+                                        f"{dropout_status}"
                                         f"image error {math.hypot(*pixel_error):.1f} px  |  "
                                         f"motion update {control_iterations + 1}"
                                     ),
+                                    target_detection_missing=consecutive_target_misses > 0,
                                 )
                             )
                     control_iterations += 1
@@ -463,6 +532,10 @@ def run_trials(
             "failure_reason": failure_reason,
             "controller_stop_reason": controller_stop_reason,
             "controller_error": controller_error,
+            "target_reacquisitions": target_reacquisitions,
+            "injected_dropout_reacquired": injected_dropout_reacquired,
+            "target_dropout_start_observation": target_dropout_start_observation,
+            "target_dropout_duration_observations": target_dropout_duration_observations,
         })
 
     renderer.close()
@@ -482,6 +555,8 @@ def run_trials(
         },
         "feedback_required_tolerance_checks": feedback_required_tolerance_checks,
         "feedback_max_joint_step_radians": feedback_max_joint_step_radians,
+        "target_dropout_start_observation": target_dropout_start_observation,
+        "target_dropout_duration_observations": target_dropout_duration_observations,
         "success_threshold_m": SUCCESS_THRESHOLD_METERS,
         "successes": successes,
         "success_rate": successes / episodes,
@@ -528,6 +603,17 @@ def main() -> int:
         help="maximum joint-angle change for one feedback motion update",
     )
     parser.add_argument(
+        "--target-dropout-start-observation",
+        type=int,
+        help="feedback observation index at which injected target detection loss begins",
+    )
+    parser.add_argument(
+        "--target-dropout-duration-observations",
+        type=int,
+        default=0,
+        help="number of feedback observations with injected target detection loss",
+    )
+    parser.add_argument(
         "--controller",
         choices=("open_loop", "image_feedback"),
         default="open_loop",
@@ -561,6 +647,17 @@ def main() -> int:
         or args.feedback_max_joint_step_radians <= 0.0
     ):
         parser.error("--feedback-max-joint-step-radians must be positive and finite")
+    if (
+        args.target_dropout_start_observation is not None
+        and args.target_dropout_start_observation < 1
+    ):
+        parser.error("--target-dropout-start-observation must be a positive integer")
+    if args.target_dropout_duration_observations < 0:
+        parser.error("--target-dropout-duration-observations must be non-negative")
+    if args.target_dropout_duration_observations and args.target_dropout_start_observation is None:
+        parser.error("--target-dropout-start-observation is required for a non-zero dropout")
+    if args.target_dropout_duration_observations and args.controller != "image_feedback":
+        parser.error("target dropout requires --controller image_feedback")
 
     report = run_trials(
         args.episodes,
@@ -573,6 +670,8 @@ def main() -> int:
         feedback_target_filter_window=args.feedback_target_filter_window,
         feedback_required_tolerance_checks=args.feedback_required_tolerance_checks,
         feedback_max_joint_step_radians=args.feedback_max_joint_step_radians,
+        target_dropout_start_observation=args.target_dropout_start_observation,
+        target_dropout_duration_observations=args.target_dropout_duration_observations,
     )
     print(
         f"Camera-based reaching: {report['successes']}/{report['trials']} successful "
