@@ -12,7 +12,12 @@ from visual_servo_mujoco.controller import (
     pixel_to_table_xy,
 )
 from visual_servo_mujoco.model import MODEL_XML
-from visual_servo_mujoco.run import detect_green_end_effector, detect_red_target, run_trials
+from visual_servo_mujoco.run import (
+    FEEDBACK_MAX_ITERATIONS,
+    detect_green_end_effector,
+    detect_red_target,
+    run_trials,
+)
 
 
 @pytest.mark.parametrize("target", [(0.5, 0.1), (0.35, -0.2), (0.62, 0.0)])
@@ -130,6 +135,7 @@ def test_robustness_benchmark_is_reproducible_and_pairs_trials():
         "method": "rolling_coordinate_median",
         "window": 3,
     }
+    assert report["feedback_required_tolerance_checks"] == 2
     assert len(report["conditions"]) == len(CONDITIONS) * len(CONTROLLERS)
     assert report["target_sequences_are_paired_across_controllers_and_conditions"] is True
 
@@ -175,5 +181,21 @@ def test_unreachable_camera_estimate_is_recorded_as_trial_failure(tmp_path):
     assert report["successes"] == 0
     assert all(
         trial["failure_reason"] == "estimated_target_unreachable"
+        for trial in report["results"]
+    )
+
+
+def test_feedback_confirmation_keeps_motion_update_budget_bounded(tmp_path):
+    report = run_trials(
+        episodes=2,
+        seed=13,
+        output_dir=tmp_path,
+        pixel_noise_std_px=20.0,
+        controller="image_feedback",
+        save_media=False,
+    )
+
+    assert all(
+        trial["controller_iterations"] <= FEEDBACK_MAX_ITERATIONS
         for trial in report["results"]
     )

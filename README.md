@@ -37,10 +37,11 @@ The benchmark compares two controllers on identical seeded target sequences:
 `open_loop` projects one target detection into table coordinates and solves
 inverse kinematics; `image_feedback` repeatedly compares the red target and
 green end-effector marker in the image and applies a bounded damped-Jacobian
-joint update. The feedback controller stops when the image error is small or
-after 20 updates. It estimates the stationary target center from the
-coordinate-wise median of up to three recent detections, which suppresses
-isolated pixel outliers. Both controllers start from the same joint pose.
+joint update. It requires two consecutive image-space checks inside an 8 px
+tolerance before stopping, or stops after 20 motion updates. It estimates the
+stationary target center from up to three recent detections using a
+coordinate-wise median, which suppresses isolated pixel outliers. Both
+controllers start from the same joint pose.
 
 Seven conditions test clean sensing, Gaussian target-pixel noise, and camera
 field-of-view calibration errors. Pixel noise is injected after target
@@ -149,9 +150,27 @@ clean median error to 1.0 cm; the three-observation window is the better
 overall compromise in these runs. These are deterministic simulation results,
 not a claim about real-camera noise.
 
-The next experiment is to reduce the remaining high-noise failures without
-increasing the clean-run error tail, for example by testing a convergence
-confirmation rule or a filter that adapts to observed measurement spread.
+### Consecutive-tolerance confirmation experiment
+
+With the three-observation filter fixed, I changed only the stopping rule: the
+controller now requires two consecutive image-space checks inside the 8 px
+tolerance. This rejects a single noisy reading that would have caused a false
+stop. The paired results below compare this rule with the median-only run:
+
+| Condition | Success, median only → confirmed | Median error, median only → confirmed | 95th percentile, median only → confirmed | Median motion time |
+| --- | ---: | ---: | ---: | ---: |
+| Clean | 100% → 100% | 0.7 → 0.6 cm | 1.9 → 1.2 cm | 5.2 → 5.6 s |
+| Pixel noise, 8 px | 99% → 100% | 1.3 → 1.0 cm | 3.3 → 2.8 cm | 5.2 → 5.6 s |
+| Pixel noise, 20 px | 78% → 82% | 2.9 → 2.7 cm | 7.1 → 6.2 cm | 5.6 → 8.0 s |
+| Pixel noise 8 px and FOV error +5° | 99% → 100% | 1.4 → 1.0 cm | 3.8 → 3.6 cm | 4.8 → 5.2 s |
+
+Success stayed at 100% for the ±5° FOV-only conditions. At 20 px noise, the
+confirmation rule improved success by another 4 points and reduced the 95th
+percentile error, at the cost of more motion: median simulated motion time rose
+from 5.6 s to 8.0 s. Eighteen of 100 high-noise trials still fail, with most
+reaching the 20-update limit; the next useful experiment is adaptive step size
+or a more efficient update policy, measured against both success and motion
+time.
 
 The demo tests visual reaching, not grasping or contact-rich manipulation. A
 next extension could add a gripper and expose the scene as a LeRobot EnvHub

@@ -33,6 +33,12 @@ FEEDBACK_STEPS_PER_UPDATE = 200
 FEEDBACK_PIXEL_TOLERANCE = 8.0
 FEEDBACK_TARGET_OCCLUSION_GRACE = 5
 FEEDBACK_TARGET_FILTER_WINDOW = 3
+FEEDBACK_REQUIRED_TOLERANCE_CHECKS = 2
+# Allow a confirmation observation before each motion update and after the last.
+FEEDBACK_MAX_OBSERVATIONS = (
+    FEEDBACK_MAX_ITERATIONS * FEEDBACK_REQUIRED_TOLERANCE_CHECKS
+    + FEEDBACK_REQUIRED_TOLERANCE_CHECKS
+)
 
 
 def detect_red_target(rgb_image: np.ndarray) -> tuple[float, float]:
@@ -215,7 +221,8 @@ def run_trials(
             else:
                 target_pixel_history = [pixel_xy]
                 consecutive_target_misses = 0
-                for iteration in range(FEEDBACK_MAX_ITERATIONS):
+                consecutive_tolerance_checks = 0
+                for iteration in range(FEEDBACK_MAX_OBSERVATIONS):
                     if iteration > 0:
                         rgb = render_rgb(renderer, data)
                         try:
@@ -249,7 +256,14 @@ def run_trials(
                         pixel_xy[1] - end_effector_pixel_xy[1],
                     )
                     if math.hypot(*pixel_error) <= FEEDBACK_PIXEL_TOLERANCE:
-                        controller_stop_reason = "pixel_tolerance_reached"
+                        consecutive_tolerance_checks += 1
+                        if consecutive_tolerance_checks >= FEEDBACK_REQUIRED_TOLERANCE_CHECKS:
+                            controller_stop_reason = "pixel_tolerance_reached"
+                            break
+                        continue
+                    consecutive_tolerance_checks = 0
+                    if control_iterations >= FEEDBACK_MAX_ITERATIONS:
+                        controller_stop_reason = "iteration_limit"
                         break
 
                     current_angles = np.array(
