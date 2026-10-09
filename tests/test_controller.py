@@ -200,3 +200,14 @@ def test_feedback_confirmation_keeps_motion_update_budget_bounded(tmp_path):
         trial["controller_iterations"] <= FEEDBACK_MAX_ITERATIONS
         for trial in report["results"]
     )
+
+
+def test_video_episode_index_must_select_a_requested_episode(tmp_path):
+    with pytest.raises(ValueError, match="video_episode_index"):
+        run_trials(
+            episodes=1,
+            seed=13,
+            output_dir=tmp_path,
+            video_episode_index=1,
+            save_media=False,
+        )

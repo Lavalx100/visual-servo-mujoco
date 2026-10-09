@@ -26,6 +26,7 @@ CAMERA_HEIGHT = 2.0
 TARGET_HEIGHT = 0.165
 LINK_LENGTHS = (0.42, 0.34)
 SIMULATION_STEPS = 1200
+VIDEO_FPS = 30.0
 SUCCESS_THRESHOLD_METERS = 0.045
 HOME_JOINT_ANGLES = (0.0, 0.7)
 FEEDBACK_MAX_ITERATIONS = 20
@@ -87,6 +88,49 @@ def annotated_frame(rgb: np.ndarray, pixel_xy: tuple[float, float]) -> np.ndarra
     return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
 
+def demo_video_frame(
+    rgb: np.ndarray,
+    pixel_xy: tuple[float, float],
+    *,
+    controller: str,
+    pixel_noise_std_px: float,
+    camera_fovy_error_deg: float,
+    status: str,
+) -> np.ndarray:
+    """Add a readable controller, sensor-condition, and status overlay."""
+    frame = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
+    center = tuple(int(round(value)) for value in pixel_xy)
+    cv2.drawMarker(frame, center, (0, 255, 255), cv2.MARKER_CROSS, 16, 2)
+    overlay = frame.copy()
+    cv2.rectangle(overlay, (0, 0), (IMAGE_WIDTH, 78), (22, 27, 34), thickness=-1)
+    frame = cv2.addWeighted(overlay, 0.84, frame, 0.16, 0.0)
+    title = (
+        "OPEN LOOP | pinhole projection + IK"
+        if controller == "open_loop"
+        else "IMAGE FEEDBACK | damped Jacobian"
+    )
+    sensors = (
+        f"Target noise std: {pixel_noise_std_px:.1f} px  |  "
+        f"FOV model error: {camera_fovy_error_deg:+.1f} deg"
+    )
+    for text, y, scale, color in (
+        (title, 24, 0.55, (255, 255, 255)),
+        (sensors, 49, 0.46, (212, 222, 232)),
+        (status, 71, 0.46, (110, 235, 175)),
+    ):
+        cv2.putText(
+            frame,
+            text,
+            (14, y),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            scale,
+            color,
+            1,
+            cv2.LINE_AA,
+        )
+    return frame
+
+
 def run_trials(
     episodes: int,
     seed: int,
@@ -95,6 +139,7 @@ def run_trials(
     pixel_noise_std_px: float = 0.0,
     camera_fovy_error_deg: float = 0.0,
     controller: str = "open_loop",
+    video_episode_index: int = 0,
     save_media: bool = True,
 ) -> dict:
     """Run reaching trials with optional perception and camera-calibration errors.
@@ -112,6 +157,8 @@ def run_trials(
         raise ValueError("camera_fovy_error_deg must be finite")
     if controller not in {"open_loop", "image_feedback"}:
         raise ValueError("controller must be 'open_loop' or 'image_feedback'")
+    if not 0 <= video_episode_index < episodes:
+        raise ValueError("video_episode_index must be within the requested episodes")
     output_dir.mkdir(parents=True, exist_ok=True)
     model = mujoco.MjModel.from_xml_string(MODEL_XML)
     data = mujoco.MjData(model)
@@ -149,7 +196,7 @@ def run_trials(
         video_writer = cv2.VideoWriter(
             str(video_path),
             cv2.VideoWriter_fourcc(*"mp4v"),
-            30.0,
+            VIDEO_FPS,
             (IMAGE_WIDTH, IMAGE_HEIGHT),
         )
         if not video_writer.isOpened():
@@ -184,6 +231,7 @@ def run_trials(
         failure_reason = None
         controller_error = None
         controller_stop_reason = None
+        save_episode_media = index == video_episode_index and video_writer is not None
         if controller == "open_loop":
             try:
                 shoulder_angle, elbow_angle = inverse_kinematics(
@@ -194,9 +242,19 @@ def run_trials(
                 failure_reason = "estimated_target_unreachable"
                 controller_error = str(error)
 
-        if index == 0 and save_media:
+        if save_episode_media:
             annotated = cv2.cvtColor(annotated_frame(rgb, pixel_xy), cv2.COLOR_RGB2BGR)
             cv2.imwrite(str(scene_path), annotated)
+            initial_frame = demo_video_frame(
+                rgb,
+                pixel_xy,
+                controller=controller,
+                pixel_noise_std_px=pixel_noise_std_px,
+                camera_fovy_error_deg=camera_fovy_error_deg,
+                status="initial camera observation",
+            )
+            for _ in range(int(VIDEO_FPS * 0.5)):
+                video_writer.write(initial_frame)
 
         control_iterations = 0
         if failure_reason is None:
@@ -204,21 +262,22 @@ def run_trials(
                 control_iterations = 1
                 data.ctrl[0] = shoulder_angle
                 data.ctrl[1] = elbow_angle
+                video_step_interval = max(
+                    1, round(1.0 / (float(model.opt.timestep) * VIDEO_FPS))
+                )
                 for step in range(SIMULATION_STEPS):
                     mujoco.mj_step(model, data)
-                    if index == 0 and video_writer is not None and step % 20 == 0:
-                        frame = cv2.cvtColor(render_rgb(renderer, data), cv2.COLOR_RGB2BGR)
-                        cv2.putText(
-                            frame,
-                            "Camera detection -> geometric projection -> IK",
-                            (14, 28),
-                            cv2.FONT_HERSHEY_SIMPLEX,
-                            0.62,
-                            (20, 25, 30),
-                            2,
-                            cv2.LINE_AA,
+                    if save_episode_media and step % video_step_interval == 0:
+                        video_writer.write(
+                            demo_video_frame(
+                                render_rgb(renderer, data),
+                                pixel_xy,
+                                controller=controller,
+                                pixel_noise_std_px=pixel_noise_std_px,
+                                camera_fovy_error_deg=camera_fovy_error_deg,
+                                status="single IK target command",
+                            )
                         )
-                        video_writer.write(frame)
             else:
                 target_pixel_history = [pixel_xy]
                 consecutive_target_misses = 0
@@ -287,23 +346,26 @@ def run_trials(
                     desired_angles[0] = np.clip(desired_angles[0], -2.8, 2.8)
                     desired_angles[1] = np.clip(desired_angles[1], -2.6, 2.6)
                     data.ctrl[0], data.ctrl[1] = desired_angles
-                    for _ in range(FEEDBACK_STEPS_PER_UPDATE):
+                    video_step_interval = max(
+                        1, round(1.0 / (float(model.opt.timestep) * VIDEO_FPS))
+                    )
+                    for step in range(FEEDBACK_STEPS_PER_UPDATE):
                         mujoco.mj_step(model, data)
+                        if save_episode_media and step % video_step_interval == 0:
+                            video_writer.write(
+                                demo_video_frame(
+                                    render_rgb(renderer, data),
+                                    pixel_xy,
+                                    controller=controller,
+                                    pixel_noise_std_px=pixel_noise_std_px,
+                                    camera_fovy_error_deg=camera_fovy_error_deg,
+                                    status=(
+                                        f"image error {math.hypot(*pixel_error):.1f} px  |  "
+                                        f"motion update {control_iterations + 1}"
+                                    ),
+                                )
+                            )
                     control_iterations += 1
-
-                    if index == 0 and video_writer is not None and iteration % 2 == 0:
-                        frame = cv2.cvtColor(render_rgb(renderer, data), cv2.COLOR_RGB2BGR)
-                        cv2.putText(
-                            frame,
-                            "Image-space target error -> damped Jacobian step",
-                            (14, 28),
-                            cv2.FONT_HERSHEY_SIMPLEX,
-                            0.58,
-                            (20, 25, 30),
-                            2,
-                            cv2.LINE_AA,
-                        )
-                        video_writer.write(frame)
                 if controller_stop_reason is None:
                     controller_stop_reason = "iteration_limit"
 
@@ -331,6 +393,22 @@ def run_trials(
         success = final_error <= SUCCESS_THRESHOLD_METERS
         if failure_reason is None and not success:
             failure_reason = controller_stop_reason or "final_error_exceeded_threshold"
+        if save_episode_media:
+            final_status = (
+                f"SUCCESS | final error {final_error * 100.0:.1f} cm"
+                if success
+                else f"NOT REACHED | final error {final_error * 100.0:.1f} cm"
+            )
+            final_frame = demo_video_frame(
+                final_rgb,
+                pixel_xy,
+                controller=controller,
+                pixel_noise_std_px=pixel_noise_std_px,
+                camera_fovy_error_deg=camera_fovy_error_deg,
+                status=final_status,
+            )
+            for _ in range(int(VIDEO_FPS * 0.8)):
+                video_writer.write(final_frame)
         results.append({
             "episode": index,
             "controller": controller,
@@ -372,6 +450,7 @@ def run_trials(
         "max_reaching_error_m": max(errors),
         "camera_view": scene_path.name if save_media and scene_path.is_file() else None,
         "demo_video": video_path.name if save_media and video_path.is_file() else None,
+        "video_episode_index": video_episode_index if save_media else None,
         "results": results,
     }
     (output_dir / "results.json").write_text(json.dumps(report, indent=2) + "\n")
@@ -385,6 +464,12 @@ def main() -> int:
     )
     parser.add_argument("--seed", type=int, default=7, help="deterministic random seed")
     parser.add_argument("--output-dir", type=Path, default=Path("artifacts"))
+    parser.add_argument(
+        "--video-episode-index",
+        type=int,
+        default=0,
+        help="episode index to record in the demo video",
+    )
     parser.add_argument(
         "--controller",
         choices=("open_loop", "image_feedback"),
@@ -418,6 +503,7 @@ def main() -> int:
         pixel_noise_std_px=args.pixel_noise_std_px,
         camera_fovy_error_deg=args.camera_fovy_error_deg,
         controller=args.controller,
+        video_episode_index=args.video_episode_index,
     )
     print(
         f"Camera-based reaching: {report['successes']}/{report['trials']} successful "

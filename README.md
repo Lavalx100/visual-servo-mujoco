@@ -10,7 +10,7 @@ A small robotics demo with a clear perception-to-action loop:
 
 ![MuJoCo tabletop scene with the camera-detected target marked](assets/camera_view.png)
 
-[Watch the reaching demo](assets/reaching_demo.mp4)
+[Watch the clean open-loop baseline](assets/reaching_demo.mp4)
 
 The scene and target positions are generated locally. The project downloads no
 robot datasets, pretrained models, or external simulator assets.
@@ -32,6 +32,37 @@ The JSON records every target's camera pixel, estimated table position, final
 end-effector error, and success. Ground-truth target coordinates are included
 only for evaluation; the controller estimates the target from the rendered
 image.
+
+## Video demos
+
+The gallery includes paired controller examples, a successful high-noise run,
+a combined noise and calibration-error run, and one transparent failure case.
+Each clip is rendered at 640×480 and 30 fps with the controller, sensor
+condition, pixel error, and final reaching result overlaid.
+
+| Demo | What it shows |
+| --- | --- |
+| [Clean open loop](assets/demos/open_loop_clean.mp4) | One target projection followed by one IK motion command. |
+| [Clean image feedback](assets/demos/feedback_clean.mp4) | Repeated pixel-error corrections with no injected sensor error. |
+| [20 px target noise](assets/demos/feedback_noise_20px.mp4) | Image feedback reaching under strong Gaussian pixel noise. |
+| [Noise and +5° FOV error](assets/demos/feedback_noise_and_fov_error.mp4) | Feedback with both sensor noise and a camera-model calibration error. |
+| [High-noise failure](assets/demos/feedback_high_noise_failure.mp4) | A recorded benchmark failure that reaches the motion-update limit. |
+
+Regenerate the gallery with:
+
+```bash
+uv run python scripts/generate_demo_gallery.py
+```
+
+To record a specific episode from a seeded batch, select it with
+`--video-episode-index`. For example, this saves seed 3, episode 5 from the
+20 px-noise condition:
+
+```bash
+uv run visual-servo-demo --controller image_feedback --pixel-noise-std-px 20 \
+  --episodes 20 --seed 3 --video-episode-index 5 \
+  --output-dir artifacts/high-noise-case
+```
 
 The benchmark compares two controllers on identical seeded target sequences:
 `open_loop` projects one target detection into table coordinates and solves
@@ -96,6 +127,8 @@ only after the motion to score the trial.
   randomized trials, and per-trial scoring.
 - `src/visual_servo_mujoco/benchmark.py` runs paired seeds across controllers
   and stress conditions, then writes the JSON summary.
+- `scripts/generate_demo_gallery.py` regenerates the deterministic clips in
+  `assets/demos/`, including a selected high-noise failure episode.
 
 ### First paired robustness baseline
 
