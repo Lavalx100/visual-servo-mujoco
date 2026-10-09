@@ -393,16 +393,21 @@ the default.
 | Stale confirmation, clean | 100% | 91/100 | 0 |
 | Strict, 20 px noise | 88% | 0/100 | 0 |
 | Stale confirmation, 20 px noise | 88% | 17/100 | 0 |
+| Strict, 5-observation blackout | 100% | 0/100 | 0 |
+| Stale confirmation, 5-observation blackout | 100% | 95/100 | 0 |
 | Strict, 6-observation blackout | 33% | 0/100 | 0 |
 | Stale confirmation, 6-observation blackout | 33% | 7/100 | 0 |
 
 Across the full 1,800-trial stale-confirmation run, none of the stops based on
 the last target estimate ended outside the physical success radius. The policy
 did not improve physical success under 20 px noise, and seven 6-observation
-blackout trials stopped on the estimate before the detector returned. This
-trade-off supports keeping the option experimental until it is tested with a
-moving target, observation latency, and less idealized perception. Its report
-is written to `artifacts/benchmark-stale-confirmation.json`.
+blackout trials stopped on the estimate before the detector returned. For
+5-observation blackouts, the detector reacquired in 93/100 trials with stale
+confirmation, compared with 100/100 under the strict policy; seven trials
+stopped on the estimate before vision returned. This trade-off supports
+keeping the option experimental until it is tested with a moving target,
+observation latency, and less idealized perception. Its report is written to
+`artifacts/benchmark-stale-confirmation.json`.
 
 The demo tests visual reaching, not grasping or contact-rich manipulation. A
 next extension should add moving-target and latency tests for this stopping
