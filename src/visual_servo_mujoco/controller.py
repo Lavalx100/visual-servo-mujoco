@@ -77,3 +77,67 @@ def forward_kinematics(
     x = link1 * math.cos(shoulder) + link2 * math.cos(total)
     y = link1 * math.sin(shoulder) + link2 * math.sin(total)
     return x, y
+
+
+def camera_pixel_jacobian(
+    shoulder: float,
+    elbow: float,
+    image_size: tuple[int, int],
+    *,
+    camera_height: float,
+    end_effector_height: float,
+    vertical_fov_degrees: float,
+    link_lengths: tuple[float, float] = (0.42, 0.34),
+) -> np.ndarray:
+    """Map small joint changes to end-effector pixel changes for a top-down camera.
+
+    The matrix is the local derivative ``d(pixel_xy) / d(joint_angles)``. Its
+    scale uses the supplied camera calibration, while image feedback measures
+    the target and end effector directly in pixels.
+    """
+    width, height = image_size
+    if width <= 0 or height <= 0:
+        raise ValueError("image dimensions must be positive")
+    if camera_height <= end_effector_height:
+        raise ValueError("camera must be above the end-effector plane")
+    if not 0.0 < vertical_fov_degrees < 180.0:
+        raise ValueError("vertical field of view must be between 0 and 180 degrees")
+
+    link1, link2 = link_lengths
+    total = shoulder + elbow
+    world_jacobian = np.array(
+        [
+            [-link1 * math.sin(shoulder) - link2 * math.sin(total), -link2 * math.sin(total)],
+            [link1 * math.cos(shoulder) + link2 * math.cos(total), link2 * math.cos(total)],
+        ],
+        dtype=float,
+    )
+    half_height = (camera_height - end_effector_height) * math.tan(
+        math.radians(vertical_fov_degrees) / 2.0
+    )
+    half_width = half_height * width / height
+    pixel_jacobian = np.diag((width / (2.0 * half_width), -height / (2.0 * half_height)))
+    return pixel_jacobian @ world_jacobian
+
+
+def image_servo_joint_delta(
+    pixel_jacobian: np.ndarray,
+    pixel_error_xy: tuple[float, float],
+    *,
+    gain: float = 0.5,
+    damping: float = 1.0,
+    max_step_radians: float = 0.2,
+) -> np.ndarray:
+    """Compute a bounded damped-least-squares step toward an image target."""
+    if pixel_jacobian.shape != (2, 2):
+        raise ValueError("pixel_jacobian must have shape (2, 2)")
+    if gain <= 0.0 or damping < 0.0 or max_step_radians <= 0.0:
+        raise ValueError("gain and max_step_radians must be positive; damping non-negative")
+
+    error = np.asarray(pixel_error_xy, dtype=float)
+    regularized = pixel_jacobian @ pixel_jacobian.T + damping**2 * np.eye(2)
+    delta = gain * pixel_jacobian.T @ np.linalg.solve(regularized, error)
+    magnitude = float(np.linalg.norm(delta))
+    if magnitude > max_step_radians:
+        delta *= max_step_radians / magnitude
+    return delta

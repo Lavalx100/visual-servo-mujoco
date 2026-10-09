@@ -18,6 +18,7 @@ dev = ["pytest>=8"]
 
 [project.scripts]
 visual-servo-demo = "visual_servo_mujoco.run:main"
+visual-servo-benchmark = "visual_servo_mujoco.benchmark:main"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
