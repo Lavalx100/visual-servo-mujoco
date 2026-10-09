@@ -24,6 +24,7 @@ uv run pytest
 uv run visual-servo-demo --episodes 20 --seed 7
 uv run visual-servo-demo --controller image_feedback --episodes 20 --seed 7
 uv run visual-servo-benchmark --seeds 5 --episodes-per-seed 20
+uv run visual-servo-benchmark --feedback-target-filter-window 5 --output artifacts/filter-window-5.json
 ```
 
 The command writes `artifacts/results.json`, `artifacts/camera_view.png`, and
@@ -36,9 +37,11 @@ image.
 ## Video demos
 
 The gallery includes paired controller examples, a successful high-noise run,
-a combined noise and calibration-error run, and one transparent failure case.
-Each clip is rendered at 640×480 and 30 fps with the controller, sensor
-condition, pixel error, and final reaching result overlaid.
+a combined noise and calibration-error run, one transparent failure case, and
+a side-by-side filter-window comparison on the same noisy trial.
+Individual clips are rendered at 640×480 and 30 fps with the controller,
+sensor condition, pixel error, and final reaching result overlaid. The filter
+comparison is a labeled side-by-side video.
 
 | Demo | What it shows |
 | --- | --- |
@@ -47,11 +50,13 @@ condition, pixel error, and final reaching result overlaid.
 | [20 px target noise](assets/demos/feedback_noise_20px.mp4) | Image feedback reaching under strong Gaussian pixel noise. |
 | [Noise and +5° FOV error](assets/demos/feedback_noise_and_fov_error.mp4) | Feedback with both sensor noise and a camera-model calibration error. |
 | [High-noise failure](assets/demos/feedback_high_noise_failure.mp4) | A recorded benchmark failure that reaches the motion-update limit. |
+| [3 vs. 5 observation filter](assets/demos/feedback_filter_window_comparison.mp4) | Same high-noise target and random measurements, with two median windows. This is one illustrative trial, not an aggregate result. |
 
 Regenerate the gallery with:
 
 ```bash
 uv run python scripts/generate_demo_gallery.py
+uv run python scripts/generate_filter_comparison.py
 ```
 
 To record a specific episode from a seeded batch, select it with
@@ -129,6 +134,8 @@ only after the motion to score the trial.
   and stress conditions, then writes the JSON summary.
 - `scripts/generate_demo_gallery.py` regenerates the deterministic clips in
   `assets/demos/`, including a selected high-noise failure episode.
+- `scripts/generate_filter_comparison.py` creates the paired 3-vs-5 sample
+  filter clip shown above.
 
 ### First paired robustness baseline
 
@@ -224,6 +231,27 @@ motion time by 0.6 s. Clean and 8 px-noise success stayed at 100%, though the
 fail: 8 hit the update limit and 7 stop inside pixel tolerance while exceeding
 the position-error threshold. Further tuning should focus on adaptive steps
 and these remaining failure cases, while retaining the paired-seed benchmark.
+
+### Rechecking the filter window with the final controller
+
+The benchmark and demo commands accept
+`--feedback-target-filter-window` so filter sizes can be compared without
+changing controller code. I compared windows 3 and 5 with the two-check stop
+and 0.25 rad step cap held fixed. The first group is the benchmark's original
+seed range; the second uses ten additional seeds and 200 high-noise trials.
+
+| Seeds, 20 px noise | Window | Success | Median error | 95th percentile | Worst error | Median updates | False pixel-tolerance stops |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 0–4 (100 trials) | 3 | 85% | 2.52 cm | 6.03 cm | 6.91 cm | 18.5 | 7 |
+| 0–4 (100 trials) | 5 | 88% | 2.75 cm | 5.61 cm | 10.35 cm | 14 | 6 |
+| 5–14 (200 trials) | 3 | 81.5% | 2.60 cm | 6.20 cm | 9.33 cm | 20 | 14 |
+| 5–14 (200 trials) | 5 | 81.5% | 2.79 cm | 6.11 cm | 8.98 cm | 14 | 24 |
+
+The five-sample window reduced median motion updates, but did not improve
+success on the additional seeds and produced more false pixel-tolerance stops.
+Its small 95th-percentile change does not justify replacing the three-sample
+default. The side-by-side clip shows one paired episode where the outcomes
+differ; the table is the evidence for the overall comparison.
 
 The demo tests visual reaching, not grasping or contact-rich manipulation. A
 next extension could add a gripper and expose the scene as a LeRobot EnvHub

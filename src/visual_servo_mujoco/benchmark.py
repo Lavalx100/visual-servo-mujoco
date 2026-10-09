@@ -90,12 +90,19 @@ def run_benchmark(
     episodes_per_seed: int = 20,
     base_seed: int = 0,
     output_path: Path | None = None,
+    feedback_target_filter_window: int = FEEDBACK_TARGET_FILTER_WINDOW,
 ) -> dict:
     """Run every stress condition on paired target sequences and save a report."""
     if seeds <= 0 or episodes_per_seed <= 0:
         raise ValueError("seeds and episodes_per_seed must be positive")
     if base_seed < 0:
         raise ValueError("base_seed must be non-negative")
+    if (
+        isinstance(feedback_target_filter_window, bool)
+        or not isinstance(feedback_target_filter_window, int)
+        or feedback_target_filter_window <= 0
+    ):
+        raise ValueError("feedback_target_filter_window must be a positive integer")
 
     condition_reports = []
     with tempfile.TemporaryDirectory(prefix="visual-servo-benchmark-") as temp_dir:
@@ -110,6 +117,7 @@ def run_benchmark(
                         pixel_noise_std_px=condition.pixel_noise_std_px,
                         camera_fovy_error_deg=condition.camera_fovy_error_deg,
                         controller=controller,
+                        feedback_target_filter_window=feedback_target_filter_window,
                         save_media=False,
                     )
                     trials.extend({"seed": seed, **trial} for trial in report["results"])
@@ -137,7 +145,7 @@ def run_benchmark(
         "success_threshold_m": SUCCESS_THRESHOLD_METERS,
         "feedback_target_filter": {
             "method": "rolling_coordinate_median",
-            "window": FEEDBACK_TARGET_FILTER_WINDOW,
+            "window": feedback_target_filter_window,
         },
         "feedback_required_tolerance_checks": FEEDBACK_REQUIRED_TOLERANCE_CHECKS,
         "feedback_max_joint_step_radians": FEEDBACK_MAX_JOINT_STEP_RADIANS,
@@ -161,18 +169,27 @@ def main() -> int:
         "--episodes-per-seed", type=int, default=20, help="target trials for each seed"
     )
     parser.add_argument("--base-seed", type=int, default=0)
+    parser.add_argument(
+        "--feedback-target-filter-window",
+        type=int,
+        default=FEEDBACK_TARGET_FILTER_WINDOW,
+        help="number of recent target detections used by the feedback median",
+    )
     parser.add_argument("--output", type=Path, default=Path("artifacts/benchmark.json"))
     args = parser.parse_args()
     if args.seeds <= 0 or args.episodes_per_seed <= 0:
         parser.error("--seeds and --episodes-per-seed must be positive")
     if args.base_seed < 0:
         parser.error("--base-seed must be non-negative")
+    if args.feedback_target_filter_window <= 0:
+        parser.error("--feedback-target-filter-window must be a positive integer")
 
     report = run_benchmark(
         seeds=args.seeds,
         episodes_per_seed=args.episodes_per_seed,
         base_seed=args.base_seed,
         output_path=args.output,
+        feedback_target_filter_window=args.feedback_target_filter_window,
     )
     print(
         "Controller     Condition                                  "

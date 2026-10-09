@@ -113,10 +113,13 @@ def demo_video_frame(
         f"Target noise std: {pixel_noise_std_px:.1f} px  |  "
         f"FOV model error: {camera_fovy_error_deg:+.1f} deg"
     )
+    status_color = (
+        (70, 105, 245) if status.startswith("NOT REACHED") else (110, 235, 175)
+    )
     for text, y, scale, color in (
         (title, 24, 0.55, (255, 255, 255)),
         (sensors, 49, 0.46, (212, 222, 232)),
-        (status, 71, 0.46, (110, 235, 175)),
+        (status, 71, 0.46, status_color),
     ):
         cv2.putText(
             frame,
@@ -140,14 +143,17 @@ def run_trials(
     camera_fovy_error_deg: float = 0.0,
     controller: str = "open_loop",
     video_episode_index: int = 0,
+    feedback_target_filter_window: int | None = None,
     save_media: bool = True,
 ) -> dict:
     """Run reaching trials with optional perception and camera-calibration errors.
 
     ``pixel_noise_std_px`` adds independent Gaussian noise to each detected
     target centroid. ``camera_fovy_error_deg`` offsets the field of view used by
-    the controller while leaving the simulated camera unchanged. These knobs
-    model measurement and calibration error; they do not change the physics.
+    the controller while leaving the simulated camera unchanged. The feedback
+    filter window controls how many recent target detections feed its median.
+    These knobs model measurement and calibration error; they do not change
+    the physics.
     """
     if episodes <= 0:
         raise ValueError("episodes must be positive")
@@ -157,6 +163,14 @@ def run_trials(
         raise ValueError("camera_fovy_error_deg must be finite")
     if controller not in {"open_loop", "image_feedback"}:
         raise ValueError("controller must be 'open_loop' or 'image_feedback'")
+    if feedback_target_filter_window is None:
+        feedback_target_filter_window = FEEDBACK_TARGET_FILTER_WINDOW
+    if (
+        isinstance(feedback_target_filter_window, bool)
+        or not isinstance(feedback_target_filter_window, int)
+        or feedback_target_filter_window <= 0
+    ):
+        raise ValueError("feedback_target_filter_window must be a positive integer")
     if not 0 <= video_episode_index < episodes:
         raise ValueError("video_episode_index must be within the requested episodes")
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -302,7 +316,7 @@ def run_trials(
                             )
                             target_pixel_history.append(measured_pixel_xy)
                             target_pixel_history = target_pixel_history[
-                                -FEEDBACK_TARGET_FILTER_WINDOW:
+                                -feedback_target_filter_window:
                             ]
                             pixel_xy = median_pixel_estimate(target_pixel_history)
                     try:
@@ -443,6 +457,10 @@ def run_trials(
         "controller": controller,
         "pixel_noise_std_px": pixel_noise_std_px,
         "camera_fovy_error_deg": camera_fovy_error_deg,
+        "feedback_target_filter": {
+            "method": "rolling_coordinate_median",
+            "window": feedback_target_filter_window,
+        },
         "success_threshold_m": SUCCESS_THRESHOLD_METERS,
         "successes": successes,
         "success_rate": successes / episodes,
@@ -471,6 +489,12 @@ def main() -> int:
         help="episode index to record in the demo video",
     )
     parser.add_argument(
+        "--feedback-target-filter-window",
+        type=int,
+        default=FEEDBACK_TARGET_FILTER_WINDOW,
+        help="number of recent target detections used by the feedback median",
+    )
+    parser.add_argument(
         "--controller",
         choices=("open_loop", "image_feedback"),
         default="open_loop",
@@ -495,6 +519,8 @@ def main() -> int:
         parser.error("--pixel-noise-std-px must be finite and non-negative")
     if not math.isfinite(args.camera_fovy_error_deg):
         parser.error("--camera-fovy-error-deg must be finite")
+    if args.feedback_target_filter_window <= 0:
+        parser.error("--feedback-target-filter-window must be a positive integer")
 
     report = run_trials(
         args.episodes,
@@ -504,6 +530,7 @@ def main() -> int:
         camera_fovy_error_deg=args.camera_fovy_error_deg,
         controller=args.controller,
         video_episode_index=args.video_episode_index,
+        feedback_target_filter_window=args.feedback_target_filter_window,
     )
     print(
         f"Camera-based reaching: {report['successes']}/{report['trials']} successful "

@@ -170,6 +170,16 @@ def test_robustness_benchmark_is_reproducible_and_pairs_trials():
     ]
 
 
+def test_benchmark_records_selected_feedback_filter_window():
+    report = run_benchmark(
+        seeds=1,
+        episodes_per_seed=1,
+        feedback_target_filter_window=5,
+    )
+
+    assert report["feedback_target_filter"]["window"] == 5
+
+
 def test_unreachable_camera_estimate_is_recorded_as_trial_failure(tmp_path):
     report = run_trials(
         episodes=2,
@@ -184,6 +194,33 @@ def test_unreachable_camera_estimate_is_recorded_as_trial_failure(tmp_path):
         trial["failure_reason"] == "estimated_target_unreachable"
         for trial in report["results"]
     )
+
+
+def test_feedback_filter_window_can_be_selected_and_is_recorded(tmp_path):
+    report = run_trials(
+        episodes=1,
+        seed=13,
+        output_dir=tmp_path,
+        controller="image_feedback",
+        feedback_target_filter_window=5,
+        save_media=False,
+    )
+
+    assert report["feedback_target_filter"] == {
+        "method": "rolling_coordinate_median",
+        "window": 5,
+    }
+
+
+def test_feedback_filter_window_must_be_positive(tmp_path):
+    with pytest.raises(ValueError, match="positive integer"):
+        run_trials(
+            episodes=1,
+            seed=13,
+            output_dir=tmp_path,
+            feedback_target_filter_window=0,
+            save_media=False,
+        )
 
 
 def test_feedback_confirmation_keeps_motion_update_budget_bounded(tmp_path):
