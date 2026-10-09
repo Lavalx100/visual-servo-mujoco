@@ -1,9 +1,11 @@
 """A tiny tabletop scene defined inline, so the demo needs no model downloads."""
 
-MODEL_XML = """
+SIMULATION_TIMESTEP_S = 0.002
+
+MODEL_XML = f"""
 <mujoco model="camera_reaching_demo">
   <compiler angle="radian"/>
-  <option timestep="0.002" gravity="0 0 -9.81" integrator="RK4"/>
+  <option timestep="{SIMULATION_TIMESTEP_S}" gravity="0 0 -9.81" integrator="RK4"/>
   <size njmax="1000" nconmax="200"/>
   <visual>
     <global offwidth="640" offheight="480"/>
@@ -37,7 +39,7 @@ MODEL_XML = """
       </body>
     </body>
 
-    <body name="target" pos="0.52 0.12 0.165">
+    <body name="target" pos="0.52 0.12 0.165" mocap="true">
       <geom name="target_visual" type="cylinder" size="0.045 0.025"
             rgba="0.95 0.08 0.04 1" contype="0" conaffinity="0"/>
     </body>
