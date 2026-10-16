@@ -12,6 +12,55 @@ A small robotics demo with a clear perception-to-action loop:
 
 [Watch the clean open-loop baseline](assets/reaching_demo.mp4)
 
+[Read the illustrated project explainer PDF](output/pdf/visual-servo-mujoco-project-explainer.pdf)
+
+## GitHub demo previews
+
+These compact GIFs animate directly in the README. Click one to open its full
+MP4 file. The detailed gallery below links the remaining examples and the
+reproduction commands.
+
+| Closed-loop reaching | Delayed vision and current arm state |
+| --- | --- |
+| [![Image-feedback controller reaches a tabletop target](assets/demos/previews/feedback_clean.gif)](assets/demos/feedback_clean.mp4) | [![Fully delayed RGB compared with delayed target pixels and a current joint-state tip projection](assets/demos/previews/sensor_timing_current-joint-hybrid.gif)](assets/demos/sensor_timing_sinusoidal_noise-0px_delay-1.mp4) |
+| Held-out terminal visual estimate | Dense planar camera calibration |
+| [![Held-out terminal-verifier example where the ungated visual estimate falsely indicates success](assets/demos/previews/terminal_verification_heldout.gif)](assets/demos/terminal_verification_quality_heldout_false_success.mp4) | [![Checkerboard reprojection residuals profiled by distance from the image center](assets/demos/previews/camera_calibration_planar.gif)](assets/demos/camera_calibration_planar.mp4) |
+
+## Trial results at a glance
+
+All results below come from controlled MuJoCo/OpenCV simulation. Physical
+reaching success means the final MuJoCo end-effector position is within 4.5 cm
+of the target. Fresh visual confirmation is tracked separately; it is not
+inferred from physical proximity.
+
+| Experiment | Trial design | Measured result |
+| --- | --- | --- |
+| Default image-feedback controller | 100 trials per condition | At 20 px target-measurement noise: 88% physical success, 2.12 cm median error, 6.39 cm 95th-percentile error. High-noise failures remain. |
+| Camera-delay and tip-state comparison | Held-out seeds 100–104; 100 trials per mode and setting | Delayed target pixels paired with a current joint-state tip projection improved physical success over fully delayed RGB in all eight nonzero-delay profile/noise settings. Fresh visual confirmations were 0/100 at nonzero delay. |
+| Terminal-verifier quality gate | Calibration seeds 200–204; validation seeds 300–304 | Frozen 0.60 gate: 0 false visual successes among 23 accepted candidate estimates, but only 23/600 (3.8%) candidate coverage. All accepted estimates were from bright-exposure images; no threshold is recommended. |
+| Reversal-aware target prediction | 2,400 paired trials across eight path/delay/noise settings | Reversal-aware prediction had lower physical success than the measured-target baseline in every setting. Predictors remain opt-in. |
+| Dense planar calibration profile | 325 synthetic image trials: five views × 13 conditions × five appearance seeds | For East-view radial coefficient `k1=+0.010`, median signed radial residual was −0.05 px at 0–80 px radius and +0.86 px at 240–320 px. This is a synthetic image diagnostic, not a physical-camera result. |
+
+The full condition tables, failure definitions, limitations, and commands to
+reproduce each run appear in the sections below. The checked-in
+[1,800-row trial CSV](results/robustness-baseline-trials.csv) contains one
+compact outcome row per controller, condition, seed, and episode, including
+the ground-truth target and final arm coordinates used for physical scoring.
+At about 351 KiB, it is small enough for GitHub's searchable interactive CSV
+view. It omits verbose per-observation traces; those remain in the local
+`artifacts/benchmark.json` output.
+
+Regenerate the benchmark and CSV with:
+
+```bash
+uv run visual-servo-benchmark --seeds 5 --episodes-per-seed 20
+uv run python scripts/export_public_trial_data.py
+```
+
+The CSV reports physical reaching outcomes and visibility diagnostics. It does
+not claim fresh visual confirmation; the camera-timing reports below measure
+that outcome separately.
+
 The scene and target positions are generated locally. The project downloads no
 robot datasets, pretrained models, or external simulator assets.
 
@@ -32,6 +81,12 @@ uv run visual-servo-benchmark --feedback-allow-stale-target-confirmation \
 uv run visual-servo-dynamic-benchmark --output artifacts/dynamic-target-benchmark.json
 uv run visual-servo-prediction-benchmark --output artifacts/prediction-benchmark.json
 uv run visual-servo-reversal-benchmark --output artifacts/reversal-benchmark.json
+uv run visual-servo-sensor-timing-benchmark --output artifacts/sensor-timing-benchmark.json
+uv run visual-servo-sensor-timing-benchmark --base-seed 100 \
+  --output artifacts/sensor-timing-benchmark-heldout.json
+uv run visual-servo-verification-benchmark --output artifacts/verification-view-benchmark.json
+uv run visual-servo-verification-benchmark --base-seed 100 \
+  --output artifacts/verification-view-benchmark-heldout.json
 ```
 
 The command writes `artifacts/results.json`, `artifacts/camera_view.png`, and
@@ -45,10 +100,12 @@ image.
 
 The gallery includes paired controller examples, noisy and miscalibrated
 runs, a transparent failure case, filter-window and stale-target comparisons,
-two target-dropout cases, and a moving-target camera-latency comparison.
-Individual clips are rendered at 640×480 and 30 fps with the controller,
-sensor condition, pixel error, and final reaching result overlaid. The filter
-comparison is a labeled side-by-side video.
+two target-dropout cases, and moving-target camera-latency comparisons.
+Single-view clips are rendered at 640×480 and 30 fps; side-by-side videos label
+each condition, outcome, and error. The eight sensor-timing videos cover every
+profile/noise/delay row, and the two verification videos show current-time
+overhead and oblique views. The terminal-verification clips demonstrate the
+new opt-in east-view check after the controller has stopped.
 
 | Demo | What it shows |
 | --- | --- |
@@ -65,6 +122,72 @@ comparison is a labeled side-by-side video.
 | [Delayed-target prediction](assets/demos/feedback_target_prediction.mp4) | Same delayed target stream and arm state with measured, constant-velocity, and constant-acceleration estimates. One illustrative trial. |
 | [Sinusoidal reversal comparison](assets/demos/feedback_prediction_sinusoidal_reversal.mp4) | Measured target, constant velocity, and reversal-aware estimates with 0.4 s delay and 2 px noise. One illustrative trial. |
 | [Piecewise-linear reversal comparison](assets/demos/feedback_prediction_piecewise_linear_reversal.mp4) | The same comparison on a piecewise-linear path. One illustrative trial. |
+| [Clean terminal verification view](assets/demos/verification_view_clean.mp4) | Synchronized fresh renders show the target hidden in the overhead control view and visible with the end-effector from an east oblique view. |
+| [20 px-noise terminal verification view](assets/demos/verification_view_20px-noise.mp4) | The same two current-time views after a noisy control run. The oblique view is observational and does not alter the controller. |
+| [Opt-in terminal estimate, clean](assets/demos/terminal_verification_clean.mp4) | A fresh east-view render after control stops; reports its pixel-based distance beside the separate MuJoCo physical reach score. |
+| [Opt-in terminal estimate, 20 px control noise](assets/demos/terminal_verification_20px-noise.mp4) | The controller sees 20 px target-measurement noise; the terminal verifier uses a fresh clean simulator render and remains outside the control loop. |
+
+The held-out verifier stress suite has one illustrative clip per injected
+condition. Calibration offsets affect only the verifier's back-projection;
+exposure and marker occlusion affect only its terminal image. Each clip uses
+seed 7 and is an example, not an aggregate benchmark result.
+
+| Verifier condition | Demo |
+| --- | --- |
+| FOV estimate +5° | [Watch](assets/demos/terminal_verification_stress_fovy_plus_5deg.mp4) |
+| FOV estimate −5° | [Watch](assets/demos/terminal_verification_stress_fovy_minus_5deg.mp4) |
+| Estimated camera world X +2 cm | [Watch](assets/demos/terminal_verification_stress_camera_x_plus_2cm.mp4) |
+| Estimated camera yaw +3° | [Watch](assets/demos/terminal_verification_stress_camera_yaw_plus_3deg.mp4) |
+| Uniform image exposure ×0.25 | [Watch](assets/demos/terminal_verification_stress_dim_exposure_x0_25.mp4) |
+| Uniform image exposure ×1.5 | [Watch](assets/demos/terminal_verification_stress_bright_exposure_x1_5.mp4) |
+| Target marker occluded | [Watch](assets/demos/terminal_verification_stress_target_occluded.mp4) |
+| End-effector marker occluded | [Watch](assets/demos/terminal_verification_stress_end_effector_occluded.mp4) |
+
+The quality-gate pair shows a held-out false-success case at a −5° FOV
+estimate. A 0.50 gate withholds the image result while preserving the same
+physical reach outcome. It is one selected example, not an aggregate result.
+
+| Demo | What it shows |
+| --- | --- |
+| [False visual success, quality 0.47](assets/demos/terminal_verification_quality_false_positive.mp4) | The camera estimate is within 4.5 cm while MuJoCo says the arm missed. |
+| [Quality gate abstains](assets/demos/terminal_verification_quality_abstention.mp4) | The same seed, target, and arm pose with a 0.50 gate; the visual result is unavailable. |
+
+The seed-separated run selected a 0.60 gate on seeds 200–204, then evaluated
+that unchanged threshold on seeds 300–304. These clips show seed 302, episode
+17, from the independent validation split. The image estimate is 4.494 cm, but
+the physical reaching error is 4.6 cm:
+
+| Held-out validation demo | What it shows |
+| --- | --- |
+| [Ungated false visual success](assets/demos/terminal_verification_quality_heldout_false_success.mp4) | The verifier reports within 4.5 cm without a quality gate. |
+| [Frozen gate abstains](assets/demos/terminal_verification_quality_heldout_abstention.mp4) | The same target and physical result; the 0.60 gate withholds the estimate. |
+
+The fixed-landmark demo compares nominal camera calibration with a combined
+renderer-side FOV, position, and yaw shift. White crosses show nominal
+projections, green rings show detected landmark centers, and connecting lines
+show image residuals:
+
+| Demo | What it shows |
+| --- | --- |
+| [Fixed-landmark calibration health](assets/demos/camera_calibration_health.mp4) | Four independent tabletop landmarks remain within 0.51 px RMS nominally and move to 32.02 px RMS under the combined rendered camera shift. |
+| [Frozen threshold validation](assets/demos/camera_calibration_validation.mp4) | Same held-out nominal image under two frozen thresholds, then examples of subtle/severe drift and unavailable dim imagery. |
+| [Pose and lens transfer](assets/demos/camera_calibration_transfer.mp4) | Applies the frozen East-view threshold to changed camera poses, image-edge clipping, positive/negative radial warps, and held-out shifts. |
+| [Planar feature-radius diagnostic](assets/demos/camera_calibration_planar.mp4) | A 49-corner tabletop target across five views and radial warps; overlays show reprojection vectors and error by feature radius beside the paired legacy four-marker result. |
+| [Planar target-size design probe](assets/demos/camera_calibration_planar_target_design.mp4) | Side-by-side 0.15 m and 0.17 m checker squares under the same noisy image settings, showing the edge-coverage versus detector-availability tradeoff. |
+
+The eight delayed-feedback conditions each have a three-panel demo (fresh RGB,
+fully delayed RGB, and delayed target with current joint-state tip projection):
+
+| Target path | Noise | Delay | Video |
+| --- | ---: | ---: | --- |
+| Sinusoidal | 0 px | 0.4 s | [Watch](assets/demos/sensor_timing_sinusoidal_noise-0px_delay-1.mp4) |
+| Sinusoidal | 0 px | 0.8 s | [Watch](assets/demos/sensor_timing_sinusoidal_noise-0px_delay-2.mp4) |
+| Sinusoidal | 2 px | 0.4 s | [Watch](assets/demos/sensor_timing_sinusoidal_noise-2px_delay-1.mp4) |
+| Sinusoidal | 2 px | 0.8 s | [Watch](assets/demos/sensor_timing_sinusoidal_noise-2px_delay-2.mp4) |
+| Piecewise linear | 0 px | 0.4 s | [Watch](assets/demos/sensor_timing_piecewise_linear_noise-0px_delay-1.mp4) |
+| Piecewise linear | 0 px | 0.8 s | [Watch](assets/demos/sensor_timing_piecewise_linear_noise-0px_delay-2.mp4) |
+| Piecewise linear | 2 px | 0.4 s | [Watch](assets/demos/sensor_timing_piecewise_linear_noise-2px_delay-1.mp4) |
+| Piecewise linear | 2 px | 0.8 s | [Watch](assets/demos/sensor_timing_piecewise_linear_noise-2px_delay-2.mp4) |
 
 Regenerate the gallery with:
 
@@ -75,6 +198,21 @@ uv run python scripts/generate_stale_confirmation_comparison.py
 uv run python scripts/generate_latency_comparison.py
 uv run python scripts/generate_prediction_comparison.py
 uv run python scripts/generate_reversal_prediction_comparison.py
+uv run python scripts/generate_sensor_timing_comparisons.py
+uv run python scripts/generate_verification_view_demos.py
+uv run python scripts/generate_terminal_verification_demos.py
+uv run python scripts/generate_verification_stress_demos.py
+uv run python scripts/generate_verification_quality_demos.py
+uv run visual-servo-camera-calibration-health --output artifacts/camera-calibration-health.json
+uv run python scripts/generate_camera_calibration_health_demo.py
+uv run visual-servo-camera-calibration-validation --output artifacts/camera-calibration-health-validation.json
+uv run python scripts/generate_camera_calibration_validation_demo.py
+uv run visual-servo-camera-calibration-transfer --output artifacts/camera-calibration-transfer-validation.json
+uv run python scripts/generate_camera_calibration_transfer_demo.py
+uv run visual-servo-camera-calibration-planar --output artifacts/camera-calibration-planar-profile.json
+uv run python scripts/generate_camera_calibration_planar_demo.py
+uv run python scripts/generate_camera_calibration_planar_design_demo.py
+uv run --extra pdf python scripts/generate_project_explainer.py
 ```
 
 To record a specific episode from a seeded batch, select it with
@@ -183,6 +321,8 @@ only after the motion to score the trial.
   and stress conditions, then writes the JSON summary.
 - `scripts/generate_demo_gallery.py` regenerates the deterministic clips in
   `assets/demos/`, including a selected high-noise failure episode.
+- `scripts/export_public_trial_data.py` exports compact per-trial outcomes from
+  the paired robustness report to `results/robustness-baseline-trials.csv`.
 - `scripts/generate_filter_comparison.py` creates the paired 3-vs-5 sample
   filter clip shown above.
 - `scripts/generate_stale_confirmation_comparison.py` creates the strict-versus-
@@ -195,6 +335,60 @@ only after the motion to score the trial.
   positions with constant-velocity and constant-acceleration image estimates.
 - `scripts/generate_prediction_comparison.py` renders the three-way delayed-
   target prediction demo.
+- `src/visual_servo_mujoco/sensor_timing_benchmark.py` compares fully delayed
+  RGB feedback with delayed target observations and current joint-state tip
+  projection.
+- `src/visual_servo_mujoco/verification_benchmark.py` tests four calibrated
+  oblique views as independent terminal visual-evidence candidates; it does
+  not change the controller or its stop decision.
+- `src/visual_servo_mujoco/terminal_verification.py` defines calibrated oblique
+  camera poses and pixel-ray back-projection to known marker heights, with
+  estimator-only camera calibration and image stress hooks.
+- `src/visual_servo_mujoco/verification_robustness_benchmark.py` pairs held-out
+  controller trials across nine terminal-verifier conditions and reports
+  per-marker image features, estimate availability, false/missed decisions,
+  and distance error.
+- `src/visual_servo_mujoco/verification_quality_validation.py` selects an
+  abstention threshold on disjoint calibration seeds, freezes it, and measures
+  coverage and decision errors on a separate seed block.
+- `src/visual_servo_mujoco/camera_calibration_health.py` compares four fixed
+  tabletop landmarks with their nominal pinhole projections under rendered
+  camera perturbations; it is a standalone diagnostic and does not control the arm.
+- `src/visual_servo_mujoco/camera_calibration_validation.py` tunes residual
+  thresholds on separate nominal and labelled-drift seeds, then measures false
+  alarms, drift detection, and landmark availability on held-out renders.
+- `src/visual_servo_mujoco/camera_calibration_transfer.py` applies the frozen
+  East-view threshold to held-out camera poses and synthetic radial distortion;
+  it never adjusts the threshold on transfer samples.
+- `src/visual_servo_mujoco/camera_calibration_planar.py` renders a known planar
+  checkerboard, associates its 49 corners, and reports residuals by image radius
+  beside a separately rendered legacy four-marker reference.
+- `scripts/generate_camera_calibration_health_demo.py` writes the landmark
+  residual report and the paired nominal-versus-drift video.
+- `scripts/generate_camera_calibration_validation_demo.py` visualizes the
+  nominal-only, false-alarm-constrained, and fixed 3 px threshold rules on
+  representative held-out images.
+- `scripts/generate_camera_calibration_transfer_demo.py` replays representative
+  pose, edge-visibility, radial-distortion, and shift transfer trials.
+- `scripts/generate_camera_calibration_planar_demo.py` creates the annotated
+  radius-profile video and image preview across camera poses and lens warps.
+- `scripts/generate_camera_calibration_planar_design_demo.py` preserves the
+  larger-target availability failure beside the selected layout.
+- `run.py --verify-terminal` takes a fresh east-view observation after control
+  stops and reports its image-based distance separately from physical reach.
+- `scripts/generate_sensor_timing_comparisons.py` renders a labeled three-mode
+  video for each of the eight delayed-feedback benchmark conditions.
+- `scripts/generate_verification_view_demos.py` renders synchronized overhead
+  and oblique camera views for clean and high-noise terminal examples.
+- `scripts/generate_verification_stress_demos.py` records one two-view terminal
+  clip for each calibration, exposure, and marker-occlusion stress condition.
+- `scripts/generate_verification_quality_demos.py` records a paired
+  false-success and abstention example with identical reaching outcomes.
+- `scripts/generate_verification_quality_validation_demos.py` finds a false
+  success in the independent validation split and records the baseline and
+  frozen-gate views for the same target and arm pose.
+- `scripts/generate_terminal_verification_demos.py` records the actual opt-in
+  terminal verifier in clean and high control-noise conditions.
 
 ### First paired robustness baseline
 
@@ -463,6 +657,490 @@ shows the same seed and moving target with live camera feedback and a 0.4 s
 delay. This benchmark delays both target and end-effector pixels, modeling a
 fully delayed camera stream.
 
+### Sensor timing and end-effector source benchmark
+
+Run the paired comparison with:
+
+```bash
+uv run visual-servo-sensor-timing-benchmark \
+  --output artifacts/sensor-timing-benchmark.json
+```
+
+This experiment tests whether end-effector observation age contributes to the
+moving-target failures. It compares a current camera view, a fully delayed RGB
+view, and a delayed target observation paired with the current joint-state
+projection of the arm tip. The last mode is a vision/proprioception hybrid; it
+does not represent fully delayed vision. Motion prediction and stale-target
+arrival confirmation are disabled for all modes.
+
+The default run covers sinusoidal and piecewise-linear targets, 0 and 2 px
+target noise, and 0, 0.4, and 0.8 simulated seconds of camera delay. Each row
+uses five seeds and 20 targets per seed. Delayed modes are paired with each
+other and with the same profile/noise fresh-camera reference. The report
+includes paired error deltas with seed-cluster bootstrap intervals, physical
+success, stop reasons, camera age at the terminal observation, and fresh visual
+confirmation counts. Physical success remains the final MuJoCo distance at or
+below 4.5 cm. A `pixel_tolerance_reached` stop counts as fresh visual
+confirmation only when the consumed target measurement has zero camera-age
+observations and zero simulated-time age; delayed-frame tolerance stops do not
+count as fresh confirmation. The two outcomes are reported separately.
+
+The measurement-noise generator restarts from the same seed for each mode.
+When different arm trajectories cause different natural occlusions, later
+noise draws may no longer correspond to identical physical timestamps. Trials
+are paired by seed and episode, with bootstrap resampling over seed groups; the
+report records this simulator limitation rather than claiming identical
+sensor noise after trajectories diverge.
+
+The first run uses seeds 0–4; a second run with seeds 100–104 is held out from
+the earlier dynamic and prediction experiments. Each reports 100 trials per
+mode/condition. The table gives physical successes for fully delayed RGB →
+delayed target/current-joint-state tip, followed by the held-out paired median
+error difference (hybrid minus fully delayed) and its seed-cluster bootstrap
+interval.
+
+| Target path | Noise | Delay | Seeds 0–4 success | Seeds 100–104 success | Held-out paired median error Δ (95% CI) |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Sinusoidal | 0 px | 0.4 s | 10% → 85% | 4% → 84% | -2.46 cm [-2.70, -2.31] |
+| Sinusoidal | 0 px | 0.8 s | 68% → 85% | 63% → 81% | -1.54 cm [-1.85, -0.58] |
+| Sinusoidal | 2 px | 0.4 s | 15% → 81% | 11% → 68% | -1.94 cm [-2.29, -1.61] |
+| Sinusoidal | 2 px | 0.8 s | 66% → 85% | 56% → 85% | -1.65 cm [-2.07, -0.95] |
+| Piecewise linear | 0 px | 0.4 s | 46% → 98% | 34% → 88% | -2.52 cm [-2.62, -2.42] |
+| Piecewise linear | 0 px | 0.8 s | 69% → 92% | 58% → 93% | -2.11 cm [-2.42, -1.85] |
+| Piecewise linear | 2 px | 0.4 s | 40% → 88% | 37% → 83% | -2.27 cm [-2.60, -1.47] |
+| Piecewise linear | 2 px | 0.8 s | 65% → 90% | 56% → 95% | -2.17 cm [-2.45, -1.90] |
+
+Current-joint-state tip projection improved physical success in all eight
+settings on both seed groups. The paired median error differences were lower
+in all held-out settings. The bootstrap resamples only five seed groups, so
+the intervals summarize these runs and do not establish broad generalization.
+Held-out P95 errors for the hybrid ranged from 4.92 to 6.71 cm. It is a
+promising opt-in hybrid for physical reaching; it does not provide current-time
+visual confirmation under delayed target frames. In delayed modes, current-time
+visual confirmations were 0/100 even when the arm met the physical success
+threshold. At zero delay, physical success was 93–100/100 across the two seed
+groups, while current-time visual confirmations were 37–53/100. These separate
+counts retain the project's distinction between reaching and visual task
+completion.
+
+### Independent-view terminal verification experiment
+
+Natural target loss motivates testing a second camera view: 91 of 100 clean
+default trials ended after the overhead camera lost the target, even though
+all 100 were physically within 4.5 cm. The verification benchmark leaves that
+controller unchanged, renders four oblique views at terminal arm poses,
+detects the red target and green tip, back-projects their pixels to the known
+target and tip heights, and compares the estimated distance with MuJoCo ground
+truth. It runs clean and 20 px controller-noise conditions on seeds 0–4, then
+repeats them on held-out seeds 100–104. The 20 px noise is applied to the
+controller's target measurements; verification camera images are rendered
+directly from the simulator. The east-view rows now exercise the same runtime
+`--verify-terminal` branch shown in the demo; north, west, and south remain
+offline camera candidates.
+
+The table pools both seed groups (200 trials per noise level). “False
+success” means the camera estimate was within the 4.5 cm physical threshold
+while MuJoCo ground truth was outside it. “Missed success” means the reverse.
+Rows with a missing marker cannot make a visual estimate.
+
+| View | Noise | Both markers visible | False success | Missed success | P95 absolute distance-estimate error |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| East oblique | 0 px | 200/200 | 0 | 1 | 2.27 cm |
+| East oblique | 20 px | 198/200 | 0 | 14 | 1.71 cm |
+| North oblique | 0 px | 200/200 | 0 | 0 | 1.87 cm |
+| North oblique | 20 px | 200/200 | 6 | 11 | 2.28 cm |
+
+East is the conservative candidate in these runs: it produced no false
+success decisions across either noise level or seed group. Under 20 px control
+noise, it failed to recognize 14 physically successful trials, so this result
+does not establish a production-ready stop rule. The north view had lower
+clean-condition estimation error but labeled six physically failed high-noise
+trials as successful. This is a simulator camera experiment, not evidence of
+real-camera calibration or illumination robustness.
+
+The [clean two-view demo](assets/demos/verification_view_clean.mp4) and
+[20 px-noise two-view demo](assets/demos/verification_view_20px-noise.mp4)
+show current-time renders at feedback updates and hold the terminal state. The
+control policy continues to use only its overhead camera. The additional view
+is a separate terminal observation; it does not count toward current
+controller confirmation.
+
+The optional `--verify-terminal` mode now renders the calibrated east camera
+after the reaching controller has stopped. It segments both markers,
+back-projects each pixel to the marker's known height, and records the
+estimated distance, visibility, camera age, and visual threshold estimate.
+The report keeps the existing MuJoCo physical-reach score in `success` and
+stores the camera result under `terminal_visual_verification`. Missing markers
+make the visual estimate unavailable. The verifier never changes the motion,
+stop reason, or physical score; it is off by default. Run one example with:
+
+```bash
+uv run visual-servo-demo --controller image_feedback --episodes 1 --seed 7 \
+  --verify-terminal --output-dir artifacts/terminal-verification-demo
+```
+
+This run writes a terminal two-view video alongside the usual control demo.
+The verification image is a current simulator render. The 20 px condition
+perturbs controller target measurements only; the stress options below alter
+only the separate terminal verifier.
+
+### Terminal verifier calibration and image-stress benchmark
+
+The verifier robustness benchmark pairs the same 100 held-out reaching trials
+(seeds 100–104, 20 targets per seed) across nine one-factor conditions. The
+reaching controller receives 20 px target-measurement noise. `False +` counts
+visual success estimates on physically failed trials; `Missed` counts visual
+failure estimates on physically successful trials. Counts exclude trials
+where either marker is unavailable. Physical reaching succeeded on 85/100
+trials in every condition. The stress settings did not change any controller
+outcome.
+
+| Verifier condition | Markers visible / available | False + | Missed | P95 absolute distance error |
+| --- | ---: | ---: | ---: | ---: |
+| Nominal | 99/100 | 0 | 7 | 1.74 cm |
+| Estimated FOV +5° | 99/100 | 0 | 15 | 2.12 cm |
+| Estimated FOV −5° | 99/100 | 1 | 3 | 1.66 cm |
+| Estimated camera world X +2 cm | 99/100 | 0 | 7 | 1.74 cm |
+| Estimated camera yaw +3° | 99/100 | 0 | 5 | 1.84 cm |
+| Uniform image exposure ×0.25 | 0/100 | — | — | unavailable |
+| Uniform image exposure ×1.5 | 99/100 | 0 | 10 | 2.52 cm |
+| Target marker occluded | 0/100 | — | — | unavailable |
+| End-effector marker occluded | 0/100 | — | — | unavailable |
+
+The ±5° FOV cases show asymmetric classification risk: +5° raised missed
+successes from 7 to 15, while −5° produced one false success. The camera X
+offset changed neither pooled decisions nor rounded P95 error in this setup.
+A shared translation may cancel when the verifier compares two reconstructed
+points, but that should not be generalized to other camera poses or marker
+heights. The bright exposure condition increased the P95 distance error. When
+the image was dimmed or a marker was occluded, the verifier withheld all
+estimates. Those unavailable cases have no false/missed counts; they are not
+scored as correct decisions.
+
+#### Marker-quality threshold sweep
+
+The terminal verifier now reports a per-marker quality score from normalized
+contour area, circularity, median saturation, and median brightness. The
+combined score is the lower score of the target and end-effector markers. It
+is a unitless heuristic, not a probability, and it cannot diagnose incorrect
+camera calibration from marker appearance alone. A positive
+`--terminal-verification-min-quality-score` makes the opt-in verifier abstain
+below that threshold. The default is 0.0, which preserves the estimate
+behavior.
+
+| Minimum score | Nominal available | False + | Missed | FOV −5° available | False + | Missed |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 0.00 | 99/100 | 0 | 7 | 99/100 | 1 | 3 |
+| 0.15 | 93/100 | 0 | 7 | 93/100 | 1 | 3 |
+| 0.20 | 39/100 | 0 | 5 | 39/100 | 1 | 3 |
+| 0.50 | 9/100 | 0 | 1 | 9/100 | 0 | 1 |
+
+The 0.50 gate removed the one false-success decision in the FOV −5° condition,
+but it left only 9% of estimates available. The lower gates kept that false
+success. The score exposes a coverage tradeoff but does not yet provide a
+useful safety setting. Fully dimmed and fully occluded images remain
+unavailable at every threshold. These curves are exploratory: thresholds were
+applied retrospectively to the same held-out trials, and none is selected as a
+default.
+
+The paired [false-success](assets/demos/terminal_verification_quality_false_positive.mp4)
+and [abstention](assets/demos/terminal_verification_quality_abstention.mp4)
+clips use seed 101, episode 16, the −5° FOV estimate, and the same reaching
+trajectory. Run the opt-in gate manually with:
+
+```bash
+uv run visual-servo-demo --controller image_feedback --episodes 1 --seed 7 \
+  --verify-terminal --terminal-verification-min-quality-score 0.50
+```
+
+When the gate abstains, `estimated_distance_m` and
+`visual_success_estimate` are null. The report retains a clearly named
+evaluation-only candidate distance for the offline threshold sweep; it is not
+used as a verifier decision.
+
+This is controlled simulator evidence, not real-camera robustness evidence.
+Exposure is a uniform post-render brightness multiplier, not a lighting or
+sensor model; marker occlusion removes marker-colored pixels and inpaints the
+region. Camera offsets are applied to estimator calibration while rendering
+remains nominal. The benchmark therefore isolates verifier sensitivity and
+does not measure real calibration drift, shadows, blur, clipping, or partial
+occlusion. The verifier remains opt-in and cannot change the physical success
+score or control stop.
+
+Reproduce the held-out report and all eight illustrative condition videos:
+
+```bash
+uv run visual-servo-verification-robustness-benchmark --seeds 5 \
+  --episodes-per-seed 20 --base-seed 100 \
+  --output artifacts/verification-robustness-benchmark-heldout.json
+uv run python scripts/generate_verification_stress_demos.py
+uv run python scripts/generate_verification_quality_demos.py
+```
+
+The JSON is retained at
+`artifacts/verification-robustness-benchmark-heldout.json`. Each stress video
+uses seed 7 and demonstrates one case; the 100-trial table above is the
+aggregate held-out evidence.
+
+#### Seed-separated threshold calibration and validation
+
+The calibration split uses seeds 200–204 (100 target trials), repeated across
+the same nine paired camera/image conditions. It chooses the highest-coverage
+threshold with zero observed false visual success decisions; a gate must also
+retain at least 50% of candidate estimates to count as usable. The selected
+0.60 gate retained 21/595 calibration candidates (3.5%), so it failed that
+coverage criterion.
+
+The frozen threshold was then evaluated without retuning on seeds 300–304
+(another 100 target trials, paired across nine conditions):
+
+| Validation setting | Accepted / candidate estimates | Candidate coverage | False visual successes | Missed success estimates |
+| --- | ---: | ---: | ---: | ---: |
+| Ungated baseline (0.00) | 600/600 | 100% | 10 | 48 |
+| Frozen threshold (0.60) | 23/600 | 3.8% | 0 | 3 |
+
+All 23 accepted frozen-gate estimates came from the bright-exposure condition;
+the gate accepted none in nominal, FOV-shifted, or camera-pose-shifted images.
+The 23/600 figure is coverage among images where both markers already produced
+a candidate estimate; it is 23/900 (2.6%) across all validation trials. Dim and
+occluded conditions had no candidate estimates before applying the gate. The
+controller outcomes matched the nominal controller in both seed blocks.
+
+This is a negative result: the threshold removed all observed false visual
+success decisions on this split, but it abstained on 96.2% of otherwise
+candidate estimates and behaved as a brightness filter. The 10 false successes
+and 48 missed estimates in the ungated row are counts across paired conditions;
+each target episode is repeated across conditions, so those counts are not 900
+independent target trials. Zero observed false successes is not a calibrated
+risk guarantee. The gate remains opt-in and no threshold is recommended.
+
+Reproduce both seed blocks and generate the paired held-out clips with:
+
+```bash
+uv run visual-servo-verification-quality-validation --seeds 5 \
+  --episodes-per-seed 20 --calibration-base-seed 200 \
+  --validation-base-seed 300 \
+  --output artifacts/verification-quality-calibration-validation.json
+uv run python scripts/generate_verification_quality_validation_demos.py
+```
+
+The report stores the component-level marker features and simulator labels for
+both splits. The labels are MuJoCo physical outcomes, while the verifier
+estimates distance from a fresh rendered RGB view. This is controlled
+simulation evidence, not a recorded-camera dataset.
+
+#### Fixed-landmark camera calibration-health experiment
+
+The appearance-only threshold did not diagnose camera-model bias, so this
+separate diagnostic adds four fixed magenta landmarks at known tabletop
+coordinates. It matches their detected image centers to pinhole projections
+from the nominal camera pose and field of view, then measures reprojection
+residual. Here the rendering camera itself is perturbed while the diagnostic
+continues to use nominal calibration. This is different from the earlier
+verifier stress benchmark, which rendered nominal images and perturbed only
+the estimator's camera parameters. No reaching controller runs in this test.
+
+| Render condition | Detected | Reprojection RMS | Diagnostic result |
+| --- | ---: | ---: | --- |
+| Nominal camera | 4/4 | 0.51 px | Healthy |
+| FOV +5° | 4/4 | 20.23 px | Drift detected |
+| FOV −5° | 4/4 | 24.20 px | Drift detected |
+| Camera world X +2 cm | 4/4 | 6.84 px | Drift detected |
+| Camera yaw +3° | 4/4 | 21.43 px | Drift detected |
+| Combined FOV, position, yaw shift | 4/4 | 32.02 px | Drift detected |
+| Bright exposure ×1.5 | 4/4 | 0.45 px | Healthy |
+| Dim exposure ×0.25 | 0/4 | unavailable | Unavailable |
+
+The exploratory alarm is 3 px RMS: all five rendered camera shifts exceeded it,
+while nominal and bright exposure stayed below it. Dim exposure made the color
+landmarks unavailable, so the diagnostic reports no calibration decision. This
+first run did not calibrate the threshold on an independent camera dataset.
+The scene uses ideal pinhole projections and simulator renders; it does not
+model lens distortion or real-world landmark localization. It diagnoses a
+camera-to-model mismatch in this controlled setup and does not update the
+calibration or alter reaching.
+
+Reproduce the report and paired visual demo with:
+
+```bash
+uv run visual-servo-camera-calibration-health \
+  --output artifacts/camera-calibration-health.json
+uv run python scripts/generate_camera_calibration_health_demo.py
+```
+
+The demo shows nominal and combined-drift images side by side. White crosses
+mark expected projections, green rings mark detected centers, and orange lines
+visualize residuals. The JSON retains per-landmark errors and all eight
+conditions.
+
+#### Frozen threshold calibration and held-out validation
+
+The fixed 3 px threshold was still an arbitrary margin. This follow-up uses
+seeds 400–404 to tune on 100 nominal calibration images and 300 labelled camera
+shift images, then freezes the selected threshold. Seeds 500–504 provide 100
+nominal validation images (including five dim-image availability probes) and
+300 fresh camera-shift images. The validation shifts use new parameter draws from the
+same three severity ranges as calibration. Validation image nuisance is
+broader: exposure ×0.55–1.45, RGB noise 0–8 intensity levels, and blur kernels
+1, 3, or 5 pixels. Calibration uses exposure ×0.70–1.30, noise 0–4, and blur
+1 or 3.
+
+| Threshold policy | Frozen threshold | Nominal false alarms | Subtle drift detected | Moderate drift detected | Severe drift detected |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Nominal-only 95th percentile | 0.573 px | 7/95 (7.4%) | 100/100 | 100/100 | 100/100 |
+| Supervised, max detection at ≤5% calibration false alarms | 0.841 px | 0/95 | 100/100 | 100/100 | 100/100 |
+| Earlier fixed exploratory threshold | 3.000 px | 0/95 | 60/100 | 93/100 | 100/100 |
+
+The nominal-only quantile met its 5% false-alarm target on calibration
+(4/100), but exceeded it on validation. The supervised rule used labelled
+camera shifts in the calibration split and selected the threshold with the
+highest drift detection subject to at most 5% nominal calibration false
+alarms. It selected 0.841 px, with 0/100 calibration false alarms and 300/300
+calibration shifts detected. On held-out seeds, it flagged no nominal image
+with visible landmarks and detected all 300 shifted-camera images. All five
+dim probes were unavailable rather than reported as healthy.
+
+This is a promising controlled result, not a real-camera guarantee. The split
+holds out random seeds and image nuisance draws, while reusing the same scene,
+landmark layout, camera-shift types, and severity ranges. The 300 camera-shift
+frames per split are repeated renders grouped under five seeds, not 300
+independent physical cameras. The supervised rule also depends on representative
+labelled camera-shift examples. No reaching controller runs here, and these
+health labels do not certify physical reaching or fresh visual confirmation.
+
+Reproduce the split report and validation demo with:
+
+```bash
+uv run visual-servo-camera-calibration-validation --seeds 5 \
+  --samples-per-seed 20 --calibration-base-seed 400 \
+  --validation-base-seed 500 --max-false-alarm-rate 0.05 \
+  --output artifacts/camera-calibration-health-validation.json
+uv run python scripts/generate_camera_calibration_validation_demo.py
+```
+
+The demo replays one held-out nominal image under the nominal-only and frozen
+supervised thresholds, then shows representative subtle drift, severe drift,
+and dim-image abstention cases. Its pixel residuals and per-seed summaries are
+in the ignored local JSON report.
+
+#### Frozen threshold transfer to camera poses and lens distortion
+
+The 0.8409987 px threshold selected on East-view seeds 400–404 is now frozen
+across a separate seed block, 600–604. Five synthetic camera poses cover the
+East reference, a lower West view, a higher North view, a diagonal view, and a
+low grazing East view. Each pose has 95 visible nominal images, five dim
+availability probes, and 100 trials at each of three camera-shift severities.
+The same five views also receive 25 repeats at each of eight OpenCV radial
+`k1` coefficients from −0.04 to +0.04. This makes 3,000 evaluation images.
+All use the same MuJoCo scene and fixed four-landmark layout; they are not five
+independent physical cameras.
+
+The frozen threshold transfers well to most tested views for camera shifts, but
+its nominal false-alarm and availability behavior is pose-dependent:
+
+| Held-out pose | Nominal frozen alarms | Subtle / moderate / severe shift alarms (available trials) | Landmark unavailability |
+| --- | ---: | ---: | ---: |
+| East reference | 0/95 | 100/100 / 100/100 / 100/100 | 0/300 shifted trials |
+| West lower | 2/95 | 100/100 / 99/99 / 82/82 | 19/300 shifted trials unavailable |
+| North higher | 0/95 | 99/100 / 100/100 / 100/100 | 0/300 shifted trials unavailable |
+| Southwest diagonal | 0/95 | 100/100 / 100/100 / 99/99 | 1/300 shifted trials unavailable |
+| East grazing | unavailable 95/95 | unavailable 300/300 | expected landmark centers fall outside the safe image margin |
+
+The low grazing image originally produced a candidate RMS of 12.30 px, which
+looked like drift even though the expected landmark centers were outside the
+image. A 12 px image-margin guard now reports that condition as **unavailable**
+and retains the raw candidate RMS for inspection. The RMS is not used for a
+threshold decision when expected landmarks are clipped. The West-lower pose
+still has 2/95 nominal alarms and loses landmarks in 19/300 shifted trials, so
+view transfer is not uniformly reliable.
+
+Radial distortion detection also changes with landmark placement in the image.
+For example, positive `k1=+0.010` was flagged in 25/25 East images, 0/25
+higher-North images, and 1/25 diagonal images. At `k1=+0.020`, all three were
+flagged in 25/25. On the East view, `k1=−0.005` produced 0/25 alarms while
+`k1=+0.005` produced 25/25. These coefficients are synthetic image-warp
+settings, not measured lens specifications. The alarm identifies disagreement
+with the pinhole model; it does not identify whether distortion, calibration,
+marker geometry, or visibility caused it.
+
+The transfer diagnostic checks whether all expected landmark centers lie
+inside a 12 px image margin before using their residual. A missing/clipped
+configuration is an unavailable observation, not a camera-health pass or a
+drift alarm. This remains a simulator diagnostic: no reaching controller,
+physical success, fresh terminal visual confirmation, recorded camera, or
+hardware lens is tested.
+
+Reproduce the frozen-threshold transfer report and video with:
+
+```bash
+uv run visual-servo-camera-calibration-transfer \
+  --threshold-report artifacts/camera-calibration-health-validation.json \
+  --seeds 5 --samples-per-seed 20 --distortion-repeats-per-seed 5 \
+  --validation-base-seed 600 \
+  --output artifacts/camera-calibration-transfer-validation.json
+uv run python scripts/generate_camera_calibration_transfer_demo.py
+```
+
+### Dense planar-target radius diagnostic
+
+The transfer failures motivated a 49-corner checkerboard whose features are
+known in the table plane. The target-only calibration scene uses the same table
+and five camera poses; a separate paired render in the original arm scene keeps
+the frozen four-marker score comparable by view, condition, and appearance
+seed. No controller is run. The dense profile remains descriptive and the
+0.840999 px threshold stays attached only to the original four markers.
+
+The evaluation has 325 rows: five views, 13 conditions, and five appearance
+seeds (800–804). It covers nominal images, ±5° rendered FOV, a +2 cm camera X
+shift, +3° yaw, and eight radial coefficients from −0.04 to +0.04. Brightness,
+noise, and blur use the same ranges as the preceding transfer test. Target-size
+selection probes used seeds 700–704; those seeds are excluded from this report.
+
+The checkerboard profile was available on all five nominal samples in East,
+West, and higher-North views, four of five diagonal samples, and three of five
+grazing samples. The four old landmarks were unavailable in all five grazing
+samples. Dense target coverage still varies by view: its maximum feature radius
+ranges from 182 px on the diagonal and 186 px on North to 287 px at grazing.
+The legacy four-marker radii reach 210, 223, and 366 px in those views.
+
+The radius profile makes the radial-distortion blind spot measurable. In East,
+`k1=+0.010` raised the dense-profile median RMS from 0.28 px nominally to 0.38
+px; median signed radial residual was 0.86 px in the 240–320 px band and −0.05
+px in the 0–80 px band. The frozen four-marker rule alarmed on all five East
+samples. With the same coefficient in higher-North, its four-marker rule
+alarmed on 0/5 samples; the dense profile median was 0.27 px versus 0.16 px
+nominally. The diagonal dense median was 1.38 px among four available samples,
+while the four-marker rule alarmed on 0/5. These are view and radius effects in
+synthetic images; the dense profile has no acceptance threshold.
+
+The larger 0.17 m-square design probe extended feature radii to 354 px and
+matched the old edge coverage more closely, then lost detector availability:
+2/5 West nominal, 4/5 diagonal, and 0/5 grazing samples. Its full report is
+retained at `artifacts/camera-calibration-planar-profile-wide-target-probe.json`.
+The selected 0.15 m-square layout trades some edge coverage for higher
+appearance-robust detection. A future physical target may need multiple board
+placements to cover the outer image field without shrinking the squares.
+
+![Planar calibration target and radius-resolved reprojection profile](assets/demos/camera_calibration_planar.png)
+
+![Selected and wider checkerboard layouts under the same view and appearance settings](assets/demos/camera_calibration_planar_target_design.png)
+
+Reproduce the report and demo with:
+
+```bash
+uv run visual-servo-camera-calibration-planar \
+  --seeds 5 --base-seed 800 \
+  --output artifacts/camera-calibration-planar-profile.json
+uv run python scripts/generate_camera_calibration_planar_demo.py
+```
+
+The evidence remains simulator-only. No recorded camera, printed target,
+physical lens, reaching result, or fresh visual confirmation is included.
+The next milestone is to capture checkerboard images at two or more camera
+poses and at center and edge radii, record the camera and target poses in a
+manifest, then hold separate nominal and shifted captures for validation. Keep
+the verifier and quality gate opt-in until that evidence exists.
+
 ### Target-motion prediction experiment
 
 Run a paired comparison of the rolling-median baseline, a constant-velocity
@@ -484,7 +1162,7 @@ the acceleration model falls back to a velocity fit until three samples exist.
 | Stationary, 0 s | 0.65 cm | 0.61 cm | 0.81 cm | 100% / 100% / 100% |
 | Stationary, 0.8 s | 0.83 cm | 0.83 cm | 1.13 cm | 100% / 100% / 93% |
 | Moving, 0 s | 2.16 cm | 3.11 cm | 2.33 cm | 92% / 83% / 92% |
-| Moving, 0.4 s | 2.70 cm | 6.48 cm | 2.26 cm | 85% / 10% / 76% |
+| Moving, 0.4 s | 2.70 cm | 6.48 cm | 2.26 cm | 85% / 10% / 77% |
 | Moving, 0.8 s | 2.60 cm | 6.37 cm | 8.13 cm | 85% / 5% / 20% |
 
 The constant-velocity fit performs poorly when the sinusoidal target reverses

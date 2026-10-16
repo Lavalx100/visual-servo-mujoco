@@ -24,6 +24,7 @@ def compose_paired_videos(
     destination: Path,
     *,
     title: str,
+    label_scale: float = 0.5,
 ) -> None:
     captures = [cv2.VideoCapture(str(path)) for path, _, _ in sources]
     if not all(capture.isOpened() for capture in captures):
@@ -78,7 +79,7 @@ def compose_paired_videos(
                     label,
                     (18 + x, 47),
                     cv2.FONT_HERSHEY_SIMPLEX,
-                    0.5,
+                    label_scale,
                     color,
                     2,
                     cv2.LINE_AA,

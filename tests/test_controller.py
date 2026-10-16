@@ -1,4 +1,7 @@
+import math
+
 import cv2
+import mujoco
 import numpy as np
 import pytest
 
@@ -23,9 +26,26 @@ from visual_servo_mujoco.controller import (
 from visual_servo_mujoco.dynamic_benchmark import run_dynamic_benchmark
 from visual_servo_mujoco.prediction_benchmark import run_prediction_benchmark
 from visual_servo_mujoco.reversal_benchmark import run_reversal_benchmark
+from visual_servo_mujoco.sensor_timing_benchmark import run_sensor_timing_benchmark
+from visual_servo_mujoco.verification_benchmark import (
+    _model_with_verification_views,
+    _pixel_to_xy_at_height,
+    run_verification_benchmark,
+)
+from visual_servo_mujoco.verification_robustness_benchmark import (
+    VERIFIER_STRESS_CONDITIONS,
+    run_verification_robustness_benchmark,
+)
+from visual_servo_mujoco.verification_quality_validation import (
+    _validate_seed_splits,
+    run_frozen_quality_validation,
+    select_calibration_threshold,
+    summarize_quality_threshold,
+)
 from visual_servo_mujoco.model import MODEL_XML
 from visual_servo_mujoco.run import (
     FEEDBACK_MAX_ITERATIONS,
+    _detect_marker_with_quality,
     detect_green_end_effector,
     detect_red_target,
     run_trials,
@@ -633,6 +653,354 @@ def test_reversal_benchmark_pairs_predictor_runs_across_profiles_and_noise(tmp_p
         "piecewise_linear",
     }
     assert (tmp_path / "reversal.json").is_file()
+
+
+def test_sensor_timing_benchmark_pairs_feedback_sources_and_reports_confirmation(tmp_path):
+    report = run_sensor_timing_benchmark(
+        seeds=1,
+        episodes_per_seed=1,
+        output_path=tmp_path / "sensor-timing.json",
+    )
+
+    assert report["benchmark"] == "moving_target_feedback_sensor_timing"
+    assert report["prediction_mode"] == "none"
+    assert report["stale_target_confirmation"] is False
+    assert len(report["results"]) == 20
+    full_delay = next(
+        row
+        for row in report["results"]
+        if row["target_motion_profile"] == "sinusoidal"
+        and row["pixel_noise_std_px"] == 0.0
+        and row["mode"] == "fully_delayed_camera"
+        and row["camera_observation_delay_observations"] == 1
+    )
+    joint_state_tip = next(
+        row
+        for row in report["results"]
+        if row["target_motion_profile"] == "sinusoidal"
+        and row["pixel_noise_std_px"] == 0.0
+        and row["mode"] == "delayed_target_current_joint_state_tip"
+        and row["camera_observation_delay_observations"] == 1
+    )
+    assert full_delay["end_effector_feedback_source"] == "camera_observation"
+    assert joint_state_tip["end_effector_feedback_source"] == "current_joint_state_projection"
+    assert full_delay["paired_comparisons"]["vs_fresh_camera"]["paired_trials"] == 1
+    assert joint_state_tip["paired_comparisons"]["vs_fully_delayed_camera"][
+        "paired_trials"
+    ] == 1
+    assert full_delay["fresh_visual_confirmation_trials"] <= full_delay["trials"]
+    assert full_delay["fresh_visual_confirmation_trials"] == 0
+    assert joint_state_tip["fresh_visual_confirmation_trials"] == 0
+    assert joint_state_tip["visual_tolerance_stop_trials"] <= joint_state_tip["trials"]
+    assert (tmp_path / "sensor-timing.json").is_file()
+
+
+def test_verification_benchmark_keeps_control_unchanged_and_reports_view_estimates(tmp_path):
+    report = run_verification_benchmark(
+        seeds=1,
+        episodes_per_seed=1,
+        output_path=tmp_path / "verification.json",
+    )
+
+    assert report["benchmark"] == "fresh_oblique_verification_view"
+    assert report["control_policy_changed"] is False
+    assert report["control_camera_observation_delay_observations"] == 0
+    assert report["east_view_runtime_terminal_verifier_used"] is True
+    assert len(report["results"]) == 8
+    north_clean = next(
+        row
+        for row in report["results"]
+        if row["verification_view"] == "north" and row["pixel_noise_std_px"] == 0.0
+    )
+    assert north_clean["trials"] == 1
+    assert north_clean["both_markers_visible_trials"] <= 1
+    assert north_clean["confusion_counts_when_both_visible"].keys() == {
+        "true_positive",
+        "false_positive",
+        "true_negative",
+        "false_negative",
+    }
+    east_clean = next(
+        row
+        for row in report["results"]
+        if row["verification_view"] == "east" and row["pixel_noise_std_px"] == 0.0
+    )
+    assert east_clean["trial_results"][0]["verification_path"] == (
+        "runtime_terminal_verifier"
+    )
+    assert (tmp_path / "verification.json").is_file()
+
+
+def test_verification_camera_backprojection_recovers_known_height_point():
+    model = _model_with_verification_views()
+    data = mujoco.MjData(model)
+    mujoco.mj_forward(model, data)
+    camera_id = mujoco.mj_name2id(
+        model, mujoco.mjtObj.mjOBJ_CAMERA, "verification_east"
+    )
+    world_point = np.asarray((0.52, 0.12, 0.165), dtype=float)
+    camera_origin = data.cam_xpos[camera_id]
+    world_to_camera = data.cam_xmat[camera_id].reshape(3, 3).T
+    point_camera = world_to_camera @ (world_point - camera_origin)
+    focal_px = 480 / (2 * math.tan(math.radians(float(model.cam_fovy[camera_id])) / 2))
+    pixel_xy = (
+        320 + focal_px * point_camera[0] / -point_camera[2],
+        240 - focal_px * point_camera[1] / -point_camera[2],
+    )
+
+    estimate = _pixel_to_xy_at_height(
+        model,
+        data,
+        camera_id,
+        pixel_xy,
+        plane_height_m=world_point[2],
+    )
+
+    np.testing.assert_allclose(estimate, world_point[:2], atol=1e-9)
+
+
+def test_opt_in_terminal_verification_is_fresh_and_does_not_change_control(tmp_path):
+    baseline = run_trials(
+        episodes=1,
+        seed=7,
+        output_dir=tmp_path / "baseline",
+        controller="image_feedback",
+        save_media=False,
+    )
+    verified = run_trials(
+        episodes=1,
+        seed=7,
+        output_dir=tmp_path / "verified",
+        controller="image_feedback",
+        verify_terminal=True,
+        save_media=False,
+    )
+
+    baseline_trial = baseline["results"][0]
+    verified_trial = verified["results"][0]
+    assert baseline["terminal_verification_enabled"] is False
+    assert baseline_trial["terminal_visual_verification"] is None
+    assert verified["terminal_verification_enabled"] is True
+    assert verified_trial["success"] == baseline_trial["success"]
+    assert verified_trial["reaching_error_m"] == baseline_trial["reaching_error_m"]
+    assert verified_trial["controller_stop_reason"] == baseline_trial[
+        "controller_stop_reason"
+    ]
+    evidence = verified_trial["terminal_visual_verification"]
+    assert evidence["camera"] == "verification_east"
+    assert evidence["fresh_observation"] is True
+    assert evidence["camera_observation_age_s"] == 0.0
+    assert evidence["both_markers_visible"] is True
+    assert evidence["estimated_distance_m"] is not None
+    assert evidence["visual_success_estimate"] is True
+    assert verified["terminal_verification_summary"][
+        "visual_estimates_available"
+    ] == 1
+
+
+def test_terminal_marker_quality_score_drops_for_partial_occlusion():
+    clean_image = np.full((100, 100, 3), 125, dtype=np.uint8)
+    cv2.circle(clean_image, (50, 50), 20, (255, 0, 0), thickness=-1)
+    partially_occluded = clean_image.copy()
+    cv2.rectangle(partially_occluded, (50, 25), (80, 75), (125, 125, 125), thickness=-1)
+
+    _, clean_quality = _detect_marker_with_quality(clean_image, marker="target")
+    _, occluded_quality = _detect_marker_with_quality(
+        partially_occluded,
+        marker="target",
+    )
+
+    assert 0.0 <= occluded_quality["score"] < clean_quality["score"] <= 1.0
+    assert set(clean_quality["component_scores"]) == {
+        "area",
+        "circularity",
+        "saturation",
+        "brightness",
+    }
+
+
+def test_terminal_quality_threshold_can_abstain_without_changing_control(tmp_path):
+    baseline = run_trials(
+        episodes=1,
+        seed=7,
+        output_dir=tmp_path / "quality-baseline",
+        controller="image_feedback",
+        verify_terminal=True,
+        save_media=False,
+    )
+    selective = run_trials(
+        episodes=1,
+        seed=7,
+        output_dir=tmp_path / "quality-selective",
+        controller="image_feedback",
+        verify_terminal=True,
+        terminal_verification_min_quality_score=1.0,
+        save_media=False,
+    )
+    baseline_trial = baseline["results"][0]
+    selective_trial = selective["results"][0]
+    evidence = selective_trial["terminal_visual_verification"]
+
+    assert selective_trial["success"] == baseline_trial["success"]
+    assert selective_trial["reaching_error_m"] == baseline_trial["reaching_error_m"]
+    assert selective_trial["controller_stop_reason"] == baseline_trial[
+        "controller_stop_reason"
+    ]
+    assert evidence["candidate_estimated_distance_m_for_evaluation_only"] is not None
+    assert evidence["estimated_distance_m"] is None
+    assert evidence["visual_success_estimate"] is None
+    assert evidence["visual_estimate_status"] == (
+        "unavailable_detection_quality_below_threshold"
+    )
+
+
+def test_quality_threshold_selection_uses_zero_false_success_calibration_rule():
+    results = [
+        {
+            "condition": "nominal",
+            "trial_results": [
+                {
+                    "candidate_estimated_distance_m": 0.03,
+                    "detection_quality_score": 0.55,
+                    "physical_success": False,
+                },
+                {
+                    "candidate_estimated_distance_m": 0.02,
+                    "detection_quality_score": 0.95,
+                    "physical_success": True,
+                },
+                {
+                    "candidate_estimated_distance_m": 0.12,
+                    "detection_quality_score": 0.8,
+                    "physical_success": False,
+                },
+            ],
+        }
+    ]
+
+    selection = select_calibration_threshold(results)
+    metrics = summarize_quality_threshold(results, selection["selected_threshold"])
+
+    assert selection["selected_threshold"] == 0.6
+    assert selection["zero_false_success_constraint_met"] is True
+    assert selection["meets_minimum_coverage_for_usable_gate"] is True
+    assert metrics["accepted_estimates"] == 2
+    assert metrics["false_success_decisions"] == 0
+    assert metrics["coverage_fraction_of_candidates"] == pytest.approx(2 / 3)
+    assert metrics["accepted_physical_successes"] == 1
+    assert metrics["abstained_physical_failures"] == 1
+    assert metrics["conditions"][0]["condition"] == "nominal"
+
+
+def test_quality_threshold_selection_flags_infeasible_calibration():
+    results = [
+        {
+            "condition": "nominal",
+            "trial_results": [
+                {
+                    "candidate_estimated_distance_m": 0.03,
+                    "detection_quality_score": 0.95,
+                    "physical_success": False,
+                }
+            ],
+        }
+    ]
+
+    selection = select_calibration_threshold(results)
+
+    assert selection["zero_false_success_constraint_met"] is False
+    assert selection["meets_minimum_coverage_for_usable_gate"] is False
+
+
+def test_quality_validation_rejects_overlapping_seed_splits():
+    with pytest.raises(ValueError, match="must be disjoint"):
+        _validate_seed_splits(
+            calibration_base_seed=10,
+            validation_base_seed=12,
+            seeds=5,
+        )
+
+
+def test_frozen_quality_validation_keeps_seed_blocks_disjoint(tmp_path):
+    report = run_frozen_quality_validation(
+        seeds=1,
+        episodes_per_seed=1,
+        calibration_base_seed=7,
+        validation_base_seed=17,
+        output_path=tmp_path / "quality-validation.json",
+    )
+
+    assert report["benchmark"] == "frozen_terminal_verifier_quality_threshold_validation"
+    assert report["protocol"]["threshold_selected_before_validation_run"] is True
+    assert report["protocol"]["selection_uses_validation_labels"] is False
+    assert report["protocol"]["seed_ranges_disjoint"] is True
+    assert report["validation_frozen_threshold"] in (0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6)
+    assert report["validation_ungated_baseline_metrics"]["accepted_estimates"] >= (
+        report["validation_metrics"]["accepted_estimates"]
+    )
+    assert report["control_policy_changed"] is False
+    assert (tmp_path / "quality-validation.json").is_file()
+
+
+def test_terminal_verifier_stress_is_opt_in(tmp_path):
+    with pytest.raises(ValueError, match="require verify_terminal=True"):
+        run_trials(
+            episodes=1,
+            seed=7,
+            output_dir=tmp_path,
+            terminal_verification_fovy_error_deg=5.0,
+            save_media=False,
+        )
+
+
+def test_verification_robustness_benchmark_pairs_stress_without_changing_control(
+    tmp_path,
+):
+    report = run_verification_robustness_benchmark(
+        seeds=1,
+        episodes_per_seed=2,
+        base_seed=7,
+        output_path=tmp_path / "verification-robustness.json",
+    )
+
+    assert report["benchmark"] == "terminal_verifier_quality_coverage_and_image_stress"
+    assert report["control_policy_changed"] is False
+    assert report["control_matches_nominal_by_condition"] is True
+    assert report["stress_conditions_are_one_factor_at_a_time"] is True
+    assert len(report["results"]) == len(VERIFIER_STRESS_CONDITIONS) == 9
+    for row in report["results"]:
+        assert row["trials"] == 2
+        assert row["controller_outcomes_matching_nominal_trials"] == 2
+        assert all(
+            trial["controller_outcome_matches_nominal"]
+            for trial in row["trial_results"]
+        )
+        visible_trial = next(
+            (trial for trial in row["trial_results"] if trial["both_markers_visible"]),
+            None,
+        )
+        if visible_trial is not None:
+            assert "component_scores" in visible_trial["target_detection_quality"]
+            assert "component_scores" in visible_trial["end_effector_detection_quality"]
+        sweep = row["quality_threshold_sweep"]
+        assert [item["minimum_quality_score"] for item in sweep] == [
+            0.0,
+            0.05,
+            0.1,
+            0.15,
+            0.2,
+            0.25,
+            0.3,
+            0.4,
+            0.5,
+            0.6,
+        ]
+        available = [item["visual_estimate_available_trials"] for item in sweep]
+        assert available == sorted(available, reverse=True)
+    for condition in ("target_occluded", "end_effector_occluded"):
+        row = next(item for item in report["results"] if item["condition"] == condition)
+        assert row["visual_estimate_available_trials"] == 0
+    assert (tmp_path / "verification-robustness.json").is_file()
 
 
 def test_target_dropout_requires_valid_start_and_feedback_controller(tmp_path):
