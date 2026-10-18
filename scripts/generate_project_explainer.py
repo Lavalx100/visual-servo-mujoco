@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from reportlab.lib.colors import HexColor, Color
@@ -25,6 +26,7 @@ BLUE = HexColor("#58A6FF")
 GREEN = HexColor("#57D6A3")
 ORANGE = HexColor("#FFB86C")
 RED = HexColor("#FF7B72")
+PURPLE = HexColor("#C39BFF")
 GRID = HexColor("#2B3850")
 
 
@@ -181,7 +183,7 @@ def _draw_cover(c: canvas.Canvas, root: Path) -> None:
         _rounded(c, x, 94, w, 27, PANEL, stroke=GRID, radius=9)
         _text(c, x + 10, 103, label, 8, color, "Helvetica-Bold")
         x += w + 8
-    _text(c, MARGIN, 48, "Local work on feat/robustness-benchmark | Updated 18 Oct 2026", 8, MUTED)
+    _text(c, MARGIN, 48, "Local work on feat/timestamped-visual-confirmation | Updated 19 Oct 2026", 8, MUTED)
     c.showPage()
 
 
@@ -306,19 +308,20 @@ def _draw_code_map(c: canvas.Canvas) -> None:
         ("benchmark.py", "paired robustness suite", "Same seeded targets across open loop and image feedback; aggregates success and error percentiles."),
         ("dynamic_benchmark.py", "moving target + latency", "Separates target motion, observation age, and strict vs experimental stopping."),
         ("prediction_benchmark.py / reversal_benchmark.py", "opt-in predictor tests", "Compares measured target with extrapolators while keeping current joint-state tip projection explicit."),
-        ("sensor_timing_benchmark.py", "feedback source test", "Compares fresh RGB, fully delayed RGB, and delayed target plus current-state tip."),
+        ("sensor timing + timestamped verification", "feedback + completion", "Compares fresh, fully delayed, and hybrid control inputs; tests post-stop camera age and settling."),
+        ("motion_envelope_benchmark.py / conditional_uncertainty_benchmark.py", "held-out completion", "Calibrates global or pixel-feature q99 margins on training seeds, then scores fresh visual decisions on held-out camera replays."),
         ("verification_*.py / terminal_verification.py", "fresh-view evidence + quality", "Renders a fresh terminal view, scores marker quality, and measures calibration sensitivity, coverage, and decision errors."),
         ("camera_calibration_*.py", "landmark health + transfer", "Matches fixed landmarks to pinhole projections, freezes a threshold, then evaluates pose transfer, visibility, and radial distortion."),
         ("public_camera_calibration.py / camera_distortion.py", "fit and correct radial lens error", "Fits k1,k2 on recorded checkerboard views; applies optional pixel correction and benchmarks its effect on reaching."),
     ]
     y = PAGE_H - 141
     for index, (file_name, function, explanation) in enumerate(entries):
-        card_h = 50
+        card_h = 46
         _rounded(c, MARGIN, y - card_h, CONTENT_W, card_h, PANEL if index % 2 == 0 else PANEL_ALT)
         _text(c, MARGIN + 13, y - 16, file_name, 8.7, BLUE, "Helvetica-Bold")
         _right_text(c, PAGE_W - MARGIN - 13, y - 17, function, 7.6, GREEN, "Helvetica-Bold")
         _paragraph(c, MARGIN + 13, y - 29, explanation, CONTENT_W - 26, 7.8, 9.3, MUTED)
-        y -= card_h + 4
+        y -= card_h + 2
     _callout(
         c,
         MARGIN,
@@ -467,8 +470,368 @@ def _draw_sensor_timing(c: canvas.Canvas) -> None:
     c.showPage()
 
 
+def _draw_timestamped_verification(c: canvas.Canvas, root: Path) -> None:
+    report_path = root / "artifacts" / "timestamped-verification.json"
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    result_rows = report["results"]
+    trial_rows = report["trial_results"]
+    policies = (
+        ("arrival_first_visible_frame", None, "Arrival only", RED),
+        ("two_post_settle_frames", 0.5, "Two frames <= 0.5 s", BLUE),
+        ("two_post_settle_frames", 1.0, "Two frames <= 1.0 s", GREEN),
+    )
+    delivery_profiles = (
+        ("near_real_time", "~0.05 s"),
+        ("moderate_latency", "~0.40 s"),
+        ("high_latency", "~0.80 s"),
+    )
+
+    def metrics(delivery: str, policy: str, age: float | None) -> tuple[float, float]:
+        selected = [
+            row
+            for row in result_rows
+            if row["delivery_profile"] == delivery
+            and row["policy"] == policy
+            and row["max_frame_age_s"] == age
+        ]
+        trials = sum(row["trials"] for row in selected)
+        if not trials:
+            return 0.0, 0.0
+        confirmations = sum(row["visually_confirmed"] for row in selected)
+        false_at_delivery = sum(
+            row["false_confirmations_at_delivery"] for row in selected
+        )
+        return 100 * confirmations / trials, 100 * false_at_delivery / trials
+
+    _header(c, 7, "Timestamped completion")
+    _title(
+        c,
+        "A stopped arm needs time-correct visual evidence",
+        "The controller's reaching result and a camera's later completion report are separate events. This benchmark replays the stopped arm while a delayed camera continues observing a moving target.",
+    )
+
+    timeline = [
+        ("Controller stops", "Save measured joint pose and velocity; hold the pose."),
+        ("Arm settles", "Joint speed <0.02 rad/s for 0.1 s; within 0.8 s."),
+        ("Camera captures", "5 Hz stream; require two consecutive post-settle frames."),
+        ("Receiver decides", "Check frame age and deliver by a 2 s deadline."),
+    ]
+    card_y = 604
+    card_h = 82
+    gap = 9
+    card_w = (CONTENT_W - 3 * gap) / 4
+    for index, (label, detail) in enumerate(timeline):
+        x = MARGIN + index * (card_w + gap)
+        _rounded(c, x, card_y, card_w, card_h, PANEL_ALT)
+        _text(c, x + 9, card_y + 59, label, 8.2, WHITE, "Helvetica-Bold")
+        _paragraph(c, x + 9, card_y + 43, detail, card_w - 18, 7.0, 9.0, MUTED)
+        if index < len(timeline) - 1:
+            _arrow(c, x + card_w + 1, card_y + card_h / 2, x + card_w + gap - 1, card_y + card_h / 2, GREEN, 1.2)
+
+    _section_label(c, MARGIN, 574, "Outcome rates across all motion profiles and control modes", ORANGE)
+
+    def draw_chart(
+        *,
+        chart_x: float,
+        title: str,
+        value_index: int,
+        scale_max: float,
+        tick_format: str,
+    ) -> None:
+        chart_w = (CONTENT_W - 26) / 2
+        plot_left = chart_x + 31
+        plot_right = chart_x + chart_w - 5
+        plot_top = 535
+        plot_bottom = 373
+        plot_h = plot_top - plot_bottom
+        _text(c, chart_x, 553, title, 9.0, WHITE, "Helvetica-Bold")
+        c.setStrokeColor(GRID)
+        c.setLineWidth(0.45)
+        for tick in range(6):
+            value = scale_max * tick / 5
+            y = plot_bottom + plot_h * tick / 5
+            c.line(plot_left, y, plot_right, y)
+            label = f"{value:.0f}%" if tick_format == "percent" else f"{value:.1f}"
+            _right_text(c, plot_left - 5, y - 2, label, 6.4, MUTED)
+
+        group_w = (plot_right - plot_left) / len(delivery_profiles)
+        bar_w = 12
+        bar_gap = 3
+        cluster_w = len(policies) * bar_w + (len(policies) - 1) * bar_gap
+        for group_index, (delivery, label) in enumerate(delivery_profiles):
+            center = plot_left + group_w * (group_index + 0.5)
+            _text(c, center - 22, plot_bottom - 16, label, 6.8, MUTED)
+            for policy_index, (policy, age, _, color) in enumerate(policies):
+                percent, false_rate = metrics(delivery, policy, age)
+                value = (percent, false_rate)[value_index]
+                height = plot_h * min(value, scale_max) / scale_max
+                x = center - cluster_w / 2 + policy_index * (bar_w + bar_gap)
+                c.setFillColor(color)
+                c.roundRect(x, plot_bottom, bar_w, max(1.0, height), 2, fill=1, stroke=0)
+
+    max_false_rate = max(
+        (
+            metrics(delivery, policy, age)[1]
+            for delivery, _ in delivery_profiles
+            for policy, age, _, _ in policies
+        ),
+        default=0.0,
+    )
+    false_scale = max(1.0, float((int(max_false_rate / 5) + 1) * 5))
+    draw_chart(
+        chart_x=MARGIN,
+        title="Visual confirmation at delivery",
+        value_index=0,
+        scale_max=100.0,
+        tick_format="percent",
+    )
+    draw_chart(
+        chart_x=MARGIN + (CONTENT_W + 26) / 2,
+        title="Outside 4.5 cm at delivery per 100 trials",
+        value_index=1,
+        scale_max=false_scale,
+        tick_format="count",
+    )
+
+    legend_y = 337
+    for index, (_, _, label, color) in enumerate(policies):
+        x = MARGIN + index * 169
+        c.setFillColor(color)
+        c.roundRect(x, legend_y - 1, 9, 9, 2, fill=1, stroke=0)
+        _text(c, x + 15, legend_y, label, 7.4, MUTED)
+    protocol = report["protocol"]
+    _text(
+        c,
+        MARGIN,
+        309,
+        (
+            f"{protocol['control_trial_count']:,} controller trials | "
+            f"{protocol['policy_trial_count']:,} policy outcomes | seeds "
+            f"{protocol['base_seed']}-{protocol['base_seed'] + protocol['seeds'] - 1} | "
+            "four start phases per motion path"
+        ),
+        7.2,
+        MUTED,
+    )
+
+    age_half = [
+        row
+        for row in result_rows
+        if row["policy"] == "two_post_settle_frames"
+        and row["max_frame_age_s"] == 0.5
+    ]
+    age_one = [
+        row
+        for row in result_rows
+        if row["policy"] == "two_post_settle_frames"
+        and row["max_frame_age_s"] == 1.0
+    ]
+    half_false = sum(row["false_confirmations_at_delivery"] for row in age_half)
+    one_false = sum(row["false_confirmations_at_delivery"] for row in age_one)
+    half_capture_close = sum(
+        row["false_confirmation_at_delivery"]
+        and row["physical_error_at_decision_capture_m"]
+        <= report["protocol"]["physical_success_threshold_m"]
+        for row in trial_rows
+        if row["policy"] == "two_post_settle_frames"
+        and row["max_frame_age_s"] == 0.5
+    )
+    one_capture_close = sum(
+        row["false_confirmation_at_delivery"]
+        and row["physical_error_at_decision_capture_m"]
+        <= report["protocol"]["physical_success_threshold_m"]
+        for row in trial_rows
+        if row["policy"] == "two_post_settle_frames"
+        and row["max_frame_age_s"] == 1.0
+    )
+    _callout(
+        c,
+        MARGIN,
+        209,
+        CONTENT_W,
+        82,
+        "The age limit changes coverage and delivery-time reliability",
+        (
+            f"Across {sum(row['trials'] for row in age_half):,} 0.5 s guarded outcomes, "
+            f"{half_false} image-positive decisions arrived after the target-arm distance "
+            f"left the success radius; {half_capture_close} were physically within the "
+            f"radius at capture. At 1.0 s, {one_false} mismatches occurred, and "
+            f"{one_capture_close} were within the radius at capture. Most mismatches "
+            "therefore reflect target motion during transport, not an incorrect image at "
+            "capture. These age limits remain measured tradeoffs, not validated defaults."
+        ),
+        ORANGE,
+        8.0,
+    )
+    _callout(
+        c,
+        MARGIN,
+        64,
+        CONTENT_W,
+        119,
+        "Keep the two outcomes and the three clocks explicit",
+        "Physical reaching is scored at controller stop from MuJoCo state. Visual confirmation uses camera estimates from frames captured after the arm settles. Delivery-time distance is an evaluation label only; it is never sent to the detector, controller, or confirmation rule. This is an offline benchmark and does not change the default controller. The next investigation should test conservative task-completion semantics across target speeds, frame ages, and transport loss before any runtime policy is promoted.",
+        BLUE,
+        8.2,
+    )
+    c.showPage()
+
+
+def _draw_completion_speed(c: canvas.Canvas, root: Path) -> None:
+    report = json.loads(
+        (root / "artifacts" / "timestamped-completion-speed.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    result_rows = report["results"]
+    trial_rows = report["trial_results"]
+    conditions = report["protocol"]["motion_conditions"]
+    deliveries = (
+        ("near_real_time", "0.05 s"),
+        ("moderate_latency", "0.40 s"),
+        ("high_latency", "0.80 s"),
+    )
+
+    def rate(condition: str, delivery: str, age: float, field: str) -> tuple[float, int, int]:
+        selected = [
+            row
+            for row in result_rows
+            if row["motion_condition"] == condition
+            and row["delivery_profile"] == delivery
+            and row["policy"] == "two_post_settle_frames"
+            and row["max_frame_age_s"] == age
+        ]
+        trials = sum(row["trials"] for row in selected)
+        count = sum(row[field] for row in selected)
+        return (100 * count / trials if trials else 0.0, count, trials)
+
+    names = {"stationary": "Stationary", "sinusoidal_0p25_hz": "Sine 0.25 Hz", "sinusoidal_0p50_hz": "Sine 0.50 Hz", "piecewise_linear_0p50_hz": "Piecewise 0.50 Hz"}
+    _header(c, 8, "Completion across target speeds")
+    _title(
+        c,
+        "Target motion makes stale camera decisions visible",
+        "The follow-on benchmark holds the stop, settling, camera, and confirmation pipeline fixed while varying target path and analytic peak speed.",
+    )
+    mismatches_half = sum(
+        row["false_confirmations_at_delivery"]
+        for row in result_rows
+        if row["policy"] == "two_post_settle_frames" and row["max_frame_age_s"] == 0.5
+    )
+    capture_close_half = sum(
+        row["physical_success_at_decision_capture"] is True
+        and row["false_confirmation_at_delivery"]
+        for row in trial_rows
+        if row["policy"] == "two_post_settle_frames" and row["max_frame_age_s"] == 0.5
+    )
+    mismatches_one = sum(
+        row["false_confirmations_at_delivery"]
+        for row in result_rows
+        if row["policy"] == "two_post_settle_frames" and row["max_frame_age_s"] == 1.0
+    )
+    capture_close_one = sum(
+        row["physical_success_at_decision_capture"] is True
+        and row["false_confirmation_at_delivery"]
+        for row in trial_rows
+        if row["policy"] == "two_post_settle_frames" and row["max_frame_age_s"] == 1.0
+    )
+    _callout(
+        c,
+        MARGIN,
+        660,
+        CONTENT_W,
+        63,
+        "Most stale positives began during transport",
+        f"For the 0.5 s age guard, {capture_close_half}/{mismatches_half} positive decisions were physically inside the radius at image capture. For the 1.0 s guard, {capture_close_one}/{mismatches_one} were close at capture. Every stationary-target guard cell had zero delivery mismatches.",
+        ORANGE,
+        7.6,
+    )
+
+    _section_label(c, MARGIN, 632, "Two-frame policy: confirmation and stale-at-delivery rates", BLUE)
+    label_w = 92
+    gap = 12
+    panel_w = (CONTENT_W - label_w - gap) / 2
+    left_x = MARGIN + label_w
+    right_x = left_x + panel_w + gap
+    cell_w = panel_w / 3
+    _text(c, left_x + panel_w / 2, 609, "Maximum frame age 0.5 s", 8.7, WHITE, "Helvetica-Bold")
+    _text(c, right_x + panel_w / 2, 609, "Maximum frame age 1.0 s", 8.7, WHITE, "Helvetica-Bold")
+    for panel_x in (left_x, right_x):
+        for index, (_, delivery_label) in enumerate(deliveries):
+            _text(c, panel_x + cell_w * (index + 0.5) - 14, 592, delivery_label, 7, MUTED)
+
+    y_top = 580
+    row_h = 42
+    for row_index, condition in enumerate(conditions):
+        y = y_top - (row_index + 1) * row_h
+        speed = condition["analytic_peak_speed_m_s"]
+        _text(c, MARGIN, y + 20, names[condition["name"]], 6.6, WHITE, "Helvetica-Bold")
+        _text(c, MARGIN, y + 9, f"{speed:.3f} m/s", 6.2, MUTED)
+        for panel_index, age in enumerate((0.5, 1.0)):
+            panel_x = left_x if panel_index == 0 else right_x
+            for delivery_index, (delivery, _) in enumerate(deliveries):
+                confirm, confirmed, trials = rate(
+                    condition["name"], delivery, age, "visually_confirmed"
+                )
+                stale, false_count, _ = rate(
+                    condition["name"], delivery, age, "false_confirmations_at_delivery"
+                )
+                x = panel_x + delivery_index * cell_w
+                fill = Color(0.08, 0.15 + 0.28 * confirm / 100, 0.20 + 0.22 * confirm / 100)
+                c.setFillColor(fill)
+                c.setStrokeColor(GRID)
+                c.roundRect(x + 1, y + 2, cell_w - 3, row_h - 4, 4, fill=1, stroke=1)
+                _text(c, x + 7, y + 23, f"confirm {confirm:.1f}%", 6.2, WHITE, "Helvetica-Bold")
+                _text(c, x + 7, y + 11, f"out {stale:.1f}% ({false_count}/{trials})", 5.8, ORANGE)
+
+    _callout(
+        c,
+        MARGIN,
+        315,
+        CONTENT_W,
+        75,
+        "A fixed age cap is not a general completion rule",
+        "The 0.5 s cap confirmed no high-latency outcomes, while 1.0 s restored coverage and allowed motion-related mismatches. Reliability was not monotonic in peak speed: the 0.25 Hz sinusoid had more stale delivery positives than either fast path. Path shape and starting phase also matter.",
+        RED,
+        7.6,
+    )
+    reached = []
+    for condition in conditions:
+        selected = [
+            row
+            for row in trial_rows
+            if row["motion_condition"] == condition["name"]
+            and row["policy"] == "arrival_first_visible_frame"
+            and row["delivery_profile"] == "near_real_time"
+        ]
+        reached.append(
+            f"{names[condition['name']]} {sum(row['physical_success_at_controller_stop'] for row in selected)}/{len(selected)}"
+        )
+    _callout(
+        c,
+        MARGIN,
+        212,
+        CONTENT_W,
+        78,
+        "Keep reaching separate from visual completion",
+        f"Controller-stop physical reaches: {'; '.join(reached)}. The rate heatmap instead counts fresh camera decisions. The five controller modes remain distinct in CSV; only this chart pools them within each condition and delivery profile. Delivery-time ground truth is evaluation-only.",
+        BLUE,
+        7.5,
+    )
+    _paragraph(
+        c,
+        MARGIN,
+        185,
+        "The 975 controller trials use seeds 950–954 and produce 8,775 policy outcomes. Camera motion, pixel noise, frame loss, settling, and the controller are unchanged from the previous timestamped benchmark. Results cover one target amplitude and five seed groups; no real camera or hardware was tested.",
+        CONTENT_W,
+        7.4,
+        9.5,
+        MUTED,
+    )
+    c.showPage()
+
+
 def _draw_negative_results(c: canvas.Canvas) -> None:
-    _header(c, 7, "Experimental predictors")
+    _header(c, 9, "Experimental predictors")
     _title(
         c,
         "A useful negative result: prediction lost to measurement",
@@ -535,7 +898,7 @@ def _draw_negative_results(c: canvas.Canvas) -> None:
 
 
 def _draw_verifier(c: canvas.Canvas) -> None:
-    _header(c, 8, "Second-view benchmark")
+    _header(c, 10, "Second-view benchmark")
     _title(
         c,
         "A second view can supply a separate visual estimate",
@@ -620,7 +983,7 @@ def _draw_verifier(c: canvas.Canvas) -> None:
 
 
 def _draw_verifier_robustness(c: canvas.Canvas) -> None:
-    _header(c, 9, "Verifier stress evidence")
+    _header(c, 11, "Verifier stress evidence")
     _title(
         c,
         "Calibration error changes the visual decision",
@@ -695,7 +1058,7 @@ def _draw_verifier_robustness(c: canvas.Canvas) -> None:
 
 
 def _draw_verifier_quality(c: canvas.Canvas) -> None:
-    _header(c, 10, "Selective verifier")
+    _header(c, 12, "Selective verifier")
     _title(
         c,
         "The quality gate trades coverage for fewer errors",
@@ -763,7 +1126,7 @@ def _draw_verifier_quality(c: canvas.Canvas) -> None:
 
 
 def _draw_frozen_quality_validation(c: canvas.Canvas) -> None:
-    _header(c, 11, "Frozen threshold validation")
+    _header(c, 13, "Frozen threshold validation")
     _title(
         c,
         "The frozen quality gate failed its coverage target",
@@ -850,7 +1213,7 @@ def _draw_frozen_quality_validation(c: canvas.Canvas) -> None:
 
 
 def _draw_camera_calibration_health(c: canvas.Canvas, root: Path) -> None:
-    _header(c, 12, "Fixed-landmark calibration health")
+    _header(c, 14, "Fixed-landmark calibration health")
     _title(
         c,
         "Independent landmarks expose camera-model drift",
@@ -961,7 +1324,7 @@ def _draw_camera_calibration_health(c: canvas.Canvas, root: Path) -> None:
 
 
 def _draw_camera_calibration_validation(c: canvas.Canvas, root: Path) -> None:
-    _header(c, 13, "Frozen calibration threshold")
+    _header(c, 15, "Frozen calibration threshold")
     _title(
         c,
         "Labelled calibration shifts improved the threshold",
@@ -1032,7 +1395,7 @@ def _draw_camera_calibration_validation(c: canvas.Canvas, root: Path) -> None:
 
 
 def _draw_camera_calibration_transfer(c: canvas.Canvas, root: Path) -> None:
-    _header(c, 14, "Frozen threshold transfer")
+    _header(c, 16, "Frozen threshold transfer")
     _title(
         c,
         "Camera pose changes the residual evidence",
@@ -1111,7 +1474,7 @@ def _draw_camera_calibration_transfer(c: canvas.Canvas, root: Path) -> None:
 
 
 def _draw_camera_calibration_planar(c: canvas.Canvas, root: Path) -> None:
-    _header(c, 15, "Dense planar-target diagnostic")
+    _header(c, 17, "Dense planar-target diagnostic")
     _title(
         c,
         "Residuals now have a radius",
@@ -1182,7 +1545,7 @@ def _draw_camera_calibration_planar(c: canvas.Canvas, root: Path) -> None:
 
 
 def _draw_camera_distortion_results(c: canvas.Canvas) -> None:
-    _header(c, 16, "Recorded images and reaching")
+    _header(c, 18, "Recorded images and reaching")
     _title(
         c,
         "Distortion correction is conditional",
@@ -1281,83 +1644,219 @@ def _draw_camera_distortion_results(c: canvas.Canvas) -> None:
 
 
 def _draw_next_steps(c: canvas.Canvas) -> None:
-    _header(c, 17, "Reproduce and continue")
+    _header(c, 19, "Held-out motion envelope")
     _title(
         c,
-        "Estimate uncertainty before trusting correction",
-        "The code now has a public-camera fit and a simulated reaching test. Their remaining gap is coefficient uncertainty and transfer to this project's camera geometry.",
+        "A strict envelope cuts stale positives, with low coverage",
+        "A training-calibrated image margin and target-speed cap reduce delivery mismatches, but this held-out result does not justify a runtime rule.",
+    )
+    cards = [
+        ("2.54 cm", "empirical q99 margin", BLUE),
+        ("8.2%", "envelope coverage", GREEN),
+        ("0 / 2,340", "false confirmations", ORANGE),
+        ("23 / 16,168", "delivery-event misses", RED),
+    ]
+    card_w = (CONTENT_W - 18) / 4
+    for index, (value, label, accent) in enumerate(cards):
+        x = MARGIN + index * (card_w + 6)
+        _rounded(c, x, 651, card_w, 57, PANEL)
+        _text(c, x + 10, 684, value, 14, accent, "Helvetica-Bold")
+        _paragraph(c, x + 10, 666, label, card_w - 18, 7.1, 8.5, MUTED)
+
+    _section_label(c, MARGIN, 624, "Fully delayed RGB | two-observation control delay", BLUE)
+    _text(c, MARGIN + 133, 600, "Confirmation coverage", 7.6, MUTED, "Helvetica-Bold")
+    _text(c, MARGIN + 365, 600, "False at delivery (0-10%)", 7.2, MUTED, "Helvetica-Bold")
+    plot_rows = [
+        ("Age guard <= 1.0 s", 334 / 468, 23 / 468, BLUE),
+        ("Envelope <= 0.126 m/s", 20 / 468, 0 / 468, GREEN),
+    ]
+    for index, (label, coverage, false_rate, accent) in enumerate(plot_rows):
+        y = 567 - 34 * index
+        _text(c, MARGIN, y + 4, label, 7.1, WHITE, "Helvetica-Bold")
+        _rounded(c, MARGIN + 133, y, 136, 9, PANEL_ALT, radius=4)
+        c.setFillColor(accent)
+        c.roundRect(MARGIN + 133, y, 136 * coverage, 9, 4, fill=1, stroke=0)
+        _text(c, MARGIN + 273, y + 1, f"{100 * coverage:.1f}%", 7.3, MUTED)
+        _rounded(c, MARGIN + 365, y, 52, 9, PANEL_ALT, radius=4)
+        c.setFillColor(accent)
+        c.roundRect(MARGIN + 365, y, 52 * false_rate / 0.10, 9, 4, fill=1, stroke=0)
+        _text(c, MARGIN + 423, y + 1, f"{100 * false_rate:.1f}%", 7.3, MUTED)
+        _text(c, MARGIN + 133, y - 10, f"{round(coverage * 468):,}/468", 6.4, SUBTLE)
+        _text(c, MARGIN + 365, y - 10, f"{round(false_rate * 468)}/468", 6.4, SUBTLE)
+
+    _callout(
+        c,
+        MARGIN,
+        438,
+        CONTENT_W,
+        70,
+        "The empirical margin is not a guarantee",
+        "Across the three profile-specific delivery streams, the q99 image margin underbounded capture distance on 202/16,168 events and the motion envelope exceeded delivery distance on 23/16,168. The streams replay the same captures with different loss and age, so records are correlated. Two-frame confirmation made no false decisions here, but event-level violations remain.",
+        ORANGE,
+        7.4,
+    )
+    mode_rows = [
+        ["Control input", "Age guard: confirms; false", "Envelope: confirms; false", "Physical reach at stop"],
+        ["Fresh RGB", "412/468; 33", "49/468; 0", "137/156"],
+        ["Fully delayed RGB, 1 obs", "387/468; 52", "25/468; 0", "91/156"],
+        ["Fully delayed RGB, 2 obs", "334/468; 23", "20/468; 0", "90/156"],
+        ["Delayed target + current tip, 1 obs", "413/468; 38", "40/468; 0", "117/156"],
+        ["Delayed target + current tip, 2 obs", "403/468; 39", "58/468; 0", "125/156"],
+    ]
+    _table(
+        c,
+        MARGIN,
+        418,
+        [163, 117, 117, CONTENT_W - 397],
+        mode_rows,
+        font_size=6.3,
+        leading=7.4,
+    )
+    _paragraph(
+        c,
+        MARGIN,
+        257,
+        "Each camera-policy cell pools three delivery profiles (n=468). Physical reaching is scored at controller stop over 156 trials per mode; the later camera decision remains a separate result.",
+        CONTENT_W,
+        7.2,
+        9.0,
+        MUTED,
     )
     _callout(
         c,
         MARGIN,
-        605,
+        132,
         CONTENT_W,
-        103,
-        "Completed camera evidence",
-        "A public checkerboard fit uses eight training and four held-out views. The end-to-end simulator sweep measures radial correction under pixel noise. Neither result describes a physical camera or robot, and exact-coefficient correction is only an oracle reference.",
+        83,
+        "Why calibrate image uncertainty conditionally?",
+        "A single 2.54 cm q99 margin reduced held-out coverage to 8.2%. Pixel location changes how camera rays map to the table, while marker-localization quality varies across frames. The next page reports the held-out test of those image-only signals. Completion policies stay offline.",
+        BLUE,
+        7.8,
+    )
+    _section_label(c, MARGIN, 108, "Reproduce the benchmark and paired demo", GREEN)
+    _text(c, MARGIN, 88, "uv run visual-servo-motion-envelope-benchmark", 6.5, MUTED, "Courier")
+    _text(c, MARGIN, 71, "uv run --extra demo python scripts/generate_motion_envelope_demo.py", 6.5, MUTED, "Courier")
+    _text(c, MARGIN, 49, "No runtime controller change; image confirmation and controller-stop physical reaching remain separate.", 7.2, ORANGE)
+    c.showPage()
+
+
+def _draw_conditional_uncertainty(c: canvas.Canvas, repository: Path) -> None:
+    import json
+
+    report_path = repository / "artifacts" / "conditional-uncertainty-benchmark.json"
+    if not report_path.exists():
+        return
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    summary = report["results"]
+    selected = [
+        row
+        for row in summary
+        if row["control_mode"] == "fully_delayed_rgb"
+        and row["control_delay_observations"] == 2
+    ]
+    policies = (
+        ("two_post_settle_age_1s", "Age guard <= 1.0 s", BLUE),
+        ("two_post_settle_prior_global_q99", "Prior global q99", ORANGE),
+        ("two_post_settle_new_global_q99", "New global q99", PURPLE),
+        ("two_post_settle_conditional_q99", "Conditional q99", GREEN),
+    )
+    totals = {}
+    for policy, label, accent in policies:
+        rows = [row for row in selected if row["policy"] == policy]
+        trials = sum(int(row["trials"]) for row in rows)
+        confirmed = sum(int(row["visually_confirmed"]) for row in rows)
+        false = sum(int(row["false_confirmations_at_delivery"]) for row in rows)
+        totals[policy] = (label, accent, trials, confirmed, false)
+
+    _header(c, 20, "Conditional image-distance uncertainty")
+    _title(
+        c,
+        "The held-out comparison keeps the decision evidence separate",
+        "A three-band empirical q99 uses only pixel-derived uncertainty features at decision time; simulator distances score coverage after the fact.",
+    )
+    bins = report["calibration"]["bins"]
+    card_w = (CONTENT_W - 18) / 4
+    values = [
+        (f"{report['calibration']['global_q99_margin_m'] * 100:.2f} cm", "new global q99", BLUE),
+        (f"{len(bins)}", "conditional feature bands", GREEN),
+        (f"{report['protocol']['calibration_frame_count']:,}", "training camera frames", PURPLE),
+        (f"{len(report['protocol']['validation_seeds'])}", "held-out seeds", ORANGE),
+    ]
+    for index, (value, label, accent) in enumerate(values):
+        x = MARGIN + index * (card_w + 6)
+        _rounded(c, x, 651, card_w, 57, PANEL)
+        _text(c, x + 10, 684, value, 14, accent, "Helvetica-Bold")
+        _paragraph(c, x + 10, 666, label, card_w - 18, 7.1, 8.5, MUTED)
+
+    _section_label(c, MARGIN, 624, "Fully delayed RGB | two-observation control delay", BLUE)
+    _text(c, MARGIN, 598, "Policy", 7.4, MUTED, "Helvetica-Bold")
+    _text(c, MARGIN + 168, 598, "Confirmation coverage", 7.4, MUTED, "Helvetica-Bold")
+    _text(c, MARGIN + 349, 598, "False at delivery", 7.4, MUTED, "Helvetica-Bold")
+    max_trials = max((row[2] for row in totals.values()), default=1)
+    for index, (policy, label, accent) in enumerate(policies):
+        label, accent, trials, confirmed, false = totals[policy]
+        y = 571 - index * 37
+        _text(c, MARGIN, y + 4, label, 7.1, WHITE, "Helvetica-Bold")
+        _rounded(c, MARGIN + 168, y, 112, 9, PANEL_ALT, radius=4)
+        c.setFillColor(accent)
+        c.roundRect(MARGIN + 168, y, 112 * confirmed / trials if trials else 0, 9, 4, fill=1, stroke=0)
+        _text(c, MARGIN + 286, y + 1, f"{100 * confirmed / trials if trials else 0:.1f}% ({confirmed}/{trials})", 7.1, MUTED)
+        _rounded(c, MARGIN + 349, y, 48, 9, PANEL_ALT, radius=4)
+        c.setFillColor(accent)
+        c.roundRect(MARGIN + 349, y, 48 * false / trials if trials else 0, 9, 4, fill=1, stroke=0)
+        _text(c, MARGIN + 403, y + 1, f"{100 * false / trials if trials else 0:.1f}% ({false}/{trials})", 7.1, MUTED)
+
+    _callout(
+        c,
+        MARGIN,
+        335,
+        CONTENT_W,
+        83,
+        "Conditional q99 margins by increasing image-noise feature",
+        "".join(
+            f"Band {item['index'] + 1}: {item['margin_m'] * 100:.2f} cm from {item['sample_count']:,} training frames; "
+            for item in bins
+        )
+        + "The feature combines the detected pixel centers, local projection sensitivity, 2 px configured noise, and the minimum heuristic marker-quality score. The score is not a probability. Underpopulated bands use the pooled training q99.",
         GREEN,
-        9,
+        7.1,
     )
-    _text(c, MARGIN, 575, "Next: replace oracle coefficients with an uncertainty model", 10, WHITE, "Helvetica-Bold")
-    checks = [
-        "Bootstrap k1,k2 estimates across the recorded sequence's training views.",
-        "Propagate the measured coefficient spread into correction mismatch trials.",
-        "Sweep target image radius and the measured 2, 8, and 20 px noise settings.",
-        "Hold out seeds and compare success, error tails, and recovered/lost trials.",
-        "Keep physical reaching separate from fresh visual confirmation.",
-        "Keep correction, predictors, and the terminal verifier opt-in until evidence supports them.",
-    ]
-    y = 553
-    for item in checks:
-        c.setFillColor(GREEN)
-        c.circle(MARGIN + 4, y + 3, 3, fill=1, stroke=0)
-        y = _paragraph(c, MARGIN + 15, y, item, CONTENT_W - 15, 8.8, 12, MUTED) - 5
 
-    _section_label(c, MARGIN, 436, "Reproduce the main reports", BLUE)
-    cmds = [
-        "uv run pytest -q",
-        "uv run python scripts/download_opencv_calibration_samples.py --output-dir artifacts/opencv-calibration-samples",
-        "uv run visual-servo-camera-calibration-public --image-dir artifacts/opencv-calibration-samples",
-        "uv run visual-servo-distortion-benchmark --noise-levels 2 8 20 --base-seed 700",
-        "uv run --extra pdf python scripts/generate_project_explainer.py",
-    ]
-    for i, command in enumerate(cmds):
-        box_y = 407 - i * 25
-        _rounded(c, MARGIN, box_y, CONTENT_W, 19, PANEL)
-        _text(c, MARGIN + 11, box_y + 6, command, 6.0, GREEN if i < 3 else ORANGE, "Courier")
-
-    _text(c, MARGIN, 244, "Video and source map", 10, WHITE, "Helvetica-Bold")
+    stop_records = {}
+    for record in report["validation_trial_results"]:
+        if record["control_mode"] != "fully_delayed_rgb" or record["control_delay_observations"] != 2:
+            continue
+        key = (record["motion_condition"], record["seed"], record["episode"], record["target_motion_phase_rad"])
+        stop_records[key] = bool(record["physical_success_at_controller_stop"])
+    stop_count = sum(stop_records.values())
+    stop_total = len(stop_records)
+    diagnostic_count = sum(int(row["delivered_post_settle_frame_events"]) for row in report["validation_conditional_diagnostics"])
+    diagnostic_violations = sum(int(row["image_margin_violations"]) for row in report["validation_conditional_diagnostics"])
     _paragraph(
         c,
         MARGIN,
-        225,
-        "assets/demos/ contains control, calibration, latency, prediction, and verification examples. The radial-distortion video compares two image-feedback episodes; the SVG/CSV report aggregate trials. Start with camera_distortion.py, distortion_benchmark.py, public_camera_calibration.py, controller.py, and run.py.",
+        285,
+        f"Physical reaching at controller stop: {stop_count}/{stop_total}. Conditional image-margin undercoverage: {diagnostic_violations}/{diagnostic_count} profile-specific delivered post-settle frame events; those events reuse camera captures across transport profiles. Neither metric is the policy's fresh visual-confirmation count.",
         CONTENT_W,
-        8.5,
-        11.5,
+        7.1,
+        9.0,
         MUTED,
     )
-    _paragraph(
+    _section_label(c, MARGIN, 245, "Read the evidence and replay the paired demo", GREEN)
+    _text(c, MARGIN, 224, "uv run visual-servo-conditional-uncertainty-benchmark", 6.7, MUTED, "Courier")
+    _text(c, MARGIN, 207, "uv run --extra demo python scripts/generate_conditional_uncertainty_demo.py", 6.7, MUTED, "Courier")
+    _text(c, MARGIN, 177, "Image measurements choose the margin; simulation labels grade the decision.", 7.4, ORANGE, "Helvetica-Bold")
+    _text(c, MARGIN, 158, "All completion rules remain offline experiments. The fully delayed RGB rows delay target and tip together; they are not the current-joint-state hybrid.", 6.9, MUTED)
+    _callout(
         c,
         MARGIN,
-        164,
-        "Compare the figures with README.md and the JSON reports under artifacts/; those reports are local benchmark evidence and can be regenerated. Public camera pixels test a calibration workflow, while reaching is scored in MuJoCo. No fresh visual confirmation or physical robot performance is inferred from these results.",
+        63,
         CONTENT_W,
-        8.5,
-        11.5,
-        MUTED,
-    )
-    _rounded(c, MARGIN, 61, CONTENT_W, 54, PANEL_ALT)
-    _text(c, MARGIN + 14, 94, "Publication boundary", 8.5, ORANGE, "Helvetica-Bold")
-    _paragraph(
-        c,
-        MARGIN + 14,
-        78,
-        "This work is local and unpushed. Review the complete diff and evidence before any publication.",
-        CONTENT_W - 28,
-        8.2,
-        10.5,
-        MUTED,
+        73,
+        "Maintainer-facing takeaway",
+        "A conditional margin is useful only if the held-out table shows a better coverage/false-confirmation trade-off without breaking the measured frame-level envelope. Keep the prior global q99 result visible even if the new calibration improves it.",
+        BLUE,
+        7.4,
     )
     c.showPage()
 
@@ -1376,6 +1875,8 @@ def main() -> Path:
     _draw_code_map(c)
     _draw_benchmarks(c)
     _draw_sensor_timing(c)
+    _draw_timestamped_verification(c, repository)
+    _draw_completion_speed(c, repository)
     _draw_negative_results(c)
     _draw_verifier(c)
     _draw_verifier_robustness(c)
@@ -1387,6 +1888,7 @@ def main() -> Path:
     _draw_camera_calibration_planar(c, repository)
     _draw_camera_distortion_results(c)
     _draw_next_steps(c)
+    _draw_conditional_uncertainty(c, repository)
     c.save()
     print(f"Wrote {output}")
     return output

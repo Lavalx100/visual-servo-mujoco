@@ -161,19 +161,17 @@ def _step_with_target_motion(
     target_motion_amplitude_m: float,
     target_motion_frequency_hz: float,
     target_motion_profile: str = "sinusoidal",
+    target_motion_phase_rad: float = 0.0,
 ) -> None:
     """Advance one physics step while moving the target along table x."""
     if target_motion_amplitude_m:
         simulation_time = float(data.time + model.opt.timestep)
-        phase = 2.0 * math.pi * target_motion_frequency_hz * simulation_time
-        if target_motion_profile == "sinusoidal":
-            motion_fraction = math.sin(phase)
-        elif target_motion_profile == "piecewise_linear":
-            motion_fraction = 2.0 / math.pi * math.asin(math.sin(phase))
-        else:
-            raise ValueError(
-                "target_motion_profile must be 'sinusoidal' or 'piecewise_linear'"
-            )
+        motion_fraction = _target_motion_fraction(
+            simulation_time,
+            target_motion_frequency_hz,
+            target_motion_profile,
+            target_motion_phase_rad,
+        )
         target_x = target_start_xy_m[0] + target_motion_amplitude_m * motion_fraction
         data.mocap_pos[target_mocap_id] = (
             target_x,
@@ -181,6 +179,20 @@ def _step_with_target_motion(
             TARGET_HEIGHT,
         )
     mujoco.mj_step(model, data)
+
+
+def _target_motion_fraction(
+    simulation_time_s: float,
+    frequency_hz: float,
+    profile: str,
+    phase_rad: float = 0.0,
+) -> float:
+    phase = 2.0 * math.pi * frequency_hz * simulation_time_s + phase_rad
+    if profile == "sinusoidal":
+        return math.sin(phase)
+    if profile == "piecewise_linear":
+        return 2.0 / math.pi * math.asin(math.sin(phase))
+    raise ValueError("target_motion_profile must be 'sinusoidal' or 'piecewise_linear'")
 
 
 def annotated_frame(rgb: np.ndarray, pixel_xy: tuple[float, float]) -> np.ndarray:
@@ -368,6 +380,7 @@ def run_trials(
     target_motion_amplitude_m: float = 0.0,
     target_motion_frequency_hz: float = 0.25,
     target_motion_profile: str = "sinusoidal",
+    target_motion_phase_rad: float = 0.0,
     camera_observation_delay_observations: int = 0,
     target_motion_prediction: str = "none",
     use_current_end_effector_state: bool = False,
@@ -433,6 +446,8 @@ def run_trials(
         raise ValueError("target_motion_amplitude_m must be finite and between 0 and 0.16")
     if not math.isfinite(target_motion_frequency_hz) or target_motion_frequency_hz < 0.0:
         raise ValueError("target_motion_frequency_hz must be finite and non-negative")
+    if not math.isfinite(target_motion_phase_rad):
+        raise ValueError("target_motion_phase_rad must be finite")
     if target_motion_amplitude_m and target_motion_frequency_hz <= 0.0:
         raise ValueError("moving targets require a positive target_motion_frequency_hz")
     if target_motion_profile not in {"sinusoidal", "piecewise_linear"}:
@@ -586,6 +601,8 @@ def run_trials(
     elbow_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT, "elbow_joint")
     shoulder_qpos = model.jnt_qposadr[shoulder_id]
     elbow_qpos = model.jnt_qposadr[elbow_id]
+    shoulder_dof = model.jnt_dofadr[shoulder_id]
+    elbow_dof = model.jnt_dofadr[elbow_id]
     camera_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_CAMERA, "overhead")
     verification_camera_id = (
         mujoco.mj_name2id(
@@ -668,7 +685,18 @@ def run_trials(
 
     for index, (target_x, target_y) in enumerate(targets):
         mujoco.mj_resetData(model, data)
-        data.mocap_pos[target_mocap_id] = (target_x, target_y, TARGET_HEIGHT)
+        initial_motion_offset = target_motion_amplitude_m * _target_motion_fraction(
+            0.0,
+            target_motion_frequency_hz,
+            target_motion_profile,
+            target_motion_phase_rad,
+        )
+        data.mocap_pos[target_mocap_id] = (
+            target_x + initial_motion_offset,
+            target_y,
+            TARGET_HEIGHT,
+        )
+        initial_target_xy = (target_x + initial_motion_offset, target_y)
         data.qpos[shoulder_qpos] = HOME_JOINT_ANGLES[0]
         data.qpos[elbow_qpos] = HOME_JOINT_ANGLES[1]
         data.ctrl[0] = HOME_JOINT_ANGLES[0]
@@ -680,7 +708,7 @@ def run_trials(
         # uses joint state rather than target ground truth.
         rgb = render_camera_rgb()
         camera_frame_history = [rgb]
-        camera_target_position_history = [(target_x, target_y)]
+        camera_target_position_history = [initial_target_xy]
         camera_capture_time_history = [float(data.time)]
         detected_pixel_xy = detect_red_target(rgb)
         noise = measurement_rng.normal(0.0, pixel_noise_std_px, size=2)
@@ -731,10 +759,10 @@ def run_trials(
                 "target_pixel_xy_undistorted": [
                     round(value, 2) for value in pixel_xy
                 ],
-                "target_position_xy_m_for_evaluation_only": [target_x, target_y],
+                "target_position_xy_m_for_evaluation_only": list(initial_target_xy),
                 "observed_target_position_xy_m_for_evaluation_only": [
-                    target_x,
-                    target_y,
+                    initial_target_xy[0],
+                    initial_target_xy[1],
                 ],
                 "consecutive_target_misses": 0,
                 "completed_motion_updates": 0,
@@ -789,6 +817,7 @@ def run_trials(
                         target_motion_amplitude_m,
                         target_motion_frequency_hz,
                         target_motion_profile,
+                        target_motion_phase_rad,
                     )
                     if save_episode_media and step % video_step_interval == 0:
                         video_writer.write(
@@ -1150,6 +1179,7 @@ def run_trials(
                             target_motion_amplitude_m,
                             target_motion_frequency_hz,
                             target_motion_profile,
+                            target_motion_phase_rad,
                         )
                         if save_episode_media and step % video_step_interval == 0:
                             dropout_status = (
@@ -1445,10 +1475,18 @@ def run_trials(
             "estimated_target_xy_m": [round(value, 4) for value in estimated_xy],
             "true_target_xy_m_for_evaluation_only": [round(float(value), 4) for value in true_xy],
             "target_start_xy_m_for_evaluation_only": [target_x, target_y],
+            "controller_stop_target_xy_m_for_evaluation_only": [
+                round(float(value), 5) for value in true_xy
+            ],
             "final_joint_angles_rad_for_evaluation_only": [
                 float(data.qpos[shoulder_qpos]),
                 float(data.qpos[elbow_qpos]),
             ],
+            "final_joint_velocities_rad_s_for_evaluation_only": [
+                float(data.qvel[shoulder_dof]),
+                float(data.qvel[elbow_dof]),
+            ],
+            "controller_stop_time_simulated_s": round(float(data.time), 6),
             "end_effector_xy_m": [round(float(value), 4) for value in end_xy],
             "perception_error_m": round(estimate_error, 4),
             "reaching_error_m": round(final_error, 4),
@@ -1481,6 +1519,7 @@ def run_trials(
             "target_motion_amplitude_m": target_motion_amplitude_m,
             "target_motion_frequency_hz": target_motion_frequency_hz,
             "target_motion_profile": target_motion_profile,
+            "target_motion_phase_rad": target_motion_phase_rad,
             "camera_observation_delay_observations": (
                 camera_observation_delay_observations
             ),
@@ -1529,6 +1568,7 @@ def run_trials(
         "target_motion_amplitude_m": target_motion_amplitude_m,
         "target_motion_frequency_hz": target_motion_frequency_hz,
         "target_motion_profile": target_motion_profile,
+        "target_motion_phase_rad": target_motion_phase_rad,
         "camera_observation_delay_observations": camera_observation_delay_observations,
         "camera_observation_delay_simulated_s": round(
             camera_observation_delay_observations
@@ -1665,6 +1705,12 @@ def main() -> int:
         choices=("sinusoidal", "piecewise_linear"),
         default="sinusoidal",
         help="target path used by moving-target experiments",
+    )
+    parser.add_argument(
+        "--target-motion-phase-rad",
+        type=float,
+        default=0.0,
+        help="starting phase of the moving-target path, in radians",
     )
     parser.add_argument(
         "--camera-observation-delay-observations",
@@ -1834,6 +1880,8 @@ def main() -> int:
         parser.error("--target-motion-frequency-hz must be finite and non-negative")
     if args.target_motion_amplitude_m and args.target_motion_frequency_hz <= 0.0:
         parser.error("moving targets require a positive --target-motion-frequency-hz")
+    if not math.isfinite(args.target_motion_phase_rad):
+        parser.error("--target-motion-phase-rad must be finite")
     if args.camera_observation_delay_observations < 0:
         parser.error("--camera-observation-delay-observations must be non-negative")
     if args.camera_observation_delay_observations and args.controller != "image_feedback":
@@ -1912,6 +1960,7 @@ def main() -> int:
         target_motion_amplitude_m=args.target_motion_amplitude_m,
         target_motion_frequency_hz=args.target_motion_frequency_hz,
         target_motion_profile=args.target_motion_profile,
+        target_motion_phase_rad=args.target_motion_phase_rad,
         camera_observation_delay_observations=(
             args.camera_observation_delay_observations
         ),

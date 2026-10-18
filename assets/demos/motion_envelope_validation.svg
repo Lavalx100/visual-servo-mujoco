@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="850" viewBox="0 0 1500 850">
+<rect width="1500" height="850" fill="#fbfcfe"/>
+<text x="750" y="44" text-anchor="middle" font-family="Arial" font-size="27" font-weight="bold" fill="#15202b">Can a speed envelope reject stale visual confirmations?</text>
+<text x="750" y="73" text-anchor="middle" font-family="Arial" font-size="14" fill="#4a5560">Held-out seeds 964–967 | delayed target and tip, 2 observation delay</text>
+<text x="388" y="125" font-family="Arial" font-size="16" font-weight="bold" fill="#263746">Confirmation coverage</text>
+<text x="1125" y="125" font-family="Arial" font-size="16" font-weight="bold" fill="#263746">False confirmations at delivery</text>
+<text x="350" y="212" text-anchor="end" font-family="Arial" font-size="10" fill="#35434e">Stationary | 0.000 m/s / Near realtime</text>
+<rect x="375" y="190" width="229.17" height="10" rx="4" fill="#5C84D6"/>
+<text x="633" y="199" font-family="Arial" font-size="9" fill="#35434e">91.7% (11/12)</text>
+<rect x="375" y="205" width="83.33" height="10" rx="4" fill="#21A179"/>
+<text x="633" y="214" font-family="Arial" font-size="9" fill="#35434e">33.3% (4/12)</text>
+<rect x="945" y="190" width="0.00" height="10" rx="4" fill="#5C84D6"/>
+<text x="1203" y="199" font-family="Arial" font-size="9" fill="#35434e">0.0% (0/12)</text>
+<rect x="945" y="205" width="0.00" height="10" rx="4" fill="#21A179"/>
+<text x="1203" y="214" font-family="Arial" font-size="9" fill="#35434e">0.0% (0/12)</text>
+<text x="350" y="260" text-anchor="end" font-family="Arial" font-size="10" fill="#35434e">Stationary | 0.000 m/s / Moderate latency</text>
+<rect x="375" y="238" width="208.33" height="10" rx="4" fill="#5C84D6"/>
+<text x="633" y="247" font-family="Arial" font-size="9" fill="#35434e">83.3% (10/12)</text>
+<rect x="375" y="253" width="0.00" height="10" rx="4" fill="#21A179"/>
+<text x="633" y="262" font-family="Arial" font-size="9" fill="#35434e">0.0% (0/12)</text>
+<rect x="945" y="238" width="0.00" height="10" rx="4" fill="#5C84D6"/>
+<text x="1203" y="247" font-family="Arial" font-size="9" fill="#35434e">0.0% (0/12)</text>
+<rect x="945" y="253" width="0.00" height="10" rx="4" fill="#21A179"/>
+<text x="1203" y="262" font-family="Arial" font-size="9" fill="#35434e">0.0% (0/12)</text>
+<text x="350" y="308" text-anchor="end" font-family="Arial" font-size="10" fill="#35434e">Stationary | 0.000 m/s / High latency</text>
+<rect x="375" y="286" width="208.33" height="10" rx="4" fill="#5C84D6"/>
+<text x="633" y="295" font-family="Arial" font-size="9" fill="#35434e">83.3% (10/12)</text>
+<rect x="375" y="301" width="0.00" height="10" rx="4" fill="#21A179"/>
+<text x="633" y="310" font-family="Arial" font-size="9" fill="#35434e">0.0% (0/12)</text>
+<rect x="945" y="286" width="0.00" height="10" rx="4" fill="#5C84D6"/>
+<text x="1203" y="295" font-family="Arial" font-size="9" fill="#35434e">0.0% (0/12)</text>
+<rect x="945" y="301" width="0.00" height="10" rx="4" fill="#21A179"/>
+<text x="1203" y="310" font-family="Arial" font-size="9" fill="#35434e">0.0% (0/12)</text>
+<text x="350" y="356" text-anchor="end" font-family="Arial" font-size="10" fill="#35434e">Sine 0.25 Hz | 0.063 m/s / Near realtime</text>
+<rect x="375" y="334" width="104.17" height="10" rx="4" fill="#5C84D6"/>
+<text x="633" y="343" font-family="Arial" font-size="9" fill="#35434e">41.7% (20/48)</text>
+<rect x="375" y="349" width="10.42" height="10" rx="4" fill="#21A179"/>
+<text x="633" y="358" font-family="Arial" font-size="9" fill="#35434e">4.2% (2/48)</text>
+<rect x="945" y="334" width="5.21" height="10" rx="4" fill="#5C84D6"/>
+<text x="1203" y="343" font-family="Arial" font-size="9" fill="#35434e">2.1% (1/48)</text>
+<rect x="945" y="349" width="0.00" height="10" rx="4" fill="#21A179"/>
+<text x="1203" y="358" font-family="Arial" font-size="9" fill="#35434e">0.0% (0/48)</text>
+<text x="350" y="404" text-anchor="end" font-family="Arial" font-size="10" fill="#35434e">Sine 0.25 Hz | 0.063 m/s / Moderate latency</text>
+<rect x="375" y="382" width="104.17" height="10" rx="4" fill="#5C84D6"/>
+<text x="633" y="391" font-family="Arial" font-size="9" fill="#35434e">41.7% (20/48)</text>
+<rect x="375" y="397" width="0.00" height="10" rx="4" fill="#21A179"/>
+<text x="633" y="406" font-family="Arial" font-size="9" fill="#35434e">0.0% (0/48)</text>
+<rect x="945" y="382" width="15.62" height="10" rx="4" fill="#5C84D6"/>
+<text x="1203" y="391" font-family="Arial" font-size="9" fill="#35434e">6.2% (3/48)</text>
+<rect x="945" y="397" width="0.00" height="10" rx="4" fill="#21A179"/>
+<text x="1203" y="406" font-family="Arial" font-size="9" fill="#35434e">0.0% (0/48)</text>
+<text x="350" y="452" text-anchor="end" font-family="Arial" font-size="10" fill="#35434e">Sine 0.25 Hz | 0.063 m/s / High latency</text>
+<rect x="375" y="430" width="78.12" height="10" rx="4" fill="#5C84D6"/>
+<text x="633" y="439" font-family="Arial" font-size="9" fill="#35434e">31.2% (15/48)</text>
+<rect x="375" y="445" width="0.00" height="10" rx="4" fill="#21A179"/>
+<text x="633" y="454" font-family="Arial" font-size="9" fill="#35434e">0.0% (0/48)</text>
+<rect x="945" y="430" width="10.42" height="10" rx="4" fill="#5C84D6"/>
+<text x="1203" y="439" font-family="Arial" font-size="9" fill="#35434e">4.2% (2/48)</text>
+<rect x="945" y="445" width="0.00" height="10" rx="4" fill="#21A179"/>
+<text x="1203" y="454" font-family="Arial" font-size="9" fill="#35434e">0.0% (0/48)</text>
+<text x="350" y="500" text-anchor="end" font-family="Arial" font-size="10" fill="#35434e">Sine 0.50 Hz | 0.126 m/s / Near realtime</text>
+<rect x="375" y="478" width="223.96" height="10" rx="4" fill="#5C84D6"/>
+<text x="633" y="487" font-family="Arial" font-size="9" fill="#35434e">89.6% (43/48)</text>
+<rect x="375" y="493" width="36.46" height="10" rx="4" fill="#21A179"/>
+<text x="633" y="502" font-family="Arial" font-size="9" fill="#35434e">14.6% (7/48)</text>
+<rect x="945" y="478" width="5.21" height="10" rx="4" fill="#5C84D6"/>
+<text x="1203" y="487" font-family="Arial" font-size="9" fill="#35434e">2.1% (1/48)</text>
+<rect x="945" y="493" width="0.00" height="10" rx="4" fill="#21A179"/>
+<text x="1203" y="502" font-family="Arial" font-size="9" fill="#35434e">0.0% (0/48)</text>
+<text x="350" y="548" text-anchor="end" font-family="Arial" font-size="10" fill="#35434e">Sine 0.50 Hz | 0.126 m/s / Moderate latency</text>
+<rect x="375" y="526" width="213.54" height="10" rx="4" fill="#5C84D6"/>
+<text x="633" y="535" font-family="Arial" font-size="9" fill="#35434e">85.4% (41/48)</text>
+<rect x="375" y="541" width="0.00" height="10" rx="4" fill="#21A179"/>
+<text x="633" y="550" font-family="Arial" font-size="9" fill="#35434e">0.0% (0/48)</text>
+<rect x="945" y="526" width="20.83" height="10" rx="4" fill="#5C84D6"/>
+<text x="1203" y="535" font-family="Arial" font-size="9" fill="#35434e">8.3% (4/48)</text>
+<rect x="945" y="541" width="0.00" height="10" rx="4" fill="#21A179"/>
+<text x="1203" y="550" font-family="Arial" font-size="9" fill="#35434e">0.0% (0/48)</text>
+<text x="350" y="596" text-anchor="end" font-family="Arial" font-size="10" fill="#35434e">Sine 0.50 Hz | 0.126 m/s / High latency</text>
+<rect x="375" y="574" width="197.92" height="10" rx="4" fill="#5C84D6"/>
+<text x="633" y="583" font-family="Arial" font-size="9" fill="#35434e">79.2% (38/48)</text>
+<rect x="375" y="589" width="0.00" height="10" rx="4" fill="#21A179"/>
+<text x="633" y="598" font-family="Arial" font-size="9" fill="#35434e">0.0% (0/48)</text>
+<rect x="945" y="574" width="20.83" height="10" rx="4" fill="#5C84D6"/>
+<text x="1203" y="583" font-family="Arial" font-size="9" fill="#35434e">8.3% (4/48)</text>
+<rect x="945" y="589" width="0.00" height="10" rx="4" fill="#21A179"/>
+<text x="1203" y="598" font-family="Arial" font-size="9" fill="#35434e">0.0% (0/48)</text>
+<text x="350" y="644" text-anchor="end" font-family="Arial" font-size="10" fill="#35434e">Triangle 0.50 Hz | 0.080 m/s / Near realtime</text>
+<rect x="375" y="622" width="223.96" height="10" rx="4" fill="#5C84D6"/>
+<text x="633" y="631" font-family="Arial" font-size="9" fill="#35434e">89.6% (43/48)</text>
+<rect x="375" y="637" width="36.46" height="10" rx="4" fill="#21A179"/>
+<text x="633" y="646" font-family="Arial" font-size="9" fill="#35434e">14.6% (7/48)</text>
+<rect x="945" y="622" width="0.00" height="10" rx="4" fill="#5C84D6"/>
+<text x="1203" y="631" font-family="Arial" font-size="9" fill="#35434e">0.0% (0/48)</text>
+<rect x="945" y="637" width="0.00" height="10" rx="4" fill="#21A179"/>
+<text x="1203" y="646" font-family="Arial" font-size="9" fill="#35434e">0.0% (0/48)</text>
+<text x="350" y="692" text-anchor="end" font-family="Arial" font-size="10" fill="#35434e">Triangle 0.50 Hz | 0.080 m/s / Moderate latency</text>
+<rect x="375" y="670" width="218.75" height="10" rx="4" fill="#5C84D6"/>
+<text x="633" y="679" font-family="Arial" font-size="9" fill="#35434e">87.5% (42/48)</text>
+<rect x="375" y="685" width="0.00" height="10" rx="4" fill="#21A179"/>
+<text x="633" y="694" font-family="Arial" font-size="9" fill="#35434e">0.0% (0/48)</text>
+<rect x="945" y="670" width="20.83" height="10" rx="4" fill="#5C84D6"/>
+<text x="1203" y="679" font-family="Arial" font-size="9" fill="#35434e">8.3% (4/48)</text>
+<rect x="945" y="685" width="0.00" height="10" rx="4" fill="#21A179"/>
+<text x="1203" y="694" font-family="Arial" font-size="9" fill="#35434e">0.0% (0/48)</text>
+<text x="350" y="740" text-anchor="end" font-family="Arial" font-size="10" fill="#35434e">Triangle 0.50 Hz | 0.080 m/s / High latency</text>
+<rect x="375" y="718" width="213.54" height="10" rx="4" fill="#5C84D6"/>
+<text x="633" y="727" font-family="Arial" font-size="9" fill="#35434e">85.4% (41/48)</text>
+<rect x="375" y="733" width="0.00" height="10" rx="4" fill="#21A179"/>
+<text x="633" y="742" font-family="Arial" font-size="9" fill="#35434e">0.0% (0/48)</text>
+<rect x="945" y="718" width="20.83" height="10" rx="4" fill="#5C84D6"/>
+<text x="1203" y="727" font-family="Arial" font-size="9" fill="#35434e">8.3% (4/48)</text>
+<rect x="945" y="733" width="0.00" height="10" rx="4" fill="#21A179"/>
+<text x="1203" y="742" font-family="Arial" font-size="9" fill="#35434e">0.0% (0/48)</text>
+<rect x="480" y="796" width="15" height="12" rx="3" fill="#5C84D6"/>
+<text x="502" y="805" font-family="Arial" font-size="11" fill="#35434e">Age ≤ 1.0 s</text>
+<rect x="780" y="796" width="15" height="12" rx="3" fill="#21A179"/>
+<text x="802" y="805" font-family="Arial" font-size="11" fill="#35434e">Envelope ≤ 0.126 m/s</text>
+<text x="750" y="835" text-anchor="middle" font-family="Arial" font-size="10" fill="#65737e">False confirmations count positive camera decisions where MuJoCo distance was outside 4.5 cm at delivery.</text>
+</svg>
