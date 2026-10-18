@@ -15,9 +15,24 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+pdf = ["reportlab>=4.0,<5"]
 
 [project.scripts]
 visual-servo-demo = "visual_servo_mujoco.run:main"
+visual-servo-benchmark = "visual_servo_mujoco.benchmark:main"
+visual-servo-dynamic-benchmark = "visual_servo_mujoco.dynamic_benchmark:main"
+visual-servo-prediction-benchmark = "visual_servo_mujoco.prediction_benchmark:main"
+visual-servo-reversal-benchmark = "visual_servo_mujoco.reversal_benchmark:main"
+visual-servo-sensor-timing-benchmark = "visual_servo_mujoco.sensor_timing_benchmark:main"
+visual-servo-verification-benchmark = "visual_servo_mujoco.verification_benchmark:main"
+visual-servo-verification-robustness-benchmark = "visual_servo_mujoco.verification_robustness_benchmark:main"
+visual-servo-verification-quality-validation = "visual_servo_mujoco.verification_quality_validation:main"
+visual-servo-camera-calibration-health = "visual_servo_mujoco.camera_calibration_health:main"
+visual-servo-camera-calibration-validation = "visual_servo_mujoco.camera_calibration_validation:main"
+visual-servo-camera-calibration-transfer = "visual_servo_mujoco.camera_calibration_transfer:main"
+visual-servo-camera-calibration-planar = "visual_servo_mujoco.camera_calibration_planar:main"
+visual-servo-camera-calibration-public = "visual_servo_mujoco.public_camera_calibration:main"
+visual-servo-distortion-benchmark = "visual_servo_mujoco.distortion_benchmark:main"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

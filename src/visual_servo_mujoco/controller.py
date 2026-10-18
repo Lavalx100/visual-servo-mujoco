@@ -39,6 +39,215 @@ def pixel_to_table_xy(
     return world_x, world_y
 
 
+def table_xy_to_pixel(
+    world_xy: tuple[float, float],
+    image_size: tuple[int, int],
+    *,
+    camera_height: float,
+    point_height: float,
+    vertical_fov_degrees: float,
+) -> tuple[float, float]:
+    """Project a point on the table into the top-down camera image."""
+    width, height = image_size
+    if width <= 0 or height <= 0:
+        raise ValueError("image dimensions must be positive")
+    if camera_height <= point_height:
+        raise ValueError("camera must be above the projected point")
+    if not 0.0 < vertical_fov_degrees < 180.0:
+        raise ValueError("vertical field of view must be between 0 and 180 degrees")
+
+    half_height = (camera_height - point_height) * math.tan(
+        math.radians(vertical_fov_degrees) / 2.0
+    )
+    half_width = half_height * width / height
+    world_x, world_y = world_xy
+    pixel_x = ((world_x / half_width + 1.0) * width / 2.0) - 0.5
+    pixel_y = ((1.0 - world_y / half_height) * height / 2.0) - 0.5
+    return pixel_x, pixel_y
+
+
+def predict_pixel_constant_velocity(
+    observations: list[tuple[float, tuple[float, float]]],
+    *,
+    horizon_s: float,
+    window: int = 4,
+) -> tuple[float, float]:
+    """Linearly extrapolate recent timestamped pixel observations.
+
+    Repeated delayed frames should be omitted by the caller so timestamps are
+    strictly increasing. A least-squares line over recent observations reduces
+    measurement noise while estimating image-plane velocity.
+    """
+    if not observations:
+        raise ValueError("at least one pixel observation is required")
+    if not math.isfinite(horizon_s) or horizon_s < 0.0:
+        raise ValueError("prediction horizon must be finite and non-negative")
+    if isinstance(window, bool) or not isinstance(window, int) or window <= 0:
+        raise ValueError("window must be a positive integer")
+
+    recent = observations[-window:]
+    samples = np.asarray(
+        [(timestamp, pixel[0], pixel[1]) for timestamp, pixel in recent],
+        dtype=float,
+    )
+    if samples.ndim != 2 or samples.shape[1] != 3 or not np.isfinite(samples).all():
+        raise ValueError("observations must contain finite timestamps and pixel pairs")
+    if np.any(np.diff(samples[:, 0]) <= 0.0):
+        raise ValueError("observation timestamps must be strictly increasing")
+
+    latest_time = samples[-1, 0]
+    if len(samples) == 1:
+        return float(samples[-1, 1]), float(samples[-1, 2])
+
+    relative_times = samples[:, 0] - latest_time
+    centered_times = relative_times - float(np.mean(relative_times))
+    time_variance = float(np.dot(centered_times, centered_times))
+    centered_pixels = samples[:, 1:3] - np.mean(samples[:, 1:3], axis=0)
+    velocity = np.sum(centered_times[:, None] * centered_pixels, axis=0) / time_variance
+    fitted_at_latest = np.mean(samples[:, 1:3], axis=0) + velocity * (
+        latest_time - float(np.mean(samples[:, 0]))
+    )
+    predicted = fitted_at_latest + velocity * horizon_s
+    return float(predicted[0]), float(predicted[1])
+
+
+def predict_pixel_constant_acceleration(
+    observations: list[tuple[float, tuple[float, float]]],
+    *,
+    horizon_s: float,
+    window: int = 4,
+) -> tuple[float, float]:
+    """Quadratically extrapolate recent timestamped pixel observations.
+
+    With fewer than three distinct observations, this falls back to the
+    constant-velocity estimate. The quadratic fit models local acceleration;
+    it does not assume that the target follows a sinusoid.
+    """
+    if not observations:
+        raise ValueError("at least one pixel observation is required")
+    if not math.isfinite(horizon_s) or horizon_s < 0.0:
+        raise ValueError("prediction horizon must be finite and non-negative")
+    if isinstance(window, bool) or not isinstance(window, int) or window <= 0:
+        raise ValueError("window must be a positive integer")
+
+    recent = observations[-window:]
+    samples = np.asarray(
+        [(timestamp, pixel[0], pixel[1]) for timestamp, pixel in recent],
+        dtype=float,
+    )
+    if samples.ndim != 2 or samples.shape[1] != 3 or not np.isfinite(samples).all():
+        raise ValueError("observations must contain finite timestamps and pixel pairs")
+    if np.any(np.diff(samples[:, 0]) <= 0.0):
+        raise ValueError("observation timestamps must be strictly increasing")
+    if len(samples) < 3:
+        return predict_pixel_constant_velocity(
+            recent,
+            horizon_s=horizon_s,
+            window=window,
+        )
+
+    relative_times = samples[:, 0] - samples[-1, 0]
+    design = np.column_stack(
+        (relative_times**2, relative_times, np.ones_like(relative_times))
+    )
+    coefficients, _, _, _ = np.linalg.lstsq(design, samples[:, 1:3], rcond=None)
+    future = np.array((horizon_s**2, horizon_s, 1.0), dtype=float)
+    predicted = future @ coefficients
+    return float(predicted[0]), float(predicted[1])
+
+
+def predict_pixel_reversal_aware(
+    observations: list[tuple[float, tuple[float, float]]],
+    *,
+    horizon_s: float,
+    window: int = 4,
+    min_reversal_displacement_px: float = 4.0,
+) -> tuple[float, float]:
+    """Extrapolate recent target motion while avoiding fits across reversals.
+
+    A sustained direction change in the recent track switches to the newest
+    two-point velocity estimate. If the direction change is plausible but its
+    displacement is too small to distinguish from pixel noise, this returns
+    the latest observation without extrapolation. Otherwise it uses the usual
+    least-squares constant-velocity estimate. The detector makes no assumption
+    about the target's trajectory or motion axis.
+    """
+    if not observations:
+        raise ValueError("at least one pixel observation is required")
+    if not math.isfinite(horizon_s) or horizon_s < 0.0:
+        raise ValueError("prediction horizon must be finite and non-negative")
+    if isinstance(window, bool) or not isinstance(window, int) or window <= 0:
+        raise ValueError("window must be a positive integer")
+    if (
+        not math.isfinite(min_reversal_displacement_px)
+        or min_reversal_displacement_px < 0.0
+    ):
+        raise ValueError("minimum reversal displacement must be finite and non-negative")
+
+    recent = observations[-window:]
+    samples = np.asarray(
+        [(timestamp, pixel[0], pixel[1]) for timestamp, pixel in recent],
+        dtype=float,
+    )
+    if samples.ndim != 2 or samples.shape[1] != 3 or not np.isfinite(samples).all():
+        raise ValueError("observations must contain finite timestamps and pixel pairs")
+    if np.any(np.diff(samples[:, 0]) <= 0.0):
+        raise ValueError("observation timestamps must be strictly increasing")
+    if len(samples) < 3:
+        return predict_pixel_constant_velocity(
+            recent,
+            horizon_s=horizon_s,
+            window=window,
+        )
+
+    displacements = np.diff(samples[:, 1:3], axis=0)
+    displacement_norms = np.linalg.norm(displacements, axis=1)
+    reversal_detected = False
+    ambiguous_reversal = False
+    for previous, current, previous_norm, current_norm in zip(
+        displacements[:-1],
+        displacements[1:],
+        displacement_norms[:-1],
+        displacement_norms[1:],
+        strict=True,
+    ):
+        scale = float(previous_norm * current_norm)
+        if scale == 0.0 or float(np.dot(previous, current)) > -0.5 * scale:
+            continue
+        if min(previous_norm, current_norm) >= min_reversal_displacement_px:
+            reversal_detected = True
+        else:
+            ambiguous_reversal = True
+
+    if ambiguous_reversal and not reversal_detected:
+        return float(samples[-1, 1]), float(samples[-1, 2])
+    if reversal_detected:
+        interval_s = float(samples[-1, 0] - samples[-2, 0])
+        velocity = (samples[-1, 1:3] - samples[-2, 1:3]) / interval_s
+        predicted = samples[-1, 1:3] + velocity * horizon_s
+        return float(predicted[0]), float(predicted[1])
+    return predict_pixel_constant_velocity(
+        recent,
+        horizon_s=horizon_s,
+        window=window,
+    )
+
+
+def median_pixel_estimate(
+    pixel_samples: list[tuple[float, float]],
+) -> tuple[float, float]:
+    """Return the coordinate-wise median of recent image-space measurements."""
+    if not pixel_samples:
+        raise ValueError("at least one pixel sample is required")
+    samples = np.asarray(pixel_samples, dtype=float)
+    if samples.ndim != 2 or samples.shape[1] != 2:
+        raise ValueError("pixel samples must be pairs of coordinates")
+    if not np.isfinite(samples).all():
+        raise ValueError("pixel samples must be finite")
+    median = np.median(samples, axis=0)
+    return float(median[0]), float(median[1])
+
+
 def inverse_kinematics(
     x: float,
     y: float,
@@ -77,3 +286,67 @@ def forward_kinematics(
     x = link1 * math.cos(shoulder) + link2 * math.cos(total)
     y = link1 * math.sin(shoulder) + link2 * math.sin(total)
     return x, y
+
+
+def camera_pixel_jacobian(
+    shoulder: float,
+    elbow: float,
+    image_size: tuple[int, int],
+    *,
+    camera_height: float,
+    end_effector_height: float,
+    vertical_fov_degrees: float,
+    link_lengths: tuple[float, float] = (0.42, 0.34),
+) -> np.ndarray:
+    """Map small joint changes to end-effector pixel changes for a top-down camera.
+
+    The matrix is the local derivative ``d(pixel_xy) / d(joint_angles)``. Its
+    scale uses the supplied camera calibration, while image feedback measures
+    the target and end effector directly in pixels.
+    """
+    width, height = image_size
+    if width <= 0 or height <= 0:
+        raise ValueError("image dimensions must be positive")
+    if camera_height <= end_effector_height:
+        raise ValueError("camera must be above the end-effector plane")
+    if not 0.0 < vertical_fov_degrees < 180.0:
+        raise ValueError("vertical field of view must be between 0 and 180 degrees")
+
+    link1, link2 = link_lengths
+    total = shoulder + elbow
+    world_jacobian = np.array(
+        [
+            [-link1 * math.sin(shoulder) - link2 * math.sin(total), -link2 * math.sin(total)],
+            [link1 * math.cos(shoulder) + link2 * math.cos(total), link2 * math.cos(total)],
+        ],
+        dtype=float,
+    )
+    half_height = (camera_height - end_effector_height) * math.tan(
+        math.radians(vertical_fov_degrees) / 2.0
+    )
+    half_width = half_height * width / height
+    pixel_jacobian = np.diag((width / (2.0 * half_width), -height / (2.0 * half_height)))
+    return pixel_jacobian @ world_jacobian
+
+
+def image_servo_joint_delta(
+    pixel_jacobian: np.ndarray,
+    pixel_error_xy: tuple[float, float],
+    *,
+    gain: float = 0.5,
+    damping: float = 1.0,
+    max_step_radians: float = 0.2,
+) -> np.ndarray:
+    """Compute a bounded damped-least-squares step toward an image target."""
+    if pixel_jacobian.shape != (2, 2):
+        raise ValueError("pixel_jacobian must have shape (2, 2)")
+    if gain <= 0.0 or damping < 0.0 or max_step_radians <= 0.0:
+        raise ValueError("gain and max_step_radians must be positive; damping non-negative")
+
+    error = np.asarray(pixel_error_xy, dtype=float)
+    regularized = pixel_jacobian @ pixel_jacobian.T + damping**2 * np.eye(2)
+    delta = gain * pixel_jacobian.T @ np.linalg.solve(regularized, error)
+    magnitude = float(np.linalg.norm(delta))
+    if magnitude > max_step_radians:
+        delta *= max_step_radians / magnitude
+    return delta

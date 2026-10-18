@@ -1,0 +1,640 @@
+{
+  "dataset": {
+    "excluded_images": {
+      "left11.jpg": {
+        "detected_pattern_size_columns_rows": [
+          9,
+          7
+        ],
+        "detector": "sector_based",
+        "reason": "The 9x6 target pattern is not present; the sample contains a 9x7 inner-corner pattern instead.",
+        "status": "excluded_other_pattern_detected"
+      }
+    },
+    "image_size_px": [
+      640,
+      480
+    ],
+    "name": "OpenCV left-camera calibration sample images",
+    "pattern_detection": {
+      "left01.jpg": {
+        "detector": "sector_based",
+        "split": "training",
+        "status": "available"
+      },
+      "left02.jpg": {
+        "detector": "sector_based",
+        "split": "training",
+        "status": "available"
+      },
+      "left03.jpg": {
+        "detector": "sector_based",
+        "split": "training",
+        "status": "available"
+      },
+      "left04.jpg": {
+        "detector": "sector_based",
+        "split": "training",
+        "status": "available"
+      },
+      "left05.jpg": {
+        "detector": "sector_based",
+        "split": "training",
+        "status": "available"
+      },
+      "left06.jpg": {
+        "detector": "sector_based",
+        "split": "training",
+        "status": "available"
+      },
+      "left07.jpg": {
+        "detector": "sector_based",
+        "split": "training",
+        "status": "available"
+      },
+      "left08.jpg": {
+        "detector": "sector_based",
+        "split": "training",
+        "status": "available"
+      },
+      "left09.jpg": {
+        "detector": "sector_based",
+        "split": "validation",
+        "status": "available"
+      },
+      "left12.jpg": {
+        "detector": "sector_based",
+        "split": "validation",
+        "status": "available"
+      },
+      "left13.jpg": {
+        "detector": "sector_based",
+        "split": "validation",
+        "status": "available"
+      },
+      "left14.jpg": {
+        "detector": "sector_based",
+        "split": "validation",
+        "status": "available"
+      }
+    },
+    "pattern_inner_corners_columns_rows": [
+      9,
+      6
+    ],
+    "repository": "opencv/opencv",
+    "revision": "9b6287ec500ef7b327ac74c4f6c9cd84a2cbc9cd",
+    "source": "https://github.com/opencv/opencv/tree/9b6287ec500ef7b327ac74c4f6c9cd84a2cbc9cd/samples/data",
+    "training_images": [
+      "left01.jpg",
+      "left02.jpg",
+      "left03.jpg",
+      "left04.jpg",
+      "left05.jpg",
+      "left06.jpg",
+      "left07.jpg",
+      "left08.jpg"
+    ],
+    "validation_images": [
+      "left09.jpg",
+      "left12.jpg",
+      "left13.jpg",
+      "left14.jpg"
+    ]
+  },
+  "experiment": "recorded_checkerboard_intrinsics_heldout_validation",
+  "interpretation": {
+    "confidence_intervals": null,
+    "heldout_image_count": 4,
+    "limitations": [
+      "Only one public camera sequence and four held-out images are evaluated.",
+      "The camera's true intrinsics are not supplied as independent ground truth.",
+      "Held-out board pose is estimated with solvePnP while intrinsics stay frozen.",
+      "The held-out sequence has no checkerboard corners beyond 240 px radius.",
+      "This is an exploratory split, not a preregistered study.",
+      "Low reprojection error does not establish accurate metric depth or robot reaching."
+    ],
+    "selection": "The image split and model families are fixed in this benchmark; held-out corners do not enter calibrateCamera.",
+    "training_images_with_detected_pattern": 8
+  },
+  "model_definitions": {
+    "radial_k1_k2": "Pinhole intrinsics with k1 and k2 fitted; tangential distortion and k3 fixed to zero.",
+    "zero_distortion": "Pinhole intrinsics with radial and tangential distortion fixed to zero."
+  },
+  "models": {
+    "radial_k1_k2": {
+      "calibration_rms_px": 0.2614768388436174,
+      "camera_matrix": [
+        [
+          531.5452871629358,
+          0.0,
+          342.59268310699815
+        ],
+        [
+          0.0,
+          531.677140617803,
+          234.15032229981793
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "distortion_coefficients": [
+        -0.31126687144432374,
+        0.16596428625669582,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "name": "radial_k1_k2",
+      "training_corner_rms_px": 0.26147634494291033,
+      "validation": {
+        "availability_rate": 1.0,
+        "available_images": 4,
+        "images": [
+          {
+            "corner_count": 54,
+            "detector": "sector_based",
+            "image": "left09.jpg",
+            "radius_bins": [
+              {
+                "corner_count": 13,
+                "median_signed_radial_residual_px": -0.012737979759906804,
+                "median_signed_tangential_residual_px": 0.03211319845355878,
+                "radius_bin": "0_80px",
+                "reprojection_p95_px": 0.2627938687801361,
+                "reprojection_rms_px": 0.1876656860113144
+              },
+              {
+                "corner_count": 34,
+                "median_signed_radial_residual_px": 0.03304849158747413,
+                "median_signed_tangential_residual_px": 0.06345646800340393,
+                "radius_bin": "80_160px",
+                "reprojection_p95_px": 0.5869878530502319,
+                "reprojection_rms_px": 0.2949279248714447
+              },
+              {
+                "corner_count": 7,
+                "median_signed_radial_residual_px": -0.14311039863863523,
+                "median_signed_tangential_residual_px": -0.30177297732417485,
+                "radius_bin": "160_240px",
+                "reprojection_p95_px": 0.9218852519989014,
+                "reprojection_rms_px": 0.5765435695648193
+              },
+              {
+                "corner_count": 0,
+                "median_signed_radial_residual_px": null,
+                "median_signed_tangential_residual_px": null,
+                "radius_bin": "240_320px",
+                "reprojection_p95_px": null,
+                "reprojection_rms_px": null
+              },
+              {
+                "corner_count": 0,
+                "median_signed_radial_residual_px": null,
+                "median_signed_tangential_residual_px": null,
+                "radius_bin": "320_infpx",
+                "reprojection_p95_px": null,
+                "reprojection_rms_px": null
+              }
+            ],
+            "reprojection_median_px": 0.18915680050849915,
+            "reprojection_p95_px": 0.5869878530502319,
+            "reprojection_rms_px": 0.32608965039253235,
+            "status": "available"
+          },
+          {
+            "corner_count": 54,
+            "detector": "sector_based",
+            "image": "left12.jpg",
+            "radius_bins": [
+              {
+                "corner_count": 10,
+                "median_signed_radial_residual_px": -0.07147190227966074,
+                "median_signed_tangential_residual_px": 0.06510074889489476,
+                "radius_bin": "0_80px",
+                "reprojection_p95_px": 0.2855917513370514,
+                "reprojection_rms_px": 0.1828034669160843
+              },
+              {
+                "corner_count": 28,
+                "median_signed_radial_residual_px": 0.046518564222199243,
+                "median_signed_tangential_residual_px": -0.004895853907979454,
+                "radius_bin": "80_160px",
+                "reprojection_p95_px": 0.35075047612190247,
+                "reprojection_rms_px": 0.22308914363384247
+              },
+              {
+                "corner_count": 16,
+                "median_signed_radial_residual_px": 0.02984499074391985,
+                "median_signed_tangential_residual_px": -0.015268632520837714,
+                "radius_bin": "160_240px",
+                "reprojection_p95_px": 0.516523003578186,
+                "reprojection_rms_px": 0.22875602543354034
+              },
+              {
+                "corner_count": 0,
+                "median_signed_radial_residual_px": null,
+                "median_signed_tangential_residual_px": null,
+                "radius_bin": "240_320px",
+                "reprojection_p95_px": null,
+                "reprojection_rms_px": null
+              },
+              {
+                "corner_count": 0,
+                "median_signed_radial_residual_px": null,
+                "median_signed_tangential_residual_px": null,
+                "radius_bin": "320_infpx",
+                "reprojection_p95_px": null,
+                "reprojection_rms_px": null
+              }
+            ],
+            "reprojection_median_px": 0.1373581886291504,
+            "reprojection_p95_px": 0.4147716760635376,
+            "reprojection_rms_px": 0.2179434895515442,
+            "status": "available"
+          },
+          {
+            "corner_count": 54,
+            "detector": "sector_based",
+            "image": "left13.jpg",
+            "radius_bins": [
+              {
+                "corner_count": 15,
+                "median_signed_radial_residual_px": 0.008233806895564817,
+                "median_signed_tangential_residual_px": -0.02479531903351125,
+                "radius_bin": "0_80px",
+                "reprojection_p95_px": 0.22499814629554749,
+                "reprojection_rms_px": 0.13418705761432648
+              },
+              {
+                "corner_count": 36,
+                "median_signed_radial_residual_px": 0.035800313523388395,
+                "median_signed_tangential_residual_px": -0.010291590850250412,
+                "radius_bin": "80_160px",
+                "reprojection_p95_px": 0.7456668019294739,
+                "reprojection_rms_px": 0.3814122676849365
+              },
+              {
+                "corner_count": 3,
+                "median_signed_radial_residual_px": -0.2411462596984965,
+                "median_signed_tangential_residual_px": -0.4258041912161655,
+                "radius_bin": "160_240px",
+                "reprojection_p95_px": 0.6859453320503235,
+                "reprojection_rms_px": 0.5387410521507263
+              },
+              {
+                "corner_count": 0,
+                "median_signed_radial_residual_px": null,
+                "median_signed_tangential_residual_px": null,
+                "radius_bin": "240_320px",
+                "reprojection_p95_px": null,
+                "reprojection_rms_px": null
+              },
+              {
+                "corner_count": 0,
+                "median_signed_radial_residual_px": null,
+                "median_signed_tangential_residual_px": null,
+                "radius_bin": "320_infpx",
+                "reprojection_p95_px": null,
+                "reprojection_rms_px": null
+              }
+            ],
+            "reprojection_median_px": 0.1678158938884735,
+            "reprojection_p95_px": 0.6821333765983582,
+            "reprojection_rms_px": 0.343671053647995,
+            "status": "available"
+          },
+          {
+            "corner_count": 54,
+            "detector": "sector_based",
+            "image": "left14.jpg",
+            "radius_bins": [
+              {
+                "corner_count": 12,
+                "median_signed_radial_residual_px": -0.04408712448022725,
+                "median_signed_tangential_residual_px": 0.05121631173279781,
+                "radius_bin": "0_80px",
+                "reprojection_p95_px": 0.21571528911590576,
+                "reprojection_rms_px": 0.14764584600925446
+              },
+              {
+                "corner_count": 30,
+                "median_signed_radial_residual_px": -0.05313663678295093,
+                "median_signed_tangential_residual_px": -0.012681834296247488,
+                "radius_bin": "80_160px",
+                "reprojection_p95_px": 0.4143209457397461,
+                "reprojection_rms_px": 0.24718254804611206
+              },
+              {
+                "corner_count": 12,
+                "median_signed_radial_residual_px": 0.024298989862579612,
+                "median_signed_tangential_residual_px": 0.06132127416026187,
+                "radius_bin": "160_240px",
+                "reprojection_p95_px": 0.41548749804496765,
+                "reprojection_rms_px": 0.2795732319355011
+              },
+              {
+                "corner_count": 0,
+                "median_signed_radial_residual_px": null,
+                "median_signed_tangential_residual_px": null,
+                "radius_bin": "240_320px",
+                "reprojection_p95_px": null,
+                "reprojection_rms_px": null
+              },
+              {
+                "corner_count": 0,
+                "median_signed_radial_residual_px": null,
+                "median_signed_tangential_residual_px": null,
+                "radius_bin": "320_infpx",
+                "reprojection_p95_px": null,
+                "reprojection_rms_px": null
+              }
+            ],
+            "reprojection_median_px": 0.18586868047714233,
+            "reprojection_p95_px": 0.411898672580719,
+            "reprojection_rms_px": 0.23697562515735626,
+            "status": "available"
+          }
+        ],
+        "median_image_rms_px": 0.2815326377749443,
+        "p95_image_rms_px": 0.3410338431596756,
+        "pooled_corner_rms_px": 0.2864005414082181,
+        "requested_images": 4
+      }
+    },
+    "zero_distortion": {
+      "calibration_rms_px": 1.7262388767114392,
+      "camera_matrix": [
+        [
+          549.5324105826179,
+          0.0,
+          364.19828960784736
+        ],
+        [
+          0.0,
+          554.5988762047411,
+          239.2127526257879
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "distortion_coefficients": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "name": "zero_distortion",
+      "training_corner_rms_px": 1.7262391367036176,
+      "validation": {
+        "availability_rate": 1.0,
+        "available_images": 4,
+        "images": [
+          {
+            "corner_count": 54,
+            "detector": "sector_based",
+            "image": "left09.jpg",
+            "radius_bins": [
+              {
+                "corner_count": 14,
+                "median_signed_radial_residual_px": 0.8242214721418093,
+                "median_signed_tangential_residual_px": 0.08704797130838915,
+                "radius_bin": "0_80px",
+                "reprojection_p95_px": 1.3128342628479004,
+                "reprojection_rms_px": 0.8845649361610413
+              },
+              {
+                "corner_count": 32,
+                "median_signed_radial_residual_px": 0.7180723876553039,
+                "median_signed_tangential_residual_px": 0.07339922644553104,
+                "radius_bin": "80_160px",
+                "reprojection_p95_px": 1.442399263381958,
+                "reprojection_rms_px": 0.9377404451370239
+              },
+              {
+                "corner_count": 8,
+                "median_signed_radial_residual_px": -1.325109713691031,
+                "median_signed_tangential_residual_px": -0.39500741176713805,
+                "radius_bin": "160_240px",
+                "reprojection_p95_px": 3.622936725616455,
+                "reprojection_rms_px": 2.026968479156494
+              },
+              {
+                "corner_count": 0,
+                "median_signed_radial_residual_px": null,
+                "median_signed_tangential_residual_px": null,
+                "radius_bin": "240_320px",
+                "reprojection_p95_px": null,
+                "reprojection_rms_px": null
+              },
+              {
+                "corner_count": 0,
+                "median_signed_radial_residual_px": null,
+                "median_signed_tangential_residual_px": null,
+                "radius_bin": "320_infpx",
+                "reprojection_p95_px": null,
+                "reprojection_rms_px": null
+              }
+            ],
+            "reprojection_median_px": 0.9301206469535828,
+            "reprojection_p95_px": 1.7319108247756958,
+            "reprojection_rms_px": 1.1544007062911987,
+            "status": "available"
+          },
+          {
+            "corner_count": 54,
+            "detector": "sector_based",
+            "image": "left12.jpg",
+            "radius_bins": [
+              {
+                "corner_count": 11,
+                "median_signed_radial_residual_px": 1.476168748995571,
+                "median_signed_tangential_residual_px": 0.10809052681408515,
+                "radius_bin": "0_80px",
+                "reprojection_p95_px": 2.182415008544922,
+                "reprojection_rms_px": 1.5164445638656616
+              },
+              {
+                "corner_count": 25,
+                "median_signed_radial_residual_px": 1.5412518783057145,
+                "median_signed_tangential_residual_px": -0.013098507251041114,
+                "radius_bin": "80_160px",
+                "reprojection_p95_px": 2.5044710636138916,
+                "reprojection_rms_px": 1.7257719039916992
+              },
+              {
+                "corner_count": 18,
+                "median_signed_radial_residual_px": -0.8971959797018977,
+                "median_signed_tangential_residual_px": -0.16870255049816657,
+                "radius_bin": "160_240px",
+                "reprojection_p95_px": 4.586171627044678,
+                "reprojection_rms_px": 2.470350980758667
+              },
+              {
+                "corner_count": 0,
+                "median_signed_radial_residual_px": null,
+                "median_signed_tangential_residual_px": null,
+                "radius_bin": "240_320px",
+                "reprojection_p95_px": null,
+                "reprojection_rms_px": null
+              },
+              {
+                "corner_count": 0,
+                "median_signed_radial_residual_px": null,
+                "median_signed_tangential_residual_px": null,
+                "radius_bin": "320_infpx",
+                "reprojection_p95_px": null,
+                "reprojection_rms_px": null
+              }
+            ],
+            "reprojection_median_px": 1.4581526517868042,
+            "reprojection_p95_px": 3.1935219764709473,
+            "reprojection_rms_px": 1.9701488018035889,
+            "status": "available"
+          },
+          {
+            "corner_count": 54,
+            "detector": "sector_based",
+            "image": "left13.jpg",
+            "radius_bins": [
+              {
+                "corner_count": 16,
+                "median_signed_radial_residual_px": 0.8550740600380975,
+                "median_signed_tangential_residual_px": -0.022570329239012102,
+                "radius_bin": "0_80px",
+                "reprojection_p95_px": 1.1041263341903687,
+                "reprojection_rms_px": 0.8470267653465271
+              },
+              {
+                "corner_count": 34,
+                "median_signed_radial_residual_px": 0.5322013506483348,
+                "median_signed_tangential_residual_px": -0.06846560374762242,
+                "radius_bin": "80_160px",
+                "reprojection_p95_px": 1.523931622505188,
+                "reprojection_rms_px": 0.9798926115036011
+              },
+              {
+                "corner_count": 4,
+                "median_signed_radial_residual_px": -1.6788086880452662,
+                "median_signed_tangential_residual_px": -0.24487925538631733,
+                "radius_bin": "160_240px",
+                "reprojection_p95_px": 3.815225124359131,
+                "reprojection_rms_px": 2.518174648284912
+              },
+              {
+                "corner_count": 0,
+                "median_signed_radial_residual_px": null,
+                "median_signed_tangential_residual_px": null,
+                "radius_bin": "240_320px",
+                "reprojection_p95_px": null,
+                "reprojection_rms_px": null
+              },
+              {
+                "corner_count": 0,
+                "median_signed_radial_residual_px": null,
+                "median_signed_tangential_residual_px": null,
+                "radius_bin": "320_infpx",
+                "reprojection_p95_px": null,
+                "reprojection_rms_px": null
+              }
+            ],
+            "reprojection_median_px": 0.8809830546379089,
+            "reprojection_p95_px": 1.791572093963623,
+            "reprojection_rms_px": 1.1343992948532104,
+            "status": "available"
+          },
+          {
+            "corner_count": 54,
+            "detector": "sector_based",
+            "image": "left14.jpg",
+            "radius_bins": [
+              {
+                "corner_count": 14,
+                "median_signed_radial_residual_px": 0.8638580659051318,
+                "median_signed_tangential_residual_px": -0.1862484078170954,
+                "radius_bin": "0_80px",
+                "reprojection_p95_px": 1.3244651556015015,
+                "reprojection_rms_px": 0.9833821654319763
+              },
+              {
+                "corner_count": 30,
+                "median_signed_radial_residual_px": 1.1639581841299624,
+                "median_signed_tangential_residual_px": -0.08552376365223807,
+                "radius_bin": "80_160px",
+                "reprojection_p95_px": 1.7137640714645386,
+                "reprojection_rms_px": 1.242663025856018
+              },
+              {
+                "corner_count": 10,
+                "median_signed_radial_residual_px": -1.2346556666093083,
+                "median_signed_tangential_residual_px": 0.3132306492335422,
+                "radius_bin": "160_240px",
+                "reprojection_p95_px": 3.443857431411743,
+                "reprojection_rms_px": 1.9988715648651123
+              },
+              {
+                "corner_count": 0,
+                "median_signed_radial_residual_px": null,
+                "median_signed_tangential_residual_px": null,
+                "radius_bin": "240_320px",
+                "reprojection_p95_px": null,
+                "reprojection_rms_px": null
+              },
+              {
+                "corner_count": 0,
+                "median_signed_radial_residual_px": null,
+                "median_signed_tangential_residual_px": null,
+                "radius_bin": "320_infpx",
+                "reprojection_p95_px": null,
+                "reprojection_rms_px": null
+              }
+            ],
+            "reprojection_median_px": 1.1860382556915283,
+            "reprojection_p95_px": 2.3169491291046143,
+            "reprojection_rms_px": 1.3596007823944092,
+            "status": "available"
+          }
+        ],
+        "median_image_rms_px": 1.257000744342804,
+        "p95_image_rms_px": 1.8785665988922118,
+        "pooled_corner_rms_px": 1.4447753828561714,
+        "requested_images": 4
+      }
+    }
+  },
+  "paired_validation": [
+    {
+      "image": "left09.jpg",
+      "radial_k1_k2_rms_px": 0.32608965039253235,
+      "radial_minus_zero_px": -0.8283110558986664,
+      "zero_distortion_rms_px": 1.1544007062911987
+    },
+    {
+      "image": "left12.jpg",
+      "radial_k1_k2_rms_px": 0.2179434895515442,
+      "radial_minus_zero_px": -1.7522053122520447,
+      "zero_distortion_rms_px": 1.9701488018035889
+    },
+    {
+      "image": "left13.jpg",
+      "radial_k1_k2_rms_px": 0.343671053647995,
+      "radial_minus_zero_px": -0.7907282412052155,
+      "zero_distortion_rms_px": 1.1343992948532104
+    },
+    {
+      "image": "left14.jpg",
+      "radial_k1_k2_rms_px": 0.23697562515735626,
+      "radial_minus_zero_px": -1.122625157237053,
+      "zero_distortion_rms_px": 1.3596007823944092
+    }
+  ],
+  "schema_version": 1,
+  "scope": "Real recorded pixels from the OpenCV sample camera; descriptive held-out reprojection consistency only. This is not calibration ground truth, this project's camera, robot reaching, or fresh visual confirmation."
+}
