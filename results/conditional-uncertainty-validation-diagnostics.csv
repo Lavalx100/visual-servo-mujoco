@@ -1,0 +1,10 @@
+policy,delivery_profile,conditional_bin,delivered_post_settle_frame_events,image_margin_violations,image_margin_coverage,delivery_envelope_violations,delivery_envelope_coverage
+conditional_q99,high_latency,0,1456,8,0.9945054945054945,0,1.0
+conditional_q99,high_latency,1,1542,2,0.9987029831387808,0,1.0
+conditional_q99,high_latency,2,641,1,0.9984399375975039,0,1.0
+conditional_q99,moderate_latency,0,2076,9,0.9956647398843931,0,1.0
+conditional_q99,moderate_latency,1,2145,3,0.9986013986013986,0,1.0
+conditional_q99,moderate_latency,2,978,3,0.9969325153374233,0,1.0
+conditional_q99,near_real_time,0,2792,12,0.995702005730659,2,0.9992836676217765
+conditional_q99,near_real_time,1,2892,8,0.9972337482710927,1,0.9996542185338866
+conditional_q99,near_real_time,2,1205,4,0.9966804979253112,2,0.9983402489626556

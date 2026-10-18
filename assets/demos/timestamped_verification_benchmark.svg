@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="610" viewBox="0 0 1100 610">
+<rect width="100%" height="100%" fill="#fbfcfe"/>
+<text x="550" y="38" text-anchor="middle" font-family="Arial" font-size="24" font-weight="bold" fill="#15202b">Timestamped post-stop visual confirmation</text>
+<text x="550" y="64" text-anchor="middle" font-family="Arial" font-size="13" fill="#4a5560">Four target-motion phases • 2 px pixel noise • delayed/jittered frames • 2 required positive frames</text>
+<text x="281.0" y="80" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold" fill="#263746">Visual confirmation rate</text>
+<line x1="72" y1="96" x2="72" y2="496" stroke="#5d6b75"/>
+<line x1="72" y1="496" x2="490" y2="496" stroke="#5d6b75"/>
+<line x1="72" y1="496.0" x2="490" y2="496.0" stroke="#e4e9ed"/>
+<text x="63" y="500.0" text-anchor="end" font-family="Arial" font-size="11" fill="#53626d">0%</text>
+<line x1="72" y1="416.0" x2="490" y2="416.0" stroke="#e4e9ed"/>
+<text x="63" y="420.0" text-anchor="end" font-family="Arial" font-size="11" fill="#53626d">20%</text>
+<line x1="72" y1="336.0" x2="490" y2="336.0" stroke="#e4e9ed"/>
+<text x="63" y="340.0" text-anchor="end" font-family="Arial" font-size="11" fill="#53626d">40%</text>
+<line x1="72" y1="256.0" x2="490" y2="256.0" stroke="#e4e9ed"/>
+<text x="63" y="260.0" text-anchor="end" font-family="Arial" font-size="11" fill="#53626d">60%</text>
+<line x1="72" y1="176.0" x2="490" y2="176.0" stroke="#e4e9ed"/>
+<text x="63" y="180.0" text-anchor="end" font-family="Arial" font-size="11" fill="#53626d">80%</text>
+<line x1="72" y1="96.0" x2="490" y2="96.0" stroke="#e4e9ed"/>
+<text x="63" y="100.0" text-anchor="end" font-family="Arial" font-size="11" fill="#53626d">100%</text>
+<text x="108.0" y="520" text-anchor="middle" font-family="Arial" font-size="11" fill="#53626d">~0.05 s</text>
+<text x="281.0" y="520" text-anchor="middle" font-family="Arial" font-size="11" fill="#53626d">~0.40 s</text>
+<text x="454.0" y="520" text-anchor="middle" font-family="Arial" font-size="11" fill="#53626d">~0.80 s</text>
+<polyline points="108.0,247.6 281.0,247.6 454.0,250.4" fill="none" stroke="#c44536" stroke-width="3"/>
+<circle cx="108.0" cy="247.6" r="5" fill="#c44536"/>
+<circle cx="281.0" cy="247.6" r="5" fill="#c44536"/>
+<circle cx="454.0" cy="250.4" r="5" fill="#c44536"/>
+<polyline points="108.0,215.6 281.0,233.6 454.0,496.0" fill="none" stroke="#1f77b4" stroke-width="3"/>
+<circle cx="108.0" cy="215.6" r="5" fill="#1f77b4"/>
+<circle cx="281.0" cy="233.6" r="5" fill="#1f77b4"/>
+<circle cx="454.0" cy="496.0" r="5" fill="#1f77b4"/>
+<polyline points="108.0,215.6 281.0,233.6 454.0,268.4" fill="none" stroke="#2a9d65" stroke-width="3"/>
+<circle cx="108.0" cy="215.6" r="5" fill="#2a9d65"/>
+<circle cx="281.0" cy="233.6" r="5" fill="#2a9d65"/>
+<circle cx="454.0" cy="268.4" r="5" fill="#2a9d65"/>
+<text transform="translate(23,296.0) rotate(-90)" text-anchor="middle" font-family="Arial" font-size="12" fill="#53626d">confirmed / all trials</text>
+<text x="831.0" y="80" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold" fill="#263746">False confirmations at delivery per 100 trials</text>
+<line x1="622" y1="96" x2="622" y2="496" stroke="#5d6b75"/>
+<line x1="622" y1="496" x2="1040" y2="496" stroke="#5d6b75"/>
+<line x1="622" y1="496.0" x2="1040" y2="496.0" stroke="#e4e9ed"/>
+<text x="613" y="500.0" text-anchor="end" font-family="Arial" font-size="11" fill="#53626d">0.0</text>
+<line x1="622" y1="416.0" x2="1040" y2="416.0" stroke="#e4e9ed"/>
+<text x="613" y="420.0" text-anchor="end" font-family="Arial" font-size="11" fill="#53626d">5.0</text>
+<line x1="622" y1="336.0" x2="1040" y2="336.0" stroke="#e4e9ed"/>
+<text x="613" y="340.0" text-anchor="end" font-family="Arial" font-size="11" fill="#53626d">10.0</text>
+<line x1="622" y1="256.0" x2="1040" y2="256.0" stroke="#e4e9ed"/>
+<text x="613" y="260.0" text-anchor="end" font-family="Arial" font-size="11" fill="#53626d">15.0</text>
+<line x1="622" y1="176.0" x2="1040" y2="176.0" stroke="#e4e9ed"/>
+<text x="613" y="180.0" text-anchor="end" font-family="Arial" font-size="11" fill="#53626d">20.0</text>
+<line x1="622" y1="96.0" x2="1040" y2="96.0" stroke="#e4e9ed"/>
+<text x="613" y="100.0" text-anchor="end" font-family="Arial" font-size="11" fill="#53626d">25.0</text>
+<text x="658.0" y="520" text-anchor="middle" font-family="Arial" font-size="11" fill="#53626d">~0.05 s</text>
+<text x="831.0" y="520" text-anchor="middle" font-family="Arial" font-size="11" fill="#53626d">~0.40 s</text>
+<text x="1004.0" y="520" text-anchor="middle" font-family="Arial" font-size="11" fill="#53626d">~0.80 s</text>
+<polyline points="658.0,472.0 831.0,356.8 1004.0,126.4" fill="none" stroke="#c44536" stroke-width="3"/>
+<circle cx="658.0" cy="472.0" r="5" fill="#c44536"/>
+<circle cx="831.0" cy="356.8" r="5" fill="#c44536"/>
+<circle cx="1004.0" cy="126.4" r="5" fill="#c44536"/>
+<polyline points="658.0,476.8 831.0,323.2 1004.0,496.0" fill="none" stroke="#1f77b4" stroke-width="3"/>
+<circle cx="658.0" cy="476.8" r="5" fill="#1f77b4"/>
+<circle cx="831.0" cy="323.2" r="5" fill="#1f77b4"/>
+<circle cx="1004.0" cy="496.0" r="5" fill="#1f77b4"/>
+<polyline points="658.0,476.8 831.0,323.2 1004.0,152.0" fill="none" stroke="#2a9d65" stroke-width="3"/>
+<circle cx="658.0" cy="476.8" r="5" fill="#2a9d65"/>
+<circle cx="831.0" cy="323.2" r="5" fill="#2a9d65"/>
+<circle cx="1004.0" cy="152.0" r="5" fill="#2a9d65"/>
+<text transform="translate(573,296.0) rotate(-90)" text-anchor="middle" font-family="Arial" font-size="12" fill="#53626d">false confirmations / 100 trials</text>
+<line x1="90" y1="548" x2="118" y2="548" stroke="#c44536" stroke-width="3"/>
+<text x="126" y="552" font-family="Arial" font-size="11" fill="#35434e">arrival-only: one visible frame</text>
+<line x1="420" y1="548" x2="448" y2="548" stroke="#1f77b4" stroke-width="3"/>
+<text x="456" y="552" font-family="Arial" font-size="11" fill="#35434e">two post-settle frames; age ≤ 0.5 s</text>
+<line x1="750" y1="548" x2="778" y2="548" stroke="#2a9d65" stroke-width="3"/>
+<text x="786" y="552" font-family="Arial" font-size="11" fill="#35434e">two post-settle frames; age ≤ 1.0 s</text>
+<text x="550" y="590" text-anchor="middle" font-family="Arial" font-size="11" fill="#65737e">Controller-stop reaching and camera-delivery verification are reported separately in the trial CSV.</text>
+</svg>

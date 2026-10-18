@@ -16,6 +16,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=8"]
 pdf = ["reportlab>=4.0,<5"]
+demo = ["pillow>=11,<13"]
 
 [project.scripts]
 visual-servo-demo = "visual_servo_mujoco.run:main"
@@ -33,6 +34,10 @@ visual-servo-camera-calibration-transfer = "visual_servo_mujoco.camera_calibrati
 visual-servo-camera-calibration-planar = "visual_servo_mujoco.camera_calibration_planar:main"
 visual-servo-camera-calibration-public = "visual_servo_mujoco.public_camera_calibration:main"
 visual-servo-distortion-benchmark = "visual_servo_mujoco.distortion_benchmark:main"
+visual-servo-timestamped-verification-benchmark = "visual_servo_mujoco.timestamped_verification_benchmark:main"
+visual-servo-completion-speed-benchmark = "visual_servo_mujoco.completion_speed_benchmark:main"
+visual-servo-motion-envelope-benchmark = "visual_servo_mujoco.motion_envelope_benchmark:main"
+visual-servo-conditional-uncertainty-benchmark = "visual_servo_mujoco.conditional_uncertainty_benchmark:main"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

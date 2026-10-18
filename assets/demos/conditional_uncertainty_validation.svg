@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="780" viewBox="0 0 1500 780">
+<rect width="1500" height="780" fill="#fbfcfe"/>
+<text x="750" y="42" text-anchor="middle" font-family="Arial" font-size="27" font-weight="bold" fill="#15202b">Can image-local uncertainty improve fresh visual confirmation?</text>
+<text x="750" y="70" text-anchor="middle" font-family="Arial" font-size="14" fill="#4a5560">New held-out seed block | fully delayed target and tip | two consecutive post-settle frames | speed cap 0.126 m/s</text>
+<text x="330" y="117" font-family="Arial" font-size="15" font-weight="bold" fill="#263746">Confirmation coverage</text>
+<text x="910" y="117" font-family="Arial" font-size="15" font-weight="bold" fill="#263746">False confirmations at delivery</text>
+<text x="60" y="192" font-family="Arial" font-size="13" font-weight="bold" fill="#35434e">Near realtime</text>
+<text x="330" y="193" font-family="Arial" font-size="10" fill="#35434e">Age ≤ 1 s</text>
+<rect x="450" y="184" width="200" height="10" rx="4" fill="#e8edf2"/>
+<rect x="450" y="184" width="143.59" height="10" rx="4" fill="#5C84D6"/>
+<text x="657" y="193" font-family="Arial" font-size="10" fill="#35434e">71.8% (112/156)</text>
+<text x="910" y="193" font-family="Arial" font-size="10" fill="#35434e">Age ≤ 1 s</text>
+<rect x="1030" y="184" width="200" height="10" rx="4" fill="#e8edf2"/>
+<rect x="1030" y="184" width="0.00" height="10" rx="4" fill="#5C84D6"/>
+<text x="1237" y="193" font-family="Arial" font-size="10" fill="#35434e">0.0% (0/156)</text>
+<text x="330" y="224" font-family="Arial" font-size="10" fill="#35434e">Prior global q99</text>
+<rect x="450" y="215" width="200" height="10" rx="4" fill="#e8edf2"/>
+<rect x="450" y="215" width="12.82" height="10" rx="4" fill="#D38A47"/>
+<text x="657" y="224" font-family="Arial" font-size="10" fill="#35434e">6.4% (10/156)</text>
+<text x="910" y="224" font-family="Arial" font-size="10" fill="#35434e">Prior global q99</text>
+<rect x="1030" y="215" width="200" height="10" rx="4" fill="#e8edf2"/>
+<rect x="1030" y="215" width="0.00" height="10" rx="4" fill="#D38A47"/>
+<text x="1237" y="224" font-family="Arial" font-size="10" fill="#35434e">0.0% (0/156)</text>
+<text x="330" y="255" font-family="Arial" font-size="10" fill="#35434e">New global q99</text>
+<rect x="450" y="246" width="200" height="10" rx="4" fill="#e8edf2"/>
+<rect x="450" y="246" width="12.82" height="10" rx="4" fill="#9A6BC4"/>
+<text x="657" y="255" font-family="Arial" font-size="10" fill="#35434e">6.4% (10/156)</text>
+<text x="910" y="255" font-family="Arial" font-size="10" fill="#35434e">New global q99</text>
+<rect x="1030" y="246" width="200" height="10" rx="4" fill="#e8edf2"/>
+<rect x="1030" y="246" width="0.00" height="10" rx="4" fill="#9A6BC4"/>
+<text x="1237" y="255" font-family="Arial" font-size="10" fill="#35434e">0.0% (0/156)</text>
+<text x="330" y="286" font-family="Arial" font-size="10" fill="#35434e">Conditional q99</text>
+<rect x="450" y="277" width="200" height="10" rx="4" fill="#e8edf2"/>
+<rect x="450" y="277" width="11.54" height="10" rx="4" fill="#21A179"/>
+<text x="657" y="286" font-family="Arial" font-size="10" fill="#35434e">5.8% (9/156)</text>
+<text x="910" y="286" font-family="Arial" font-size="10" fill="#35434e">Conditional q99</text>
+<rect x="1030" y="277" width="200" height="10" rx="4" fill="#e8edf2"/>
+<rect x="1030" y="277" width="0.00" height="10" rx="4" fill="#21A179"/>
+<text x="1237" y="286" font-family="Arial" font-size="10" fill="#35434e">0.0% (0/156)</text>
+<text x="60" y="382" font-family="Arial" font-size="13" font-weight="bold" fill="#35434e">Moderate latency</text>
+<text x="330" y="383" font-family="Arial" font-size="10" fill="#35434e">Age ≤ 1 s</text>
+<rect x="450" y="374" width="200" height="10" rx="4" fill="#e8edf2"/>
+<rect x="450" y="374" width="142.31" height="10" rx="4" fill="#5C84D6"/>
+<text x="657" y="383" font-family="Arial" font-size="10" fill="#35434e">71.2% (111/156)</text>
+<text x="910" y="383" font-family="Arial" font-size="10" fill="#35434e">Age ≤ 1 s</text>
+<rect x="1030" y="374" width="200" height="10" rx="4" fill="#e8edf2"/>
+<rect x="1030" y="374" width="14.10" height="10" rx="4" fill="#5C84D6"/>
+<text x="1237" y="383" font-family="Arial" font-size="10" fill="#35434e">7.1% (11/156)</text>
+<text x="330" y="414" font-family="Arial" font-size="10" fill="#35434e">Prior global q99</text>
+<rect x="450" y="405" width="200" height="10" rx="4" fill="#e8edf2"/>
+<rect x="450" y="405" width="0.00" height="10" rx="4" fill="#D38A47"/>
+<text x="657" y="414" font-family="Arial" font-size="10" fill="#35434e">0.0% (0/156)</text>
+<text x="910" y="414" font-family="Arial" font-size="10" fill="#35434e">Prior global q99</text>
+<rect x="1030" y="405" width="200" height="10" rx="4" fill="#e8edf2"/>
+<rect x="1030" y="405" width="0.00" height="10" rx="4" fill="#D38A47"/>
+<text x="1237" y="414" font-family="Arial" font-size="10" fill="#35434e">0.0% (0/156)</text>
+<text x="330" y="445" font-family="Arial" font-size="10" fill="#35434e">New global q99</text>
+<rect x="450" y="436" width="200" height="10" rx="4" fill="#e8edf2"/>
+<rect x="450" y="436" width="0.00" height="10" rx="4" fill="#9A6BC4"/>
+<text x="657" y="445" font-family="Arial" font-size="10" fill="#35434e">0.0% (0/156)</text>
+<text x="910" y="445" font-family="Arial" font-size="10" fill="#35434e">New global q99</text>
+<rect x="1030" y="436" width="200" height="10" rx="4" fill="#e8edf2"/>
+<rect x="1030" y="436" width="0.00" height="10" rx="4" fill="#9A6BC4"/>
+<text x="1237" y="445" font-family="Arial" font-size="10" fill="#35434e">0.0% (0/156)</text>
+<text x="330" y="476" font-family="Arial" font-size="10" fill="#35434e">Conditional q99</text>
+<rect x="450" y="467" width="200" height="10" rx="4" fill="#e8edf2"/>
+<rect x="450" y="467" width="0.00" height="10" rx="4" fill="#21A179"/>
+<text x="657" y="476" font-family="Arial" font-size="10" fill="#35434e">0.0% (0/156)</text>
+<text x="910" y="476" font-family="Arial" font-size="10" fill="#35434e">Conditional q99</text>
+<rect x="1030" y="467" width="200" height="10" rx="4" fill="#e8edf2"/>
+<rect x="1030" y="467" width="0.00" height="10" rx="4" fill="#21A179"/>
+<text x="1237" y="476" font-family="Arial" font-size="10" fill="#35434e">0.0% (0/156)</text>
+<text x="60" y="572" font-family="Arial" font-size="13" font-weight="bold" fill="#35434e">High latency</text>
+<text x="330" y="573" font-family="Arial" font-size="10" fill="#35434e">Age ≤ 1 s</text>
+<rect x="450" y="564" width="200" height="10" rx="4" fill="#e8edf2"/>
+<rect x="450" y="564" width="126.92" height="10" rx="4" fill="#5C84D6"/>
+<text x="657" y="573" font-family="Arial" font-size="10" fill="#35434e">63.5% (99/156)</text>
+<text x="910" y="573" font-family="Arial" font-size="10" fill="#35434e">Age ≤ 1 s</text>
+<rect x="1030" y="564" width="200" height="10" rx="4" fill="#e8edf2"/>
+<rect x="1030" y="564" width="29.49" height="10" rx="4" fill="#5C84D6"/>
+<text x="1237" y="573" font-family="Arial" font-size="10" fill="#35434e">14.7% (23/156)</text>
+<text x="330" y="604" font-family="Arial" font-size="10" fill="#35434e">Prior global q99</text>
+<rect x="450" y="595" width="200" height="10" rx="4" fill="#e8edf2"/>
+<rect x="450" y="595" width="0.00" height="10" rx="4" fill="#D38A47"/>
+<text x="657" y="604" font-family="Arial" font-size="10" fill="#35434e">0.0% (0/156)</text>
+<text x="910" y="604" font-family="Arial" font-size="10" fill="#35434e">Prior global q99</text>
+<rect x="1030" y="595" width="200" height="10" rx="4" fill="#e8edf2"/>
+<rect x="1030" y="595" width="0.00" height="10" rx="4" fill="#D38A47"/>
+<text x="1237" y="604" font-family="Arial" font-size="10" fill="#35434e">0.0% (0/156)</text>
+<text x="330" y="635" font-family="Arial" font-size="10" fill="#35434e">New global q99</text>
+<rect x="450" y="626" width="200" height="10" rx="4" fill="#e8edf2"/>
+<rect x="450" y="626" width="0.00" height="10" rx="4" fill="#9A6BC4"/>
+<text x="657" y="635" font-family="Arial" font-size="10" fill="#35434e">0.0% (0/156)</text>
+<text x="910" y="635" font-family="Arial" font-size="10" fill="#35434e">New global q99</text>
+<rect x="1030" y="626" width="200" height="10" rx="4" fill="#e8edf2"/>
+<rect x="1030" y="626" width="0.00" height="10" rx="4" fill="#9A6BC4"/>
+<text x="1237" y="635" font-family="Arial" font-size="10" fill="#35434e">0.0% (0/156)</text>
+<text x="330" y="666" font-family="Arial" font-size="10" fill="#35434e">Conditional q99</text>
+<rect x="450" y="657" width="200" height="10" rx="4" fill="#e8edf2"/>
+<rect x="450" y="657" width="0.00" height="10" rx="4" fill="#21A179"/>
+<text x="657" y="666" font-family="Arial" font-size="10" fill="#35434e">0.0% (0/156)</text>
+<text x="910" y="666" font-family="Arial" font-size="10" fill="#35434e">Conditional q99</text>
+<rect x="1030" y="657" width="200" height="10" rx="4" fill="#e8edf2"/>
+<rect x="1030" y="657" width="0.00" height="10" rx="4" fill="#21A179"/>
+<text x="1237" y="666" font-family="Arial" font-size="10" fill="#35434e">0.0% (0/156)</text>
+<text x="750" y="740" text-anchor="middle" font-family="Arial" font-size="12" fill="#35434e">Conditional q99 margins by increasing pixel-noise feature band: 1.81, 2.62, 2.71 cm. Marker quality is a heuristic image score.</text>
+<text x="750" y="760" text-anchor="middle" font-family="Arial" font-size="10" fill="#65737e">False confirmation means the simulator distance was outside 4.5 cm when the camera result arrived. Physical reach at controller stop is reported separately.</text>
+</svg>

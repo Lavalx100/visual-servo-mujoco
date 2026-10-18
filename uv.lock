@@ -834,6 +834,9 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
+demo = [
+    { name = "pillow" },
+]
 dev = [
     { name = "pytest" },
 ]
@@ -846,10 +849,11 @@ requires-dist = [
     { name = "mujoco", specifier = ">=3.15,<4" },
     { name = "numpy", specifier = ">=1.26" },
     { name = "opencv-python-headless", specifier = ">=4.10,<5" },
+    { name = "pillow", marker = "extra == 'demo'", specifier = ">=11,<13" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8" },
     { name = "reportlab", marker = "extra == 'pdf'", specifier = ">=4.0,<5" },
 ]
-provides-extras = ["dev", "pdf"]
+provides-extras = ["dev", "pdf", "demo"]
 
 [[package]]
 name = "websockets"
