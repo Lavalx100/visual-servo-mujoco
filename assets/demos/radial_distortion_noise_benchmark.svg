@@ -1,0 +1,163 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="1336" viewBox="0 0 1180 1336">
+<rect width="100%" height="100%" fill="#f7f9fc"/>
+<style>text{font-family:Arial,sans-serif;fill:#17212b}.muted{fill:#526171}.grid{stroke:#dce2e9;stroke-width:1}.panel{fill:#fff;stroke:#d7dee7;stroke-width:1.2}</style>
+<text x="32" y="40" font-size="25" font-weight="700">Radial correction under pixel noise</text>
+<text x="32" y="68" class="muted" font-size="14">Rendered overhead RGB · 100 paired episodes per row · 2, 8, 20 px target-measurement noise · zero camera delay</text>
+<rect class="panel" x="24" y="91" width="1132" height="1160" rx="8"/>
+<line class="grid" x1="394.0" y1="124" x2="394.0" y2="1196"/>
+<text x="394.0" y="119" text-anchor="middle" class="muted" font-size="11">0.0 cm</text>
+<line class="grid" x1="530.2" y1="124" x2="530.2" y2="1196"/>
+<text x="530.2" y="119" text-anchor="middle" class="muted" font-size="11">1.9 cm</text>
+<line class="grid" x1="666.5" y1="124" x2="666.5" y2="1196"/>
+<text x="666.5" y="119" text-anchor="middle" class="muted" font-size="11">3.8 cm</text>
+<line class="grid" x1="802.8" y1="124" x2="802.8" y2="1196"/>
+<text x="802.8" y="119" text-anchor="middle" class="muted" font-size="11">5.7 cm</text>
+<line class="grid" x1="939.0" y1="124" x2="939.0" y2="1196"/>
+<text x="939.0" y="119" text-anchor="middle" class="muted" font-size="11">7.6 cm</text>
+<text x="34" y="169" font-size="12" font-weight="700">open_loop · 2 px · clean</text>
+<rect x="394" y="176" width="75.18" height="10" rx="2" fill="#687789"/>
+<text x="475.2" y="185" font-size="10">1.05 cm · 100% success</text>
+<text x="384" y="185" text-anchor="end" class="muted" font-size="9">no correction</text>
+<text x="34" y="224" font-size="12" font-weight="700">open_loop · 2 px · actual k1 -0.10</text>
+<rect x="394" y="231" width="51.67" height="10" rx="2" fill="#687789"/>
+<text x="451.7" y="240" font-size="10">0.72 cm · 100% success</text>
+<text x="384" y="240" text-anchor="end" class="muted" font-size="9">no correction</text>
+<rect x="394" y="244" width="60.93" height="10" rx="2" fill="#d48a12"/>
+<text x="460.9" y="253" font-size="10">0.85 cm · 100% success</text>
+<text x="384" y="253" text-anchor="end" class="muted" font-size="9">75% coefficient</text>
+<rect x="394" y="257" width="67.70" height="10" rx="2" fill="#117a9b"/>
+<text x="467.7" y="266" font-size="10">0.95 cm · 100% success</text>
+<text x="384" y="266" text-anchor="end" class="muted" font-size="9">matched coefficient</text>
+<text x="34" y="279" font-size="12" font-weight="700">open_loop · 2 px · actual k1 +0.10</text>
+<rect x="394" y="286" width="102.98" height="10" rx="2" fill="#687789"/>
+<text x="503.0" y="295" font-size="10">1.45 cm · 100% success</text>
+<text x="384" y="295" text-anchor="end" class="muted" font-size="9">no correction</text>
+<rect x="394" y="299" width="78.75" height="10" rx="2" fill="#d48a12"/>
+<text x="478.7" y="308" font-size="10">1.10 cm · 100% success</text>
+<text x="384" y="308" text-anchor="end" class="muted" font-size="9">75% coefficient</text>
+<rect x="394" y="312" width="73.40" height="10" rx="2" fill="#117a9b"/>
+<text x="473.4" y="321" font-size="10">1.03 cm · 100% success</text>
+<text x="384" y="321" text-anchor="end" class="muted" font-size="9">matched coefficient</text>
+<text x="34" y="334" font-size="12" font-weight="700">open_loop · 8 px · clean</text>
+<rect x="394" y="341" width="182.08" height="10" rx="2" fill="#687789"/>
+<text x="582.1" y="350" font-size="10">2.56 cm · 85% success</text>
+<text x="384" y="350" text-anchor="end" class="muted" font-size="9">no correction</text>
+<text x="34" y="389" font-size="12" font-weight="700">open_loop · 8 px · actual k1 -0.10</text>
+<rect x="394" y="396" width="181.37" height="10" rx="2" fill="#687789"/>
+<text x="581.4" y="405" font-size="10">2.54 cm · 85% success</text>
+<text x="384" y="405" text-anchor="end" class="muted" font-size="9">no correction</text>
+<rect x="394" y="409" width="179.59" height="10" rx="2" fill="#d48a12"/>
+<text x="579.6" y="418" font-size="10">2.52 cm · 85% success</text>
+<text x="384" y="418" text-anchor="end" class="muted" font-size="9">75% coefficient</text>
+<rect x="394" y="422" width="183.51" height="10" rx="2" fill="#117a9b"/>
+<text x="583.5" y="431" font-size="10">2.58 cm · 85% success</text>
+<text x="384" y="431" text-anchor="end" class="muted" font-size="9">matched coefficient</text>
+<text x="34" y="444" font-size="12" font-weight="700">open_loop · 8 px · actual k1 +0.10</text>
+<rect x="394" y="451" width="205.96" height="10" rx="2" fill="#687789"/>
+<text x="606.0" y="460" font-size="10">2.89 cm · 85% success</text>
+<text x="384" y="460" text-anchor="end" class="muted" font-size="9">no correction</text>
+<rect x="394" y="464" width="186.71" height="10" rx="2" fill="#d48a12"/>
+<text x="586.7" y="473" font-size="10">2.62 cm · 86% success</text>
+<text x="384" y="473" text-anchor="end" class="muted" font-size="9">75% coefficient</text>
+<rect x="394" y="477" width="179.94" height="10" rx="2" fill="#117a9b"/>
+<text x="579.9" y="486" font-size="10">2.53 cm · 86% success</text>
+<text x="384" y="486" text-anchor="end" class="muted" font-size="9">matched coefficient</text>
+<text x="34" y="499" font-size="12" font-weight="700">open_loop · 20 px · clean</text>
+<rect x="394" y="506" width="458.59" height="10" rx="2" fill="#687789"/>
+<text x="858.6" y="515" font-size="10">6.43 cm · 31% success</text>
+<text x="384" y="515" text-anchor="end" class="muted" font-size="9">no correction</text>
+<text x="34" y="554" font-size="12" font-weight="700">open_loop · 20 px · actual k1 -0.10</text>
+<rect x="394" y="561" width="460.02" height="10" rx="2" fill="#687789"/>
+<text x="860.0" y="570" font-size="10">6.46 cm · 28% success</text>
+<text x="384" y="570" text-anchor="end" class="muted" font-size="9">no correction</text>
+<rect x="394" y="574" width="471.78" height="10" rx="2" fill="#d48a12"/>
+<text x="871.8" y="583" font-size="10">6.62 cm · 28% success</text>
+<text x="384" y="583" text-anchor="end" class="muted" font-size="9">75% coefficient</text>
+<rect x="394" y="587" width="473.91" height="10" rx="2" fill="#117a9b"/>
+<text x="873.9" y="596" font-size="10">6.65 cm · 29% success</text>
+<text x="384" y="596" text-anchor="end" class="muted" font-size="9">matched coefficient</text>
+<text x="34" y="609" font-size="12" font-weight="700">open_loop · 20 px · actual k1 +0.10</text>
+<rect x="394" y="616" width="455.03" height="10" rx="2" fill="#687789"/>
+<text x="855.0" y="625" font-size="10">6.39 cm · 31% success</text>
+<text x="384" y="625" text-anchor="end" class="muted" font-size="9">no correction</text>
+<rect x="394" y="629" width="456.10" height="10" rx="2" fill="#d48a12"/>
+<text x="856.1" y="638" font-size="10">6.40 cm · 32% success</text>
+<text x="384" y="638" text-anchor="end" class="muted" font-size="9">75% coefficient</text>
+<rect x="394" y="642" width="455.38" height="10" rx="2" fill="#117a9b"/>
+<text x="855.4" y="651" font-size="10">6.39 cm · 33% success</text>
+<text x="384" y="651" text-anchor="end" class="muted" font-size="9">matched coefficient</text>
+<text x="34" y="664" font-size="12" font-weight="700">image_feedback · 2 px · clean</text>
+<rect x="394" y="671" width="47.75" height="10" rx="2" fill="#687789"/>
+<text x="447.7" y="680" font-size="10">0.67 cm · 100% success</text>
+<text x="384" y="680" text-anchor="end" class="muted" font-size="9">no correction</text>
+<text x="34" y="719" font-size="12" font-weight="700">image_feedback · 2 px · actual k1 -0.10</text>
+<rect x="394" y="726" width="51.67" height="10" rx="2" fill="#687789"/>
+<text x="451.7" y="735" font-size="10">0.72 cm · 100% success</text>
+<text x="384" y="735" text-anchor="end" class="muted" font-size="9">no correction</text>
+<rect x="394" y="739" width="50.95" height="10" rx="2" fill="#d48a12"/>
+<text x="451.0" y="748" font-size="10">0.71 cm · 100% success</text>
+<text x="384" y="748" text-anchor="end" class="muted" font-size="9">75% coefficient</text>
+<rect x="394" y="752" width="50.24" height="10" rx="2" fill="#117a9b"/>
+<text x="450.2" y="761" font-size="10">0.71 cm · 100% success</text>
+<text x="384" y="761" text-anchor="end" class="muted" font-size="9">matched coefficient</text>
+<text x="34" y="774" font-size="12" font-weight="700">image_feedback · 2 px · actual k1 +0.10</text>
+<rect x="394" y="781" width="50.60" height="10" rx="2" fill="#687789"/>
+<text x="450.6" y="790" font-size="10">0.71 cm · 100% success</text>
+<text x="384" y="790" text-anchor="end" class="muted" font-size="9">no correction</text>
+<rect x="394" y="794" width="46.68" height="10" rx="2" fill="#d48a12"/>
+<text x="446.7" y="803" font-size="10">0.66 cm · 100% success</text>
+<text x="384" y="803" text-anchor="end" class="muted" font-size="9">75% coefficient</text>
+<rect x="394" y="807" width="49.17" height="10" rx="2" fill="#117a9b"/>
+<text x="449.2" y="816" font-size="10">0.69 cm · 100% success</text>
+<text x="384" y="816" text-anchor="end" class="muted" font-size="9">matched coefficient</text>
+<text x="34" y="829" font-size="12" font-weight="700">image_feedback · 8 px · clean</text>
+<rect x="394" y="836" width="73.05" height="10" rx="2" fill="#687789"/>
+<text x="473.0" y="845" font-size="10">1.03 cm · 100% success</text>
+<text x="384" y="845" text-anchor="end" class="muted" font-size="9">no correction</text>
+<text x="34" y="884" font-size="12" font-weight="700">image_feedback · 8 px · actual k1 -0.10</text>
+<rect x="394" y="891" width="79.82" height="10" rx="2" fill="#687789"/>
+<text x="479.8" y="900" font-size="10">1.12 cm · 100% success</text>
+<text x="384" y="900" text-anchor="end" class="muted" font-size="9">no correction</text>
+<rect x="394" y="904" width="66.99" height="10" rx="2" fill="#d48a12"/>
+<text x="467.0" y="913" font-size="10">0.94 cm · 100% success</text>
+<text x="384" y="913" text-anchor="end" class="muted" font-size="9">75% coefficient</text>
+<rect x="394" y="917" width="67.70" height="10" rx="2" fill="#117a9b"/>
+<text x="467.7" y="926" font-size="10">0.95 cm · 100% success</text>
+<text x="384" y="926" text-anchor="end" class="muted" font-size="9">matched coefficient</text>
+<text x="34" y="939" font-size="12" font-weight="700">image_feedback · 8 px · actual k1 +0.10</text>
+<rect x="394" y="946" width="65.56" height="10" rx="2" fill="#687789"/>
+<text x="465.6" y="955" font-size="10">0.92 cm · 100% success</text>
+<text x="384" y="955" text-anchor="end" class="muted" font-size="9">no correction</text>
+<rect x="394" y="959" width="80.89" height="10" rx="2" fill="#d48a12"/>
+<text x="480.9" y="968" font-size="10">1.13 cm · 100% success</text>
+<text x="384" y="968" text-anchor="end" class="muted" font-size="9">75% coefficient</text>
+<rect x="394" y="972" width="76.61" height="10" rx="2" fill="#117a9b"/>
+<text x="476.6" y="981" font-size="10">1.07 cm · 100% success</text>
+<text x="384" y="981" text-anchor="end" class="muted" font-size="9">matched coefficient</text>
+<text x="34" y="994" font-size="12" font-weight="700">image_feedback · 20 px · clean</text>
+<rect x="394" y="1001" width="215.93" height="10" rx="2" fill="#687789"/>
+<text x="615.9" y="1010" font-size="10">3.03 cm · 80% success</text>
+<text x="384" y="1010" text-anchor="end" class="muted" font-size="9">no correction</text>
+<text x="34" y="1049" font-size="12" font-weight="700">image_feedback · 20 px · actual k1 -0.10</text>
+<rect x="394" y="1056" width="189.92" height="10" rx="2" fill="#687789"/>
+<text x="589.9" y="1065" font-size="10">2.67 cm · 81% success</text>
+<text x="384" y="1065" text-anchor="end" class="muted" font-size="9">no correction</text>
+<rect x="394" y="1069" width="217.00" height="10" rx="2" fill="#d48a12"/>
+<text x="617.0" y="1078" font-size="10">3.04 cm · 81% success</text>
+<text x="384" y="1078" text-anchor="end" class="muted" font-size="9">75% coefficient</text>
+<rect x="394" y="1082" width="198.12" height="10" rx="2" fill="#117a9b"/>
+<text x="598.1" y="1091" font-size="10">2.78 cm · 79% success</text>
+<text x="384" y="1091" text-anchor="end" class="muted" font-size="9">matched coefficient</text>
+<text x="34" y="1104" font-size="12" font-weight="700">image_feedback · 20 px · actual k1 +0.10</text>
+<rect x="394" y="1111" width="195.98" height="10" rx="2" fill="#687789"/>
+<text x="596.0" y="1120" font-size="10">2.75 cm · 83% success</text>
+<text x="384" y="1120" text-anchor="end" class="muted" font-size="9">no correction</text>
+<rect x="394" y="1124" width="178.16" height="10" rx="2" fill="#d48a12"/>
+<text x="578.2" y="1133" font-size="10">2.50 cm · 81% success</text>
+<text x="384" y="1133" text-anchor="end" class="muted" font-size="9">75% coefficient</text>
+<rect x="394" y="1137" width="163.55" height="10" rx="2" fill="#117a9b"/>
+<text x="563.6" y="1146" font-size="10">2.29 cm · 82% success</text>
+<text x="384" y="1146" text-anchor="end" class="muted" font-size="9">matched coefficient</text>
+<text x="32" y="1274" font-size="12" font-weight="700">Physical reaching is scored in MuJoCo; fresh visual confirmation is not evaluated.</text>
+<text x="32" y="1298" class="muted" font-size="11">Matched coefficients use the injected k1 as an oracle. They test the correction geometry, not calibration-estimator accuracy.</text>
+</svg>

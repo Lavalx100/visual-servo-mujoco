@@ -11,6 +11,7 @@ import cv2
 import mujoco
 import numpy as np
 
+from .camera_distortion import distort_pixel, distort_rgb_image, undistort_pixel
 from .controller import (
     camera_pixel_jacobian,
     forward_kinematics,
@@ -352,6 +353,10 @@ def run_trials(
     *,
     pixel_noise_std_px: float = 0.0,
     camera_fovy_error_deg: float = 0.0,
+    camera_radial_distortion_k1: float = 0.0,
+    camera_radial_distortion_k2: float = 0.0,
+    controller_radial_distortion_k1: float = 0.0,
+    controller_radial_distortion_k2: float = 0.0,
     controller: str = "open_loop",
     video_episode_index: int = 0,
     feedback_target_filter_window: int | None = None,
@@ -387,7 +392,9 @@ def run_trials(
 
     ``pixel_noise_std_px`` adds independent Gaussian noise to each detected
     target centroid. ``camera_fovy_error_deg`` offsets the field of view used by
-    the controller while leaving the simulated camera unchanged. The feedback
+    the controller while leaving the simulated camera unchanged. The actual
+    camera radial coefficients distort rendered overhead frames; the controller
+    coefficients undistort detected marker pixels before control. The feedback
     filter window controls how many recent target detections feed its median;
     the tolerance-check count controls the stop confirmation; and the joint
     step value caps each commanded update. A target dropout skips detection for
@@ -405,6 +412,16 @@ def run_trials(
         raise ValueError("pixel_noise_std_px must be finite and non-negative")
     if not math.isfinite(camera_fovy_error_deg):
         raise ValueError("camera_fovy_error_deg must be finite")
+    if not all(
+        math.isfinite(value)
+        for value in (
+            camera_radial_distortion_k1,
+            camera_radial_distortion_k2,
+            controller_radial_distortion_k1,
+            controller_radial_distortion_k2,
+        )
+    ):
+        raise ValueError("radial distortion coefficients must be finite")
     if controller not in {"open_loop", "image_feedback"}:
         raise ValueError("controller must be 'open_loop' or 'image_feedback'")
     if not isinstance(feedback_allow_stale_target_confirmation, bool):
@@ -584,6 +601,32 @@ def run_trials(
     if not 0.0 < controller_camera_fovy < 180.0:
         raise ValueError("calibrated camera field of view must be between 0 and 180 degrees")
 
+    def render_camera_rgb() -> np.ndarray:
+        return distort_rgb_image(
+            render_rgb(renderer, data),
+            vertical_fov_degrees=camera_fovy,
+            k1=camera_radial_distortion_k1,
+            k2=camera_radial_distortion_k2,
+        )
+
+    def correct_camera_pixel(pixel_xy: tuple[float, float]) -> tuple[float, float]:
+        return undistort_pixel(
+            pixel_xy,
+            (IMAGE_WIDTH, IMAGE_HEIGHT),
+            vertical_fov_degrees=controller_camera_fovy,
+            k1=controller_radial_distortion_k1,
+            k2=controller_radial_distortion_k2,
+        )
+
+    def camera_overlay_pixel(pixel_xy: tuple[float, float]) -> tuple[float, float]:
+        return distort_pixel(
+            pixel_xy,
+            (IMAGE_WIDTH, IMAGE_HEIGHT),
+            vertical_fov_degrees=camera_fovy,
+            k1=camera_radial_distortion_k1,
+            k2=camera_radial_distortion_k2,
+        )
+
     # Keep the full target path inside the nominal x span and arm workspace.
     targets = []
     while len(targets) < episodes:
@@ -635,17 +678,21 @@ def run_trials(
         # Target localization comes from the camera. Ground-truth target state
         # is reserved for evaluation; an optional current arm-pose projection
         # uses joint state rather than target ground truth.
-        rgb = render_rgb(renderer, data)
+        rgb = render_camera_rgb()
         camera_frame_history = [rgb]
         camera_target_position_history = [(target_x, target_y)]
         camera_capture_time_history = [float(data.time)]
         detected_pixel_xy = detect_red_target(rgb)
         noise = measurement_rng.normal(0.0, pixel_noise_std_px, size=2)
-        pixel_xy = (
+        raw_controller_pixel_xy = (
             float(detected_pixel_xy[0] + noise[0]),
             float(detected_pixel_xy[1] + noise[1]),
         )
+        pixel_xy = correct_camera_pixel(raw_controller_pixel_xy)
         camera_target_pixel_history: list[tuple[float, float] | None] = [pixel_xy]
+        camera_target_raw_pixel_history: list[
+            tuple[float, float] | None
+        ] = [raw_controller_pixel_xy]
         target_motion_observation_history = [(float(data.time), pixel_xy)]
         estimated_xy = pixel_to_table_xy(
             pixel_xy,
@@ -678,6 +725,12 @@ def run_trials(
                 "camera_observation_age_simulated_s": 0.0,
                 "camera_capture_time_simulated_s": float(data.time),
                 "target_prediction_horizon_s": 0.0,
+                "target_pixel_xy_raw": [
+                    round(value, 2) for value in raw_controller_pixel_xy
+                ],
+                "target_pixel_xy_undistorted": [
+                    round(value, 2) for value in pixel_xy
+                ],
                 "target_position_xy_m_for_evaluation_only": [target_x, target_y],
                 "observed_target_position_xy_m_for_evaluation_only": [
                     target_x,
@@ -703,11 +756,13 @@ def run_trials(
                 controller_error = str(error)
 
         if save_episode_media:
-            annotated = cv2.cvtColor(annotated_frame(rgb, pixel_xy), cv2.COLOR_RGB2BGR)
+            annotated = cv2.cvtColor(
+                annotated_frame(rgb, camera_overlay_pixel(pixel_xy)), cv2.COLOR_RGB2BGR
+            )
             cv2.imwrite(str(scene_path), annotated)
             initial_frame = demo_video_frame(
                 rgb,
-                pixel_xy,
+                camera_overlay_pixel(pixel_xy),
                 controller=controller,
                 pixel_noise_std_px=pixel_noise_std_px,
                 camera_fovy_error_deg=camera_fovy_error_deg,
@@ -738,8 +793,8 @@ def run_trials(
                     if save_episode_media and step % video_step_interval == 0:
                         video_writer.write(
                             demo_video_frame(
-                                render_rgb(renderer, data),
-                                pixel_xy,
+                                render_camera_rgb(),
+                                camera_overlay_pixel(pixel_xy),
                                 controller=controller,
                                 pixel_noise_std_px=pixel_noise_std_px,
                                 camera_fovy_error_deg=camera_fovy_error_deg,
@@ -753,12 +808,14 @@ def run_trials(
                 consecutive_stale_tolerance_checks = 0
                 observation_rgb = rgb
                 observed_target_pixel_xy = pixel_xy
+                observed_raw_target_pixel_xy = raw_controller_pixel_xy
+                target_visible_in_observation = True
                 camera_observation_age = 0
                 prediction_horizon_s = 0.0
                 for iteration in range(max_observations):
                     visibility_event = target_visibility_trace[0] if iteration == 0 else None
                     if iteration > 0:
-                        rgb = render_rgb(renderer, data)
+                        rgb = render_camera_rgb()
                         camera_frame_history.append(rgb)
                         camera_target_position_history.append(
                             tuple(float(value) for value in data.xpos[target_id][:2])
@@ -781,16 +838,25 @@ def run_trials(
                             target_visible_in_render = True
                             current_detection_error = None
                             noise = measurement_rng.normal(0.0, pixel_noise_std_px, size=2)
-                            captured_target_pixel_xy = (
+                            captured_raw_target_pixel_xy = (
                                 float(current_detected_pixel_xy[0] + noise[0]),
                                 float(current_detected_pixel_xy[1] + noise[1]),
                             )
+                            captured_target_pixel_xy = correct_camera_pixel(
+                                captured_raw_target_pixel_xy
+                            )
+                        if not target_visible_in_render:
+                            captured_raw_target_pixel_xy = None
                         camera_target_pixel_history.append(captured_target_pixel_xy)
+                        camera_target_raw_pixel_history.append(
+                            captured_raw_target_pixel_xy
+                        )
                         if len(camera_frame_history) > camera_observation_delay_observations + 1:
                             camera_frame_history.pop(0)
                             camera_target_position_history.pop(0)
                             camera_capture_time_history.pop(0)
                             camera_target_pixel_history.pop(0)
+                            camera_target_raw_pixel_history.pop(0)
                         camera_observation_age = min(
                             camera_observation_delay_observations, iteration
                         )
@@ -806,9 +872,13 @@ def run_trials(
                         observed_target_pixel_xy = camera_target_pixel_history[
                             -1 - camera_observation_age
                         ]
+                        observed_raw_target_pixel_xy = camera_target_raw_pixel_history[
+                            -1 - camera_observation_age
+                        ]
                         target_visible_in_observation = observed_target_pixel_xy is not None
                         if target_visible_in_observation:
-                            detected_pixel_xy = observed_target_pixel_xy
+                            detected_pixel_xy = observed_raw_target_pixel_xy
+                            raw_controller_pixel_xy = observed_raw_target_pixel_xy
                         target_detection_error = (
                             current_detection_error
                             if camera_observation_age == 0
@@ -840,7 +910,7 @@ def run_trials(
                             if consecutive_target_misses > 0:
                                 target_reacquisitions += 1
                             consecutive_target_misses = 0
-                            target_pixel_history.append(detected_pixel_xy)
+                            target_pixel_history.append(observed_target_pixel_xy)
                             target_pixel_history = target_pixel_history[
                                 -feedback_target_filter_window:
                             ]
@@ -852,7 +922,10 @@ def run_trials(
                                     > target_motion_observation_history[-1][0] + 1e-9
                                 ):
                                     target_motion_observation_history.append(
-                                        (observed_frame_time_s, detected_pixel_xy)
+                                        (
+                                            observed_frame_time_s,
+                                            observed_target_pixel_xy,
+                                        )
                                     )
                                     target_motion_observation_history = (
                                         target_motion_observation_history[-4:]
@@ -948,8 +1021,8 @@ def run_trials(
                                 vertical_fov_degrees=controller_camera_fovy,
                             )
                         else:
-                            end_effector_pixel_xy = detect_green_end_effector(
-                                observation_rgb
+                            end_effector_pixel_xy = correct_camera_pixel(
+                                detect_green_end_effector(observation_rgb)
                             )
                     except RuntimeError as error:
                         controller_stop_reason = "end_effector_not_visible"
@@ -964,12 +1037,10 @@ def run_trials(
                         round(value, 2) for value in pixel_xy
                     ]
                     visibility_event["target_pixel_xy_raw_used"] = (
-                        [round(value, 2) for value in observed_target_pixel_xy]
-                        if iteration == 0
-                        or (
-                            target_visible_in_observation
-                            and not visibility_event["injected_dropout"]
-                        )
+                        [round(value, 2) for value in observed_raw_target_pixel_xy]
+                        if observed_raw_target_pixel_xy is not None
+                        and target_visible_in_observation
+                        and not visibility_event["injected_dropout"]
                         else None
                     )
                     visibility_event["target_motion_prediction_applied"] = (
@@ -1089,8 +1160,8 @@ def run_trials(
                             )
                             video_writer.write(
                                 demo_video_frame(
-                                    render_rgb(renderer, data),
-                                    pixel_xy,
+                                    render_camera_rgb(),
+                                    camera_overlay_pixel(pixel_xy),
                                     controller=controller,
                                     pixel_noise_std_px=pixel_noise_std_px,
                                     camera_fovy_error_deg=camera_fovy_error_deg,
@@ -1120,7 +1191,7 @@ def run_trials(
         final_pixel_error = None
         overhead_target_pixel = None
         overhead_tip_pixel = None
-        final_rgb = render_rgb(renderer, data)
+        final_rgb = render_camera_rgb()
         try:
             final_target_pixel = detect_red_target(final_rgb)
             final_end_effector_pixel = detect_green_end_effector(final_rgb)
@@ -1313,7 +1384,7 @@ def run_trials(
             )
             final_frame = demo_video_frame(
                 final_rgb,
-                pixel_xy,
+                camera_overlay_pixel(pixel_xy),
                 controller=controller,
                 pixel_noise_std_px=pixel_noise_std_px,
                 camera_fovy_error_deg=camera_fovy_error_deg,
@@ -1358,12 +1429,19 @@ def run_trials(
         results.append({
             "episode": index,
             "controller": controller,
+            "camera_radial_distortion_k1": camera_radial_distortion_k1,
+            "camera_radial_distortion_k2": camera_radial_distortion_k2,
+            "controller_radial_distortion_k1": controller_radial_distortion_k1,
+            "controller_radial_distortion_k2": controller_radial_distortion_k2,
             "controller_iterations": control_iterations,
             "simulated_motion_time_s": round(
                 simulated_steps * float(model.opt.timestep), 4
             ),
             "target_pixel_xy": [round(value, 2) for value in detected_pixel_xy],
             "controller_pixel_xy": [round(value, 2) for value in pixel_xy],
+            "controller_pixel_raw_xy": [
+                round(value, 2) for value in raw_controller_pixel_xy
+            ],
             "estimated_target_xy_m": [round(value, 4) for value in estimated_xy],
             "true_target_xy_m_for_evaluation_only": [round(float(value), 4) for value in true_xy],
             "target_start_xy_m_for_evaluation_only": [target_x, target_y],
@@ -1430,6 +1508,13 @@ def run_trials(
         "controller": controller,
         "pixel_noise_std_px": pixel_noise_std_px,
         "camera_fovy_error_deg": camera_fovy_error_deg,
+        "camera_radial_distortion": {
+            "model": "Brown-Conrady radial k1,k2",
+            "actual_k1": camera_radial_distortion_k1,
+            "actual_k2": camera_radial_distortion_k2,
+            "controller_estimated_k1": controller_radial_distortion_k1,
+            "controller_estimated_k2": controller_radial_distortion_k2,
+        },
         "feedback_target_filter": {
             "method": "rolling_coordinate_median",
             "window": feedback_target_filter_window,
@@ -1676,6 +1761,30 @@ def main() -> int:
         default=0.0,
         help="field-of-view calibration error used by the controller, in degrees",
     )
+    parser.add_argument(
+        "--camera-radial-k1",
+        type=float,
+        default=0.0,
+        help="actual simulated camera radial distortion coefficient k1",
+    )
+    parser.add_argument(
+        "--camera-radial-k2",
+        type=float,
+        default=0.0,
+        help="actual simulated camera radial distortion coefficient k2",
+    )
+    parser.add_argument(
+        "--controller-radial-k1",
+        type=float,
+        default=0.0,
+        help="estimated radial k1 used to correct measured pixels",
+    )
+    parser.add_argument(
+        "--controller-radial-k2",
+        type=float,
+        default=0.0,
+        help="estimated radial k2 used to correct measured pixels",
+    )
     args = parser.parse_args()
     if args.episodes <= 0:
         parser.error("--episodes must be positive")
@@ -1683,6 +1792,16 @@ def main() -> int:
         parser.error("--pixel-noise-std-px must be finite and non-negative")
     if not math.isfinite(args.camera_fovy_error_deg):
         parser.error("--camera-fovy-error-deg must be finite")
+    if not all(
+        math.isfinite(value)
+        for value in (
+            args.camera_radial_k1,
+            args.camera_radial_k2,
+            args.controller_radial_k1,
+            args.controller_radial_k2,
+        )
+    ):
+        parser.error("radial distortion coefficients must be finite")
     if args.feedback_target_filter_window <= 0:
         parser.error("--feedback-target-filter-window must be a positive integer")
     if args.feedback_required_tolerance_checks <= 0:
@@ -1776,6 +1895,10 @@ def main() -> int:
         args.output_dir,
         pixel_noise_std_px=args.pixel_noise_std_px,
         camera_fovy_error_deg=args.camera_fovy_error_deg,
+        camera_radial_distortion_k1=args.camera_radial_k1,
+        camera_radial_distortion_k2=args.camera_radial_k2,
+        controller_radial_distortion_k1=args.controller_radial_k1,
+        controller_radial_distortion_k2=args.controller_radial_k2,
         controller=args.controller,
         video_episode_index=args.video_episode_index,
         feedback_target_filter_window=args.feedback_target_filter_window,

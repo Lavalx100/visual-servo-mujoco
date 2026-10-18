@@ -71,7 +71,7 @@ def _header(c: canvas.Canvas, page: int, section: str) -> None:
     c.setLineWidth(0.6)
     c.line(MARGIN, PAGE_H - 40, PAGE_W - MARGIN, PAGE_H - 40)
     c.line(MARGIN, 31, PAGE_W - MARGIN, 31)
-    _text(c, MARGIN, 18, "Portfolio project explainer | simulation evidence, not robot performance", 7.5, MUTED)
+    _text(c, MARGIN, 18, "Portfolio project explainer | camera and simulation evidence, not robot performance", 7.5, MUTED)
     _right_text(c, PAGE_W - MARGIN, 18, f"{page:02d}", 8, MUTED, "Helvetica-Bold")
 
 
@@ -181,7 +181,7 @@ def _draw_cover(c: canvas.Canvas, root: Path) -> None:
         _rounded(c, x, 94, w, 27, PANEL, stroke=GRID, radius=9)
         _text(c, x + 10, 103, label, 8, color, "Helvetica-Bold")
         x += w + 8
-    _text(c, MARGIN, 48, "Local work on feat/robustness-benchmark | Updated 16 Oct 2026", 8, MUTED)
+    _text(c, MARGIN, 48, "Local work on feat/robustness-benchmark | Updated 18 Oct 2026", 8, MUTED)
     c.showPage()
 
 
@@ -309,15 +309,16 @@ def _draw_code_map(c: canvas.Canvas) -> None:
         ("sensor_timing_benchmark.py", "feedback source test", "Compares fresh RGB, fully delayed RGB, and delayed target plus current-state tip."),
         ("verification_*.py / terminal_verification.py", "fresh-view evidence + quality", "Renders a fresh terminal view, scores marker quality, and measures calibration sensitivity, coverage, and decision errors."),
         ("camera_calibration_*.py", "landmark health + transfer", "Matches fixed landmarks to pinhole projections, freezes a threshold, then evaluates pose transfer, visibility, and radial distortion."),
+        ("public_camera_calibration.py / camera_distortion.py", "fit and correct radial lens error", "Fits k1,k2 on recorded checkerboard views; applies optional pixel correction and benchmarks its effect on reaching."),
     ]
     y = PAGE_H - 141
     for index, (file_name, function, explanation) in enumerate(entries):
-        card_h = 58
+        card_h = 50
         _rounded(c, MARGIN, y - card_h, CONTENT_W, card_h, PANEL if index % 2 == 0 else PANEL_ALT)
-        _text(c, MARGIN + 13, y - 18, file_name, 9.1, BLUE, "Helvetica-Bold")
-        _right_text(c, PAGE_W - MARGIN - 13, y - 19, function, 8.1, GREEN, "Helvetica-Bold")
-        _paragraph(c, MARGIN + 13, y - 34, explanation, CONTENT_W - 26, 8.1, 9.5, MUTED)
-        y -= card_h + 6
+        _text(c, MARGIN + 13, y - 16, file_name, 8.7, BLUE, "Helvetica-Bold")
+        _right_text(c, PAGE_W - MARGIN - 13, y - 17, function, 7.6, GREEN, "Helvetica-Bold")
+        _paragraph(c, MARGIN + 13, y - 29, explanation, CONTENT_W - 26, 7.8, 9.3, MUTED)
+        y -= card_h + 4
     _callout(
         c,
         MARGIN,
@@ -643,7 +644,7 @@ def _draw_verifier_robustness(c: canvas.Canvas) -> None:
         ["Verifier condition", "Both seen / estimate", "False +", "Missed", "P95 error"],
         ["Nominal", "99 / 100", "0", "7", "1.74 cm"],
         ["Estimated FOV +5°", "99 / 100", "0", "15", "2.12 cm"],
-        ["Estimated FOV −5°", "99 / 100", "1", "3", "1.66 cm"],
+        ["Estimated FOV -5°", "99 / 100", "1", "3", "1.66 cm"],
         ["Camera world X +2 cm", "99 / 100", "0", "7", "1.74 cm"],
         ["Estimated yaw +3°", "99 / 100", "0", "5", "1.84 cm"],
         ["Exposure ×0.25", "0 / 100", "n/a", "n/a", "n/a"],
@@ -664,7 +665,7 @@ def _draw_verifier_robustness(c: canvas.Canvas) -> None:
     bars = [
         ("Nominal", 8.3, "7 / 84"),
         ("FOV +5°", 17.9, "15 / 84"),
-        ("FOV −5°", 3.6, "3 / 84"),
+        ("FOV -5°", 3.6, "3 / 84"),
         ("Exposure ×1.5", 11.9, "10 / 84"),
     ]
     chart_y = table_bottom - 52
@@ -686,7 +687,7 @@ def _draw_verifier_robustness(c: canvas.Canvas) -> None:
         CONTENT_W,
         91,
         "What these stresses do and do not establish",
-        "A +5° FOV estimate doubled missed successes (7 to 15); −5° caused one false success. Dim exposure and marker occlusion yielded no estimate, so those trials have no decision score. Brightness is a uniform post-render multiplier and occlusion uses marker-color removal plus inpainting. This is a simulator stress test, not real-camera evidence.",
+        "A +5° FOV estimate doubled missed successes (7 to 15); -5° caused one false success. Dim exposure and marker occlusion yielded no estimate, so those trials have no decision score. Brightness is a uniform post-render multiplier and occlusion uses marker-color removal plus inpainting. This is a simulator stress test, not real-camera evidence.",
         ORANGE,
         8.1,
     )
@@ -719,10 +720,10 @@ def _draw_verifier_quality(c: canvas.Canvas) -> None:
 
     rows = [
         ["Minimum score", "Coverage", "False +", "Missed", "Condition"],
-        ["0.00", "99 / 100", "1", "3", "FOV estimate −5°"],
-        ["0.15", "93 / 100", "1", "3", "FOV estimate −5°"],
-        ["0.20", "39 / 100", "1", "3", "FOV estimate −5°"],
-        ["0.50", "9 / 100", "0", "1", "FOV estimate −5°"],
+        ["0.00", "99 / 100", "1", "3", "FOV estimate -5°"],
+        ["0.15", "93 / 100", "1", "3", "FOV estimate -5°"],
+        ["0.20", "39 / 100", "1", "3", "FOV estimate -5°"],
+        ["0.50", "9 / 100", "0", "1", "FOV estimate -5°"],
     ]
     table_bottom = _table(
         c,
@@ -754,7 +755,7 @@ def _draw_verifier_quality(c: canvas.Canvas) -> None:
         CONTENT_W,
         99,
         "A useful abstention point has not been found",
-        "The 0.50 gate removed the single false success under a −5° FOV estimate, while leaving 9% coverage. At 0.20, coverage was 39% and the false success remained. Scores do not reveal calibration bias from marker appearance; no threshold is selected.",
+        "The 0.50 gate removed the single false success under a -5° FOV estimate, while leaving 9% coverage. At 0.20, coverage was 39% and the false success remained. Scores do not reveal calibration bias from marker appearance; no threshold is selected.",
         ORANGE,
         8.3,
     )
@@ -1087,7 +1088,7 @@ def _draw_camera_calibration_transfer(c: canvas.Canvas, root: Path) -> None:
         [CONTENT_W * 0.24, CONTENT_W * 0.25, CONTENT_W * 0.25, CONTENT_W * 0.26],
         [
             ["Synthetic k1", "East", "North higher", "Southwest diagonal"],
-            ["−0.005", "0/25", "0/25", "0/25"],
+            ["-0.005", "0/25", "0/25", "0/25"],
             ["+0.005", "25/25", "0/25", "0/25"],
             ["+0.010", "25/25", "0/25", "1/25"],
             ["+0.020", "25/25", "25/25", "25/25"],
@@ -1180,12 +1181,111 @@ def _draw_camera_calibration_planar(c: canvas.Canvas, root: Path) -> None:
     c.showPage()
 
 
-def _draw_next_steps(c: canvas.Canvas) -> None:
-    _header(c, 16, "Reproduce and continue")
+def _draw_camera_distortion_results(c: canvas.Canvas) -> None:
+    _header(c, 16, "Recorded images and reaching")
     _title(
         c,
-        "Take the diagnostic to recorded images",
-        "The simulator experiment maps residuals by feature radius and separates target coverage from the legacy four-marker decision. Physical camera evidence is the next step.",
+        "Distortion correction is conditional",
+        "A public-camera fit checks the calibration pipeline; a paired MuJoCo study checks whether optional pixel correction changes reaching.",
+    )
+
+    _section_label(c, MARGIN, 674, "Recorded-camera calibration: one OpenCV sequence")
+    flow = [
+        ("8 training views", "fit focal lengths and radial k1,k2", BLUE),
+        ("Freeze intrinsics", "estimate each held-out board pose", GREEN),
+        ("4 held-out views", "measure corner reprojection error", ORANGE),
+    ]
+    box_w = (CONTENT_W - 28) / 3
+    for index, (title, body, accent) in enumerate(flow):
+        x = MARGIN + index * (box_w + 14)
+        _rounded(c, x, 593, box_w, 61, PANEL_ALT)
+        _text(c, x + 11, 632, title, 9, accent, "Helvetica-Bold")
+        _paragraph(c, x + 11, 614, body, box_w - 22, 7.8, 9.5, MUTED)
+        if index < len(flow) - 1:
+            _arrow(c, x + box_w + 2, 622, x + box_w + 12, 622, GREEN, 1.1)
+
+    rms_results = [("Zero distortion", 1.445, SUBTLE), ("Radial k1,k2", 0.286, BLUE)]
+    bar_x, bar_w = MARGIN + 164, CONTENT_W - 208
+    for index, (label, value, color) in enumerate(rms_results):
+        y = 566 - index * 22
+        _text(c, MARGIN, y + 2, label, 8.2, WHITE)
+        _rounded(c, bar_x, y - 2, bar_w, 11, PANEL_ALT, radius=5)
+        c.setFillColor(color)
+        c.roundRect(bar_x, y - 2, bar_w * value / 1.6, 11, 5, fill=1, stroke=0)
+        _text(c, bar_x + bar_w * value / 1.6 + 6, y, f"{value:.3f} px", 8, MUTED)
+    _paragraph(
+        c,
+        MARGIN,
+        514,
+        "Held-out corners stop within 240 px of the estimated image center. The camera has no published ground-truth intrinsics, so this is a one-sequence fit check, not proof of a better robot camera model.",
+        CONTENT_W,
+        8,
+        10.5,
+        MUTED,
+    )
+
+    _section_label(c, MARGIN, 476, "MuJoCo reaching: no correction versus exact injected k1")
+    legend_y = 456
+    c.setFillColor(SUBTLE)
+    c.roundRect(MARGIN + 2, legend_y, 9, 9, 2, fill=1, stroke=0)
+    _text(c, MARGIN + 16, legend_y + 1, "No correction", 7.5, MUTED)
+    c.setFillColor(BLUE)
+    c.roundRect(MARGIN + 103, legend_y, 9, 9, 2, fill=1, stroke=0)
+    _text(c, MARGIN + 117, legend_y + 1, "Matched coefficient", 7.5, MUTED)
+
+    reaching_rows = [
+        ("Open loop | k1 -0.10", 0.84, 1.09),
+        ("Open loop | k1 +0.10", 1.48, 1.10),
+        ("Image feedback | k1 -0.10", 0.75, 0.68),
+        ("Image feedback | k1 +0.10", 0.73, 0.78),
+    ]
+    chart_x, chart_w = MARGIN + 206, CONTENT_W - 255
+    for index, (label, baseline, corrected) in enumerate(reaching_rows):
+        group_y = 427 - index * 37
+        _text(c, MARGIN, group_y + 4, label, 7.8, WHITE)
+        for offset, value, color in ((0, baseline, SUBTLE), (12, corrected, BLUE)):
+            y = group_y - offset
+            _rounded(c, chart_x, y, chart_w, 8, PANEL_ALT, radius=4)
+            c.setFillColor(color)
+            c.roundRect(chart_x, y, chart_w * value / 1.65, 8, 4, fill=1, stroke=0)
+            _text(c, chart_x + chart_w * value / 1.65 + 5, y + 1, f"{value:.2f} cm", 7.2, MUTED)
+
+    _section_label(c, MARGIN, 281, "20 px noise: paired success changes and error tails", ORANGE)
+    _table(
+        c,
+        MARGIN,
+        264,
+        [77, 45, 126, 126, CONTENT_W - 374],
+        [
+            ["Controller", "k1", "No correction\nsuccess; med/P95", "Exact k1\nsuccess; med/P95", "Recovered / lost"],
+            ["Open loop", "-0.10", "28/100; 6.46/13.98 cm", "29/100; 6.65/13.94 cm", "3 / 2"],
+            ["Open loop", "+0.10", "31/100; 6.39/13.81 cm", "33/100; 6.39/13.86 cm", "2 / 0"],
+            ["Image feedback", "-0.10", "81/100; 2.67/6.18 cm", "79/100; 2.78/6.26 cm", "6 / 8"],
+            ["Image feedback", "+0.10", "83/100; 2.75/6.35 cm", "82/100; 2.29/6.86 cm", "7 / 8"],
+        ],
+        font_size=6.5,
+        leading=8.0,
+    )
+    _callout(
+        c,
+        MARGIN,
+        45,
+        CONTENT_W,
+        80,
+        "Correction did not fix the high-noise failure",
+        "At 20 px, recovered and lost success counts were close; feedback lost one or two successes. Positive k1 feedback improved its median but worsened P95 by 0.51 cm. The 2 px chart above has 100/100 successes in every row. Exact coefficients are an oracle check, +/-0.10 is a simulation stress value, and fresh visual confirmation was not evaluated.",
+        ORANGE,
+        7.5,
+    )
+    c.showPage()
+
+
+def _draw_next_steps(c: canvas.Canvas) -> None:
+    _header(c, 17, "Reproduce and continue")
+    _title(
+        c,
+        "Estimate uncertainty before trusting correction",
+        "The code now has a public-camera fit and a simulated reaching test. Their remaining gap is coefficient uncertainty and transfer to this project's camera geometry.",
     )
     _callout(
         c,
@@ -1193,19 +1293,19 @@ def _draw_next_steps(c: canvas.Canvas) -> None:
         605,
         CONTENT_W,
         103,
-        "Completed milestone: 325 paired diagnostic cases",
-        "Five camera poses, 13 nominal/drift/lens conditions, and five held-out appearance seeds. The dense profile stays descriptive; the frozen 0.841 px threshold is applied only to the original four markers. The wider target probe is preserved as a negative result.",
+        "Completed camera evidence",
+        "A public checkerboard fit uses eight training and four held-out views. The end-to-end simulator sweep measures radial correction under pixel noise. Neither result describes a physical camera or robot, and exact-coefficient correction is only an oracle reference.",
         GREEN,
         9,
     )
-    _text(c, MARGIN, 575, "Next: capture and validate independent camera evidence", 10, WHITE, "Helvetica-Bold")
+    _text(c, MARGIN, 575, "Next: replace oracle coefficients with an uncertainty model", 10, WHITE, "Helvetica-Bold")
     checks = [
-        "Record the checkerboard, camera intrinsics, and target pose in a manifest.",
-        "Capture nominal and shifted frames at two or more camera poses.",
-        "Move the target through center and edge radii; report clipping separately.",
-        "Keep capture, calibration, and validation images in disjoint groups.",
+        "Bootstrap k1,k2 estimates across the recorded sequence's training views.",
+        "Propagate the measured coefficient spread into correction mismatch trials.",
+        "Sweep target image radius and the measured 2, 8, and 20 px noise settings.",
+        "Hold out seeds and compare success, error tails, and recovered/lost trials.",
         "Keep physical reaching separate from fresh visual confirmation.",
-        "Keep the terminal verifier and quality gate opt-in until evidence supports them.",
+        "Keep correction, predictors, and the terminal verifier opt-in until evidence supports them.",
     ]
     y = 553
     for item in checks:
@@ -1216,24 +1316,22 @@ def _draw_next_steps(c: canvas.Canvas) -> None:
     _section_label(c, MARGIN, 436, "Reproduce the main reports", BLUE)
     cmds = [
         "uv run pytest -q",
-        "uv run visual-servo-camera-calibration-health --output artifacts/camera-calibration-health.json",
-        "uv run visual-servo-camera-calibration-validation --output artifacts/camera-calibration-health-validation.json",
-        "uv run visual-servo-camera-calibration-transfer --output artifacts/camera-calibration-transfer-validation.json",
-        "uv run visual-servo-camera-calibration-planar --output artifacts/camera-calibration-planar-profile.json",
-        "uv run python scripts/generate_camera_calibration_planar_demo.py",
-        "uv run python scripts/generate_camera_calibration_planar_design_demo.py",
+        "uv run python scripts/download_opencv_calibration_samples.py --output-dir artifacts/opencv-calibration-samples",
+        "uv run visual-servo-camera-calibration-public --image-dir artifacts/opencv-calibration-samples",
+        "uv run visual-servo-distortion-benchmark --noise-levels 2 8 20 --base-seed 700",
+        "uv run --extra pdf python scripts/generate_project_explainer.py",
     ]
     for i, command in enumerate(cmds):
-        box_y = 407 - i * 21
-        _rounded(c, MARGIN, box_y, CONTENT_W, 18, PANEL)
-        _text(c, MARGIN + 11, box_y + 6, command, 6.5, GREEN if i < 3 else ORANGE, "Courier")
+        box_y = 407 - i * 25
+        _rounded(c, MARGIN, box_y, CONTENT_W, 19, PANEL)
+        _text(c, MARGIN + 11, box_y + 6, command, 6.0, GREEN if i < 3 else ORANGE, "Courier")
 
     _text(c, MARGIN, 244, "Video and source map", 10, WHITE, "Helvetica-Bold")
     _paragraph(
         c,
         MARGIN,
         225,
-        "assets/demos/ contains control, calibration, latency, prediction, and verification examples. camera_calibration_planar.mp4 shows radius error and the separate frozen four-marker decision; camera_calibration_planar_target_design.mp4 replays the larger-grid availability failure. Start with camera_calibration_planar.py, camera_calibration_transfer.py, camera_calibration_health.py, terminal_verification.py, controller.py, and run.py.",
+        "assets/demos/ contains control, calibration, latency, prediction, and verification examples. The radial-distortion video compares two image-feedback episodes; the SVG/CSV report aggregate trials. Start with camera_distortion.py, distortion_benchmark.py, public_camera_calibration.py, controller.py, and run.py.",
         CONTENT_W,
         8.5,
         11.5,
@@ -1243,7 +1341,7 @@ def _draw_next_steps(c: canvas.Canvas) -> None:
         c,
         MARGIN,
         164,
-        "Compare the figures with README.md and the JSON reports under artifacts/; those reports are local benchmark evidence and can be regenerated. The calibration diagnostic measures image-to-model disagreement, while the reaching score remains a separate MuJoCo measurement. Current camera-calibration evidence is synthetic; recorded camera frames remain necessary for physical claims.",
+        "Compare the figures with README.md and the JSON reports under artifacts/; those reports are local benchmark evidence and can be regenerated. Public camera pixels test a calibration workflow, while reaching is scored in MuJoCo. No fresh visual confirmation or physical robot performance is inferred from these results.",
         CONTENT_W,
         8.5,
         11.5,
@@ -1287,6 +1385,7 @@ def main() -> Path:
     _draw_camera_calibration_validation(c, repository)
     _draw_camera_calibration_transfer(c, repository)
     _draw_camera_calibration_planar(c, repository)
+    _draw_camera_distortion_results(c)
     _draw_next_steps(c)
     c.save()
     print(f"Wrote {output}")

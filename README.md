@@ -25,13 +25,18 @@ reproduction commands.
 | [![Image-feedback controller reaches a tabletop target](assets/demos/previews/feedback_clean.gif)](assets/demos/feedback_clean.mp4) | [![Fully delayed RGB compared with delayed target pixels and a current joint-state tip projection](assets/demos/previews/sensor_timing_current-joint-hybrid.gif)](assets/demos/sensor_timing_sinusoidal_noise-0px_delay-1.mp4) |
 | Held-out terminal visual estimate | Dense planar camera calibration |
 | [![Held-out terminal-verifier example where the ungated visual estimate falsely indicates success](assets/demos/previews/terminal_verification_heldout.gif)](assets/demos/terminal_verification_quality_heldout_false_success.mp4) | [![Checkerboard reprojection residuals profiled by distance from the image center](assets/demos/previews/camera_calibration_planar.gif)](assets/demos/camera_calibration_planar.mp4) |
+| Radial correction at 2 px noise | Noise and distortion sweep |
+| [![Paired image-feedback reaching with no pixel correction and matched radial correction](assets/demos/previews/radial_distortion_correction.gif)](assets/demos/radial_distortion_correction.mp4) | [![Median reaching error across radial distortion and three noise levels](assets/demos/radial_distortion_noise_benchmark.svg)](assets/demos/radial_distortion_noise_benchmark.svg) |
+| High-noise correction example | Aggregate scorecard |
+| [![One illustrative paired image-feedback trial with 20 px noise and positive radial distortion](assets/demos/previews/radial_distortion_correction_20px.gif)](assets/demos/radial_distortion_correction_20px.mp4) | [![4,200-trial radial distortion and noise sweep](assets/demos/radial_distortion_noise_benchmark.svg)](assets/demos/radial_distortion_noise_benchmark.svg) |
 
 ## Trial results at a glance
 
-All results below come from controlled MuJoCo/OpenCV simulation. Physical
-reaching success means the final MuJoCo end-effector position is within 4.5 cm
-of the target. Fresh visual confirmation is tracked separately; it is not
-inferred from physical proximity.
+The robotics trial results below come from controlled MuJoCo/OpenCV simulation.
+Physical reaching success means the final MuJoCo end-effector position is
+within 4.5 cm of the target. Fresh visual confirmation is tracked separately;
+it is not inferred from physical proximity. The recorded-camera calibration
+row uses OpenCV's separate public image sequence and does not measure reaching.
 
 | Experiment | Trial design | Measured result |
 | --- | --- | --- |
@@ -40,6 +45,112 @@ inferred from physical proximity.
 | Terminal-verifier quality gate | Calibration seeds 200–204; validation seeds 300–304 | Frozen 0.60 gate: 0 false visual successes among 23 accepted candidate estimates, but only 23/600 (3.8%) candidate coverage. All accepted estimates were from bright-exposure images; no threshold is recommended. |
 | Reversal-aware target prediction | 2,400 paired trials across eight path/delay/noise settings | Reversal-aware prediction had lower physical success than the measured-target baseline in every setting. Predictors remain opt-in. |
 | Dense planar calibration profile | 325 synthetic image trials: five views × 13 conditions × five appearance seeds | For East-view radial coefficient `k1=+0.010`, median signed radial residual was −0.05 px at 0–80 px radius and +0.86 px at 240–320 px. This is a synthetic image diagnostic, not a physical-camera result. |
+| Recorded-camera calibration check | 8 OpenCV sample images fit; 4 held out at 640×480 | On the four held-out images, fitting radial `k1,k2` reduced pooled reprojection RMS from 1.445 px to 0.286 px. This is one public camera sequence, not robot or project-camera evidence; no held-out corners were beyond 240 px radius. |
+
+## End-to-end radial-distortion stress test
+
+The preceding recorded-camera check asks whether a radial model fits checkerboard
+image points. This separate MuJoCo experiment asks whether applying that kind of
+pixel correction improves reaching. It applies Brown–Conrady radial `k1` distortion
+to every rendered overhead RGB frame, then optionally corrects the detected target
+and camera-observed arm-tip pixels before control. It compares open-loop projection
+and image feedback under the same targets and 2 px measurement-noise seeds.
+
+| Controller | Actual camera `k1` | Pixel correction | Physical success | Median / P95 reach error | Paired median error change vs. no correction |
+| --- | ---: | --- | ---: | ---: | ---: |
+| Open loop | +0.10 | none | 100/100 | 1.48 / 2.59 cm | — |
+| Open loop | +0.10 | exact injected coefficient | 100/100 | 1.10 / 2.27 cm | −0.35 cm; lower error in 96/100 pairs |
+| Open loop | −0.10 | none | 100/100 | 0.84 / 2.31 cm | — |
+| Open loop | −0.10 | exact injected coefficient | 100/100 | 1.09 / 2.29 cm | +0.16 cm; lower error in 28/100 pairs |
+| Image feedback | +0.10 | none | 100/100 | 0.73 / 1.69 cm | — |
+| Image feedback | +0.10 | exact injected coefficient | 100/100 | 0.78 / 1.39 cm | +0.05 cm; lower error in 44/100 pairs |
+| Image feedback | −0.10 | none | 100/100 | 0.75 / 1.47 cm | — |
+| Image feedback | −0.10 | exact injected coefficient | 100/100 | 0.68 / 1.26 cm | −0.09 cm; lower error in 62/100 pairs |
+
+![Radial correction reaching benchmark scorecard](assets/demos/radial_distortion_benchmark.svg)
+
+[Watch the paired image-feedback demo](assets/demos/radial_distortion_correction.mp4) ·
+[See all 1,400 trial rows](results/radial-distortion-trials.csv)
+
+All conditions achieved the 4.5 cm **physical MuJoCo reaching** threshold, so
+success rate does not separate them; the error distribution does. Exact correction
+helps open-loop reaching under positive `k1` but hurts under negative `k1` with
+this injected pixel noise. In image feedback, the shared target/tip distortion
+largely cancels in the relative-pixel loop, and correction has small, mixed effects.
+The result supports keeping correction opt-in rather than enabling it by default.
+The `±0.10` coefficients are simulation stress values, not measured lens
+parameters. Exact matching is an oracle geometry check, not evidence that a
+calibration estimator could recover the coefficient. Targets are stationary;
+camera delay is zero; no predictor or current-joint-state tip projection is used.
+Fresh visual confirmation is not evaluated by this benchmark.
+
+Reproduce the paired benchmark and demo with:
+
+```bash
+uv run visual-servo-distortion-benchmark --output artifacts/radial-distortion-benchmark.json
+uv run python scripts/generate_radial_distortion_demo.py
+ffmpeg -i assets/demos/radial_distortion_correction.mp4 -vf "fps=8,scale=640:-1:flags=lanczos" \
+  assets/demos/previews/radial_distortion_correction.gif
+```
+
+The benchmark writes its full per-observation report to the ignored `artifacts/`
+directory, plus the compact CSV and SVG shown above. The MP4/GIF are illustrative
+paired episodes; the 1,400-row CSV is the aggregate evidence.
+
+### Noise-interaction follow-up
+
+The 2 px run is a mild-noise geometry check and has no physical misses. This
+follow-up uses a separate seed block (700–704) and repeats all seven distortion
+and correction settings at 2, 8, and 20 px noise: 4,200 trials total, paired by
+target and noise seeds.
+The 20 px level targets the controller's measured high-noise weakness. At zero
+distortion, this seed block reached 31/100 with open loop and 80/100 with image
+feedback; the earlier 88/100 result used a different seed block.
+
+| Controller | Actual `k1` | No correction: success, median / P95 | Exact correction: success, median / P95 | Paired successes recovered / lost |
+| --- | ---: | --- | --- | ---: |
+| Open loop | −0.10 | 28/100, 6.46 / 13.98 cm | 29/100, 6.65 / 13.94 cm | 3 / 2 |
+| Open loop | +0.10 | 31/100, 6.39 / 13.81 cm | 33/100, 6.39 / 13.86 cm | 2 / 0 |
+| Image feedback | −0.10 | 81/100, 2.67 / 6.18 cm | 79/100, 2.78 / 6.26 cm | 6 / 8 |
+| Image feedback | +0.10 | 83/100, 2.75 / 6.35 cm | 82/100, 2.29 / 6.86 cm | 7 / 8 |
+
+![Distortion-correction reaching errors at 2, 8, and 20 px target noise](assets/demos/radial_distortion_noise_benchmark.svg)
+
+The high-noise changes are small and mixed. Exact correction netted one or two
+more successes in open loop (3 recovered / 2 lost at negative `k1`, 2 / 0 at
+positive `k1`), while feedback lost one or two net successes. At positive
+`k1`, feedback's median improved but its P95 worsened by 0.51 cm. These results
+do not support making correction a default or claiming it fixes the 20 px
+failure mode. The independent 2 px run and all 4,200 noise-sweep outcomes are
+available in [the original CSV](results/radial-distortion-trials.csv) and
+[the noise-sweep CSV](results/radial-distortion-noise-trials.csv).
+The random generators restart from matching seeds, but feedback conditions can
+take different numbers of observations, so matching seed/episode IDs do not
+guarantee identical noise draws at the same simulated times.
+
+Targets remain stationary, camera delay is zero, and no predictor or
+current-joint-state tip projection is used. Success is physical MuJoCo distance
+within 4.5 cm. Fresh visual confirmation is not measured. The exact coefficient
+is an oracle correction, and the injected `±0.10` values are stress settings,
+not estimates of this project's camera.
+
+For the noise sweep and a paired 20 px example video:
+
+```bash
+uv run visual-servo-distortion-benchmark --base-seed 700 --noise-levels 2 8 20 \
+  --output artifacts/radial-distortion-noise-benchmark.json \
+  --csv results/radial-distortion-noise-trials.csv \
+  --figure assets/demos/radial_distortion_noise_benchmark.svg
+uv run python scripts/generate_radial_distortion_demo.py \
+  --pixel-noise-std-px 20 \
+  --output assets/demos/radial_distortion_correction_20px.mp4
+ffmpeg -i assets/demos/radial_distortion_correction_20px.mp4 \
+  -vf "fps=8,scale=640:-1:flags=lanczos" \
+  assets/demos/previews/radial_distortion_correction_20px.gif
+```
+
+The [paired 20 px clip](assets/demos/radial_distortion_correction_20px.mp4) is
+one illustrative seed/episode, not aggregate evidence.
 
 The full condition tables, failure definitions, limitations, and commands to
 reproduce each run appear in the sections below. The checked-in
@@ -61,8 +172,11 @@ The CSV reports physical reaching outcomes and visibility diagnostics. It does
 not claim fresh visual confirmation; the camera-timing reports below measure
 that outcome separately.
 
-The scene and target positions are generated locally. The project downloads no
-robot datasets, pretrained models, or external simulator assets.
+The MuJoCo scene and target positions are generated locally. The robotics
+benchmarks require no external simulator assets, robot datasets, or pretrained
+models. The optional recorded-camera check downloads checksum-pinned OpenCV
+sample images into the ignored `artifacts/` directory; source photos are not
+copied into this repository.
 
 ## Run
 
@@ -1134,12 +1248,70 @@ uv run visual-servo-camera-calibration-planar \
 uv run python scripts/generate_camera_calibration_planar_demo.py
 ```
 
-The evidence remains simulator-only. No recorded camera, printed target,
-physical lens, reaching result, or fresh visual confirmation is included.
-The next milestone is to capture checkerboard images at two or more camera
-poses and at center and edge radii, record the camera and target poses in a
-manifest, then hold separate nominal and shifted captures for validation. Keep
-the verifier and quality gate opt-in until that evidence exists.
+The dense-target radius profile above remains synthetic evidence. The external
+recorded-camera check below exercises checkerboard calibration on real pixels,
+but it does not test this project's camera, robot reaching, or fresh visual
+confirmation. The next environment-specific milestone is still to evaluate a
+camera used by this project. That requires checkerboard images at multiple
+poses and image radii, with nominal and shifted captures held apart for
+validation. Keep the verifier and quality gate opt-in until that evidence
+exists.
+
+### Public recorded-camera calibration check
+
+To avoid requiring Jad to own a camera or print a target, this offline check
+uses OpenCV's published left-camera checkerboard sequence. The
+[OpenCV calibration tutorial](https://github.com/opencv/opencv/blob/9b6287ec500ef7b327ac74c4f6c9cd84a2cbc9cd/doc/tutorials/calib3d/camera_calibration/camera_calibration.markdown)
+documents that its sample images were captured with an AXIS IP camera and
+demonstrates calibrating from them. The image files are fetched from the
+[pinned OpenCV sample directory](https://github.com/opencv/opencv/tree/9b6287ec500ef7b327ac74c4f6c9cd84a2cbc9cd/samples/data)
+with SHA-256 checks; the project stores only the numerical report and residual
+plot, not the source photographs.
+
+The split is fixed: eight images (left01–left08) fit the camera intrinsics;
+four later views (left09, left12–left14) are held out. left11 has a different
+9×7 inner-corner pattern, so it is excluded from the 9×6 evaluation. Both
+models estimate intrinsics only on the eight training images. For each
+held-out view, solvePnP estimates that board's pose with the intrinsics frozen,
+then the benchmark measures corner reprojection residuals by image radius.
+
+| Model | Training corner RMS | Held-out pooled corner RMS | Held-out image RMS median / P95 |
+| --- | ---: | ---: | ---: |
+| Zero distortion | 1.726 px | 1.445 px | 1.257 / 1.879 px |
+| Radial k1,k2 | 0.261 px | 0.286 px | 0.282 / 0.341 px |
+
+Download the [machine-readable JSON report](results/public-camera-calibration-validation.json)
+or the [per-image and per-radius CSV](results/public-camera-calibration-validation.csv).
+
+The radial model had lower held-out RMS on all four images in this sample.
+This is an encouraging pipeline check, not independent ground-truth
+calibration: the sequence contains one camera, only four held-out views, and
+does not provide the camera's true intrinsics. The held-out corners do not
+extend beyond 240 px from the estimated principal point, so this dataset does
+not test the outermost field-of-view failure seen in simulation. The result
+does not imply better robot reaching, fresh visual confirmation, or that
+k1,k2 should be enabled in the controller.
+
+![Held-out OpenCV sample camera residuals by image and corner radius](assets/demos/public_camera_calibration_holdout.svg)
+
+Reproduce the report and plot without capturing any images:
+
+```bash
+OPENCV_OPENCL_RUNTIME=disabled uv run python scripts/download_opencv_calibration_samples.py \
+  --output-dir artifacts/opencv-calibration-samples
+OPENCV_OPENCL_RUNTIME=disabled uv run visual-servo-camera-calibration-public \
+  --image-dir artifacts/opencv-calibration-samples \
+  --output artifacts/public-camera-calibration-validation.json \
+  --figure artifacts/public-camera-calibration-holdout.svg \
+  --csv results/public-camera-calibration-validation.csv
+```
+
+The first command downloads 13 small sample images to the ignored
+artifacts/ directory and verifies each checksum. The evaluator uses only its
+fixed 8-image training and 4-image held-out split; left11.jpg is retained
+locally to document the pattern mismatch but is not scored. The calibration
+report and source link make clear that this is external camera imagery, not
+physical robot validation.
 
 ### Target-motion prediction experiment
 
