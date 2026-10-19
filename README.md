@@ -59,6 +59,14 @@ row uses OpenCV's separate public image sequence and does not measure reaching.
 | Dense planar calibration profile | 325 synthetic image trials: five views × 13 conditions × five appearance seeds | For East-view radial coefficient `k1=+0.010`, median signed radial residual was −0.05 px at 0–80 px radius and +0.86 px at 240–320 px. This is a synthetic image diagnostic, not a physical-camera result. |
 | Recorded-camera calibration check | 8 OpenCV sample images fit; 4 held out at 640×480 | On the four held-out images, fitting radial `k1,k2` reduced pooled reprojection RMS from 1.445 px to 0.286 px. This is one public camera sequence, not robot or project-camera evidence; no held-out corners were beyond 240 px radius. |
 
+## Independent reproduction
+
+The [review protocol](docs/independent-review-protocol.md) records clean-clone commands,
+reproduction results for the post-stop studies, and assumptions for an outside reviewer to
+challenge. Run `uv run python -m visual_servo_mujoco.evidence_audit` to recompute the published
+trial counts and confirmation rates from the trial CSVs. Its GitHub Actions job also runs the
+test suite; full benchmark replays remain an explicit reviewer step because they take longer.
+
 ## End-to-end radial-distortion stress test
 
 The preceding recorded-camera check asks whether a radial model fits checkerboard

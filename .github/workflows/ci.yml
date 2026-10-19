@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Tests and benchmark evidence audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      MUJOCO_GL: osmesa
+      PYOPENGL_PLATFORM: osmesa
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up uv and Python
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          version: 0.12.15
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Install headless rendering libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes libosmesa6 libgl1
+
+      - name: Check lockfile and install locked dependencies
+        run: |
+          uv lock --check
+          uv sync --locked --extra dev
+
+      - name: Reconcile published benchmark evidence
+        run: uv run --locked python -m visual_servo_mujoco.evidence_audit
+
+      - name: Run test suite
+        run: uv run --locked pytest -q
