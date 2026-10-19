@@ -52,6 +52,9 @@ uv run --extra demo python scripts/generate_motion_envelope_demo.py
 uv run visual-servo-conditional-uncertainty-benchmark
 uv run --extra demo python scripts/generate_conditional_uncertainty_demo.py
 
+uv run --locked --extra demo visual-servo-perception-appearance-benchmark \
+  --seeds 5 --samples-per-seed 10 --base-seed 9100
+
 git diff --exit-code -- artifacts results assets/demos
 ```
 
@@ -73,11 +76,13 @@ same-platform reproducibility, not independent human review or cross-platform be
 | [Completion-speed sweep](../assets/demos/timestamped_completion_speed_comparison.mp4) | 975 / 8,775 | Trial CSV, summary CSV, SVG, MP4, and GIF matched byte for byte. |
 | [Motion envelope](../assets/demos/motion_envelope_comparison.mp4) | 1,560 / 18,720 | Calibration, validation, summary, diagnostics, SVG, MP4, and GIF matched byte for byte; demo selected the same held-out high-latency case. |
 | [Conditional uncertainty](../assets/demos/conditional_uncertainty_comparison.mp4) | 1,560 / 9,360 | Calibration, summary, diagnostics, SVG, MP4, and GIF matched byte for byte. The validation trial CSV had 335 visually confirmed predictor rows with missing `decision_frame_index`; all other fields matched. |
+| [Rendered appearance stress](../assets/demos/perception_appearance_comparison.mp4) | 3,200 / 64 | Same-platform seeded rerun matched the trial and summary CSVs, JSON, SVG, MP4, and GIF byte for byte. No cross-platform or outside reproduction has been performed. |
 
 The 335 missing frame indices have been restored from the deterministic clean-clone replay. The
-conditional summary counts and rates did not change. The new evidence auditor checks that every
-confirmed row for the three q99 policies has a decision frame index, and that the four published
-trial tables reconcile with their aggregate counts and confirmation rates.
+conditional summary counts and rates did not change. The evidence auditor checks that every
+confirmed row for the three q99 policies has a decision frame index, that the four post-stop trial
+tables reconcile with their aggregate counts and confirmation rates, and that the appearance
+dataset's condition summaries agree with its paired trial rows and protocol.
 Per-frame rejection totals are reconciled only where the published trial table contains that
 per-trial field; for example, the conditional table does not include a `stale_rejections` column.
 
@@ -116,6 +121,7 @@ experimental predictor by default unless a preregistered held-out comparison sup
 ## Current automation boundary
 
 `.github/workflows/ci.yml` checks the lockfile, runs the evidence audit, and runs the unit/integration
-suite on Ubuntu with MuJoCo's OSMesa software renderer. It does not rerun the expensive full
-benchmarks. The workflow has not run on GitHub yet; it will become an observed CI result only when
-this reviewed change is published and GitHub executes it.
+suite on Ubuntu with MuJoCo's OSMesa software renderer. The appearance evidence audit reconciles
+all 3,200 trial rows without rerendering the scenes. CI does not rerun the full benchmarks or
+regenerate videos. The workflow has not run on GitHub yet; it will become an observed CI result only
+after the reviewed changes are published and GitHub executes it.

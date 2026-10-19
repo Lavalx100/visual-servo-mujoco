@@ -1,13 +1,15 @@
-"""Recompute published post-stop benchmark counts from their trial CSVs."""
+"""Reconcile published post-stop and rendered-appearance evidence tables."""
 
 from __future__ import annotations
 
 import argparse
 import csv
+import json
 import math
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from statistics import median
 
 
 @dataclass(frozen=True)
@@ -289,6 +291,324 @@ def audit_dataset(root: Path, spec: DatasetSpec) -> tuple[int, int]:
     return len(trials), len(summaries)
 
 
+def _finite_float(row: dict[str, str], field: str, path: Path, line: int) -> float:
+    try:
+        value = float(row[field])
+    except (KeyError, ValueError) as error:
+        raise EvidenceAuditError(
+            f"{path}:{line} has invalid {field}: {row.get(field)!r}"
+        ) from error
+    if not math.isfinite(value):
+        raise EvidenceAuditError(f"{path}:{line} has non-finite {field}")
+    return value
+
+
+def _quantile(values: list[float], probability: float) -> float | None:
+    if not values:
+        return None
+    ordered = sorted(values)
+    position = (len(ordered) - 1) * probability
+    lower = int(math.floor(position))
+    upper = int(math.ceil(position))
+    fraction = position - lower
+    return ordered[lower] * (1.0 - fraction) + ordered[upper] * fraction
+
+
+def _check_numeric_summary(
+    summary: dict[str, str], field: str, expected: float | int | None, key: str, path: Path
+) -> None:
+    raw = summary.get(field, "")
+    if expected is None:
+        if raw:
+            raise EvidenceAuditError(f"{path} group {key}: {field} should be blank")
+        return
+    try:
+        saved = float(raw)
+    except ValueError as error:
+        raise EvidenceAuditError(
+            f"{path} group {key} has invalid {field}: {raw!r}"
+        ) from error
+    if not math.isfinite(saved) or not math.isclose(
+        saved, float(expected), rel_tol=0.0, abs_tol=1e-9
+    ):
+        raise EvidenceAuditError(f"appearance group {key}: {field} {saved} != {expected}")
+
+
+def audit_appearance_dataset(root: Path) -> tuple[int, int]:
+    """Reconcile the rendered-appearance trial table, summary, and protocol."""
+    results = root / "results"
+    trial_path = results / "perception-appearance-trials.csv"
+    summary_path = results / "perception-appearance-summary.csv"
+    report_path = results / "perception-appearance-summary.json"
+    trial_fields, trials = _read(trial_path)
+    summary_fields, summaries = _read(summary_path)
+    try:
+        report = json.loads(report_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise EvidenceAuditError(
+            f"cannot read appearance protocol {report_path}: {error}"
+        ) from error
+    if not trials or not summaries:
+        raise EvidenceAuditError("appearance trial and summary CSVs must not be empty")
+
+    factors = (
+        report.get("lighting_conditions"),
+        report.get("clutter_conditions"),
+        report.get("occlusion_bar_width_fractions"),
+    )
+    if any(not isinstance(values, list) or not values for values in factors):
+        raise EvidenceAuditError(f"{report_path} has invalid appearance factor levels")
+    lighting_levels, clutter_levels, occlusion_levels = factors
+    expected_factors_by_name = {
+        f"{lighting}__{clutter}__occlusion-{float(occlusion):.2f}".replace(".", "p"):
+        (lighting, clutter, float(occlusion))
+        for lighting in lighting_levels
+        for clutter in clutter_levels
+        for occlusion in occlusion_levels
+    }
+    expected_condition_names = set(expected_factors_by_name)
+    try:
+        seeds = int(report["seeds"])
+        base_seed = int(report["base_seed"])
+        samples_per_seed = int(report["samples_per_seed"])
+        paired_samples = int(report["paired_samples_per_condition"])
+    except (KeyError, TypeError, ValueError) as error:
+        raise EvidenceAuditError(f"{report_path} has invalid seed/sample metadata") from error
+    if seeds <= 0 or samples_per_seed <= 0 or paired_samples != seeds * samples_per_seed:
+        raise EvidenceAuditError(f"{report_path} has inconsistent paired sample counts")
+    expected_seed_values = set(range(base_seed, base_seed + seeds))
+    expected_ids = {
+        (seed, sample_index)
+        for seed in expected_seed_values
+        for sample_index in range(samples_per_seed)
+    }
+
+    trial_required = {
+        "condition",
+        "lighting",
+        "clutter",
+        "occlusion_bar_width_fraction_of_target_diameter",
+        "seed",
+        "sample_index",
+        "target_x_m",
+        "target_y_m",
+        "target_center_x_px",
+        "target_center_y_px",
+        "detected",
+        "detected_center_x_px",
+        "detected_center_y_px",
+        "red_components_over_20px",
+        "localization_error_px",
+        "localization_error_mm",
+        "inside_projected_target_radius",
+        "projected_target_radius_px",
+    }
+    summary_required = {
+        "condition",
+        "lighting",
+        "clutter",
+        "occlusion_bar_width_fraction_of_target_diameter",
+        "trials",
+        "detections",
+        "detection_rate",
+        "within_target_radius_localizations",
+        "within_target_radius_rate",
+        "within_target_radius_rate_given_detection",
+        "median_localization_error_px",
+        "p95_localization_error_px",
+        "median_localization_error_mm",
+        "p95_localization_error_mm",
+        "median_red_components_over_20px",
+    }
+    for path, required, available in (
+        (trial_path, trial_required, set(trial_fields)),
+        (summary_path, summary_required, set(summary_fields)),
+    ):
+        missing = sorted(required - available)
+        if missing:
+            raise EvidenceAuditError(f"{path} is missing fields: {', '.join(missing)}")
+    expected_trial_count = len(expected_condition_names) * paired_samples
+    if len(trials) != expected_trial_count:
+        raise EvidenceAuditError(
+            f"appearance trial table has {len(trials)} rows; expected {expected_trial_count}"
+        )
+
+    grouped: dict[str, list[tuple[int, dict[str, str]]]] = {}
+    paired_positions: dict[tuple[int, int], tuple[float, float, float, float]] = {}
+    ids_by_condition: dict[str, set[tuple[int, int]]] = {}
+    for line, row in enumerate(trials, start=2):
+        key = row["condition"]
+        try:
+            seed = int(row["seed"])
+            sample_index = int(row["sample_index"])
+            lighting = row["lighting"]
+            clutter = row["clutter"]
+            occlusion = float(row["occlusion_bar_width_fraction_of_target_diameter"])
+        except (TypeError, ValueError) as error:
+            raise EvidenceAuditError(
+                f"{trial_path}:{line} has invalid condition identity"
+            ) from error
+        condition = (lighting, clutter, occlusion)
+        if key not in expected_condition_names or condition != expected_factors_by_name[key]:
+            raise EvidenceAuditError(
+                f"{trial_path}:{line} has unknown condition {(key, *condition)}"
+            )
+        if seed not in expected_seed_values or not 0 <= sample_index < samples_per_seed:
+            raise EvidenceAuditError(f"{trial_path}:{line} has unexpected paired sample id")
+        sample_id = (seed, sample_index)
+        ids = ids_by_condition.setdefault(key, set())
+        if sample_id in ids:
+            raise EvidenceAuditError(f"{trial_path}:{line} repeats sample {sample_id} in {key}")
+        ids.add(sample_id)
+        target = (
+            _finite_float(row, "target_x_m", trial_path, line),
+            _finite_float(row, "target_y_m", trial_path, line),
+            _finite_float(row, "target_center_x_px", trial_path, line),
+            _finite_float(row, "target_center_y_px", trial_path, line),
+        )
+        previous_target = paired_positions.setdefault(sample_id, target)
+        if any(not math.isclose(a, b, rel_tol=0.0, abs_tol=1e-12)
+               for a, b in zip(previous_target, target, strict=True)):
+            raise EvidenceAuditError(f"{trial_path}:{line} is not paired at target {sample_id}")
+        detected = _bool(row, "detected", trial_path, line)
+        inside = _bool(row, "inside_projected_target_radius", trial_path, line)
+        radius = _finite_float(row, "projected_target_radius_px", trial_path, line)
+        try:
+            component_count = int(row["red_components_over_20px"])
+        except ValueError as error:
+            raise EvidenceAuditError(
+                f"{trial_path}:{line} has invalid red component count"
+            ) from error
+        if radius <= 0.0 or component_count < 0:
+            raise EvidenceAuditError(f"{trial_path}:{line} has invalid radius/component count")
+        if detected:
+            detected_x = _finite_float(row, "detected_center_x_px", trial_path, line)
+            detected_y = _finite_float(row, "detected_center_y_px", trial_path, line)
+            error_px = _finite_float(row, "localization_error_px", trial_path, line)
+            error_mm = _finite_float(row, "localization_error_mm", trial_path, line)
+            measured_error = math.dist((detected_x, detected_y), target[2:])
+            if error_px < 0.0 or error_mm < 0.0 or not math.isclose(
+                error_px, measured_error, rel_tol=0.0, abs_tol=1e-7
+            ):
+                raise EvidenceAuditError(f"{trial_path}:{line} has inconsistent center error")
+            if inside != (error_px <= radius):
+                raise EvidenceAuditError(f"{trial_path}:{line} has inconsistent target-radius flag")
+        elif inside or any(
+            row[field]
+            for field in (
+                "detected_center_x_px",
+                "detected_center_y_px",
+                "localization_error_px",
+                "localization_error_mm",
+            )
+        ):
+            raise EvidenceAuditError(f"{trial_path}:{line} records an estimate without detection")
+        grouped.setdefault(key, []).append((line, row))
+
+    if grouped.keys() != expected_condition_names:
+        raise EvidenceAuditError("appearance trial conditions do not match protocol factors")
+    if any(ids != expected_ids for ids in ids_by_condition.values()):
+        raise EvidenceAuditError(
+            "appearance conditions do not share the complete paired sample set"
+        )
+    if len(paired_positions) != paired_samples:
+        raise EvidenceAuditError("appearance target positions do not cover the paired sample set")
+
+    summaries_by_key = {}
+    for line, row in enumerate(summaries, start=2):
+        key = row["condition"]
+        if key in summaries_by_key:
+            raise EvidenceAuditError(f"{summary_path}:{line} repeats group {key}")
+        summaries_by_key[key] = row
+    if summaries_by_key.keys() != expected_condition_names:
+        raise EvidenceAuditError("appearance trial and summary condition groups differ")
+    json_summaries = report.get("condition_summaries")
+    if isinstance(json_summaries, list) and any(
+        not isinstance(row, dict) for row in json_summaries
+    ):
+        raise EvidenceAuditError(f"{report_path} has malformed condition summaries")
+    json_condition_names = (
+        {
+            row.get("condition")
+            for row in json_summaries
+            if isinstance(row, dict)
+        }
+        if isinstance(json_summaries, list)
+        else set()
+    )
+    if (
+        not isinstance(json_summaries, list)
+        or len(json_summaries) != len(expected_condition_names)
+        or json_condition_names != expected_condition_names
+    ):
+        raise EvidenceAuditError(f"{report_path} condition summaries do not match protocol")
+    json_summaries_by_key = {row["condition"]: row for row in json_summaries}
+    for key in expected_condition_names:
+        expected_factors = expected_factors_by_name[key]
+        for path, row in (
+            (summary_path, summaries_by_key[key]),
+            (report_path, json_summaries_by_key[key]),
+        ):
+            actual_factors = (
+                row.get("lighting"),
+                row.get("clutter"),
+                _finite_float(
+                    row,
+                    "occlusion_bar_width_fraction_of_target_diameter",
+                    path,
+                    0,
+                ),
+            )
+            if actual_factors != expected_factors:
+                raise EvidenceAuditError(f"{path} group {key}: factor labels disagree")
+
+    float_fields = (
+        "detection_rate",
+        "within_target_radius_rate",
+        "within_target_radius_rate_given_detection",
+        "median_localization_error_px",
+        "p95_localization_error_px",
+        "median_localization_error_mm",
+        "p95_localization_error_mm",
+        "median_red_components_over_20px",
+    )
+    for key, rows in grouped.items():
+        detected_rows = [row for _, row in rows if _bool(row, "detected", trial_path, 0)]
+        within_rows = [
+            row for _, row in rows if _bool(row, "inside_projected_target_radius", trial_path, 0)
+        ]
+        errors_px = [float(row["localization_error_px"]) for row in detected_rows]
+        errors_mm = [float(row["localization_error_mm"]) for row in detected_rows]
+        components = [int(row["red_components_over_20px"]) for _, row in rows]
+        expected_values: dict[str, float | int | None] = {
+            "trials": len(rows),
+            "detections": len(detected_rows),
+            "within_target_radius_localizations": len(within_rows),
+            "detection_rate": len(detected_rows) / len(rows),
+            "within_target_radius_rate": len(within_rows) / len(rows),
+            "within_target_radius_rate_given_detection": (
+                len(within_rows) / len(detected_rows) if detected_rows else None
+            ),
+            "median_localization_error_px": median(errors_px) if errors_px else None,
+            "p95_localization_error_px": _quantile(errors_px, 0.95),
+            "median_localization_error_mm": median(errors_mm) if errors_mm else None,
+            "p95_localization_error_mm": _quantile(errors_mm, 0.95),
+            "median_red_components_over_20px": median(components),
+        }
+        summary = summaries_by_key[key]
+        json_summary = json_summaries_by_key[key]
+        if any(
+            summary[field] != json_summary.get(field)
+            for field in ("lighting", "clutter")
+        ):
+            raise EvidenceAuditError(f"{summary_path} group {key}: factor labels disagree")
+        for field, expected in expected_values.items():
+            _check_numeric_summary(summary, field, expected, key, summary_path)
+            json_row = {field: "" if json_summary.get(field) is None else str(json_summary[field])}
+            _check_numeric_summary(json_row, field, expected, key, report_path)
+    return len(trials), len(summaries)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[2])
@@ -297,10 +617,12 @@ def main() -> int:
         for spec in DATASETS:
             trials, groups = audit_dataset(args.root, spec)
             print(f"PASS {spec.name}: {trials:,} trial rows, {groups:,} summary groups")
+        trials, groups = audit_appearance_dataset(args.root)
+        print(f"PASS appearance stress: {trials:,} trial rows, {groups:,} condition groups")
     except (EvidenceAuditError, OSError) as error:
         print(f"Evidence audit failed: {error}", file=sys.stderr)
         return 1
-    print(f"Validated {len(DATASETS)} trial/summary pairs.")
+    print(f"Validated {len(DATASETS)} trial/summary pairs and 1 appearance dataset.")
     return 0
 
 

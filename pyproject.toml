@@ -38,6 +38,7 @@ visual-servo-timestamped-verification-benchmark = "visual_servo_mujoco.timestamp
 visual-servo-completion-speed-benchmark = "visual_servo_mujoco.completion_speed_benchmark:main"
 visual-servo-motion-envelope-benchmark = "visual_servo_mujoco.motion_envelope_benchmark:main"
 visual-servo-conditional-uncertainty-benchmark = "visual_servo_mujoco.conditional_uncertainty_benchmark:main"
+visual-servo-perception-appearance-benchmark = "visual_servo_mujoco.perception_appearance_benchmark:main"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
