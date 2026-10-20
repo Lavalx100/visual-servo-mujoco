@@ -25,7 +25,16 @@ uv run visual-servo-verification-benchmark --output artifacts/verification-view-
 uv run visual-servo-verification-benchmark --base-seed 100 \
   --output artifacts/verification-view-benchmark-heldout.json
 uv run --locked --extra demo visual-servo-perception-appearance-benchmark
+uv run --locked visual-servo-perception-candidate-validation \
+  --split-name validation --seeds 5 --samples-per-seed 10 --base-seed 9400
 ```
+
+The candidate-detector command evaluates the unchanged default and an
+experimental circle prior on the same rendered frames. It writes paired trial
+and summary data plus an SVG scorecard, MP4, and GIF. Its held-out lighting,
+distractor size/distance, and occlusion-width ranges are disjoint from the
+development ranges. See the [candidate validation report](experiments/perception-candidate-validation.md)
+before interpreting its high abstention rate or remaining false selections.
 
 The command writes `artifacts/results.json`, `artifacts/camera_view.png`, and
 `artifacts/reaching_demo.mp4` (when the local OpenCV build supports MP4 output).

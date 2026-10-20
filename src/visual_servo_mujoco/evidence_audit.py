@@ -1,4 +1,4 @@
-"""Reconcile published post-stop and rendered-appearance evidence tables."""
+"""Reconcile published benchmark evidence tables."""
 
 from __future__ import annotations
 
@@ -609,6 +609,216 @@ def audit_appearance_dataset(root: Path) -> tuple[int, int]:
     return len(trials), len(summaries)
 
 
+def audit_candidate_validation_dataset(
+    root: Path, *, stem: str = "perception-candidate-validation"
+) -> tuple[int, int]:
+    """Reconcile candidate-detector validation rows and grouped score summaries."""
+    results = root / "results"
+    trial_path = results / f"{stem}-trials.csv"
+    summary_path = results / f"{stem}-summary.csv"
+    report_path = results / f"{stem}-summary.json"
+    trial_fields, trials = _read(trial_path)
+    summary_fields, summaries = _read(summary_path)
+    try:
+        report = json.loads(report_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise EvidenceAuditError(
+            f"cannot read candidate validation report {report_path}: {error}"
+        ) from error
+    if not trials or not summaries:
+        raise EvidenceAuditError("candidate validation tables must not be empty")
+
+    try:
+        seeds = int(report["seeds"])
+        base_seed = int(report["base_seed"])
+        samples_per_seed = int(report["samples_per_seed"])
+        expected_trials = int(report["trial_count"])
+        strict_threshold = float(report["strict_localization_threshold_px"])
+        projected_radius = float(report["projected_target_radius_px"])
+    except (KeyError, TypeError, ValueError) as error:
+        raise EvidenceAuditError(f"{report_path} has invalid validation metadata") from error
+    if (
+        seeds <= 0
+        or samples_per_seed <= 0
+        or expected_trials != len(trials)
+        or not math.isfinite(strict_threshold)
+        or strict_threshold <= 0.0
+        or not math.isfinite(projected_radius)
+        or projected_radius <= strict_threshold
+    ):
+        raise EvidenceAuditError(f"{report_path} has inconsistent validation metadata")
+
+    required_trial_fields = {
+        "condition", "clutter", "occlusion_fraction", "seed", "sample_index",
+        "target_x_m", "target_y_m", "light_scale", "distractor_radius_factor",
+        "occlusion_angle_deg", "target_center_x_px", "target_center_y_px",
+        "baseline_detected", "baseline_error_px", "baseline_strict_success",
+        "baseline_wrong_target", "candidate_detected", "candidate_error_px",
+        "candidate_strict_success", "candidate_wrong_target", "candidate_abstained",
+        "projected_target_radius_px",
+    }
+    required_summary_fields = {
+        "condition", "clutter", "occlusion_fraction", "trials",
+        "baseline_detections", "baseline_coverage_rate", "candidate_detections",
+        "candidate_coverage_rate", "paired_strict_improvements",
+        "paired_strict_regressions",
+    }
+    for prefix in ("baseline", "candidate"):
+        required_summary_fields.update(
+            {
+                f"{prefix}_strict_successes", f"{prefix}_strict_success_rate",
+                f"{prefix}_strict_success_rate_given_detection",
+                f"{prefix}_imprecise_localizations", f"{prefix}_imprecise_rate",
+                f"{prefix}_wrong_targets", f"{prefix}_wrong_target_rate",
+                f"{prefix}_wrong_target_rate_given_detection",
+                f"{prefix}_abstentions", f"{prefix}_abstention_rate",
+                f"{prefix}_median_error_px", f"{prefix}_p95_error_px",
+            }
+        )
+    for path, required, available in (
+        (trial_path, required_trial_fields, set(trial_fields)),
+        (summary_path, required_summary_fields, set(summary_fields)),
+    ):
+        missing = sorted(required - available)
+        if missing:
+            raise EvidenceAuditError(f"{path} is missing fields: {', '.join(missing)}")
+
+    report_summaries = report.get("condition_summaries")
+    if not isinstance(report_summaries, list) or not report_summaries:
+        raise EvidenceAuditError(f"{report_path} has no condition summaries")
+    report_by_condition = {
+        item.get("condition"): item for item in report_summaries
+        if isinstance(item, dict) and isinstance(item.get("condition"), str)
+    }
+    csv_by_condition = {row["condition"]: row for row in summaries}
+    if len(csv_by_condition) != len(summaries) or set(csv_by_condition) != set(report_by_condition):
+        raise EvidenceAuditError("candidate validation summary groups do not reconcile")
+
+    expected_ids = {
+        (seed, sample)
+        for seed in range(base_seed, base_seed + seeds)
+        for sample in range(samples_per_seed)
+    }
+    grouped: dict[str, list[dict[str, str]]] = {}
+    identifiers_by_condition: dict[str, set[tuple[int, int]]] = {}
+    for line, row in enumerate(trials, start=2):
+        condition = row["condition"]
+        grouped.setdefault(condition, []).append(row)
+        try:
+            identifier = (int(row["seed"]), int(row["sample_index"]))
+        except ValueError as error:
+            raise EvidenceAuditError(f"{trial_path}:{line} has invalid paired sample ID") from error
+        ids = identifiers_by_condition.setdefault(condition, set())
+        if identifier in ids:
+            raise EvidenceAuditError(f"{trial_path}:{line} duplicates a paired sample ID")
+        ids.add(identifier)
+        for field in (
+            "light_scale", "occlusion_fraction", "target_x_m", "target_y_m",
+            "target_center_x_px", "target_center_y_px", "projected_target_radius_px",
+        ):
+            _finite_float(row, field, trial_path, line)
+        for prefix in ("baseline", "candidate"):
+            detected = _bool(row, f"{prefix}_detected", trial_path, line)
+            strict = _bool(row, f"{prefix}_strict_success", trial_path, line)
+            wrong = _bool(row, f"{prefix}_wrong_target", trial_path, line)
+            error_raw = row.get(f"{prefix}_error_px", "")
+            abstained = (
+                _bool(row, "candidate_abstained", trial_path, line)
+                if prefix == "candidate"
+                else not detected
+            )
+            if detected:
+                error_px = _finite_float(row, f"{prefix}_error_px", trial_path, line)
+                if error_px < 0.0:
+                    raise EvidenceAuditError(f"{trial_path}:{line} has negative localization error")
+                if strict != (error_px <= strict_threshold):
+                    raise EvidenceAuditError(f"{trial_path}:{line} has inconsistent strict outcome")
+                if wrong != (error_px > projected_radius):
+                    raise EvidenceAuditError(f"{trial_path}:{line} has inconsistent wrong-target outcome")
+            elif error_raw:
+                raise EvidenceAuditError(f"{trial_path}:{line} has error for an abstained detector")
+            if abstained == detected:
+                raise EvidenceAuditError(f"{trial_path}:{line} has inconsistent abstention status")
+    if set(grouped) != set(report_by_condition):
+        raise EvidenceAuditError("candidate validation trial conditions differ from report")
+    if any(ids != expected_ids for ids in identifiers_by_condition.values()):
+        raise EvidenceAuditError("candidate validation conditions do not share the full paired sample set")
+
+    count_fields = (
+        "trials", "baseline_detections", "baseline_strict_successes",
+        "baseline_imprecise_localizations", "baseline_wrong_targets", "baseline_abstentions",
+        "candidate_detections", "candidate_strict_successes",
+        "candidate_imprecise_localizations", "candidate_wrong_targets",
+        "candidate_abstentions", "paired_strict_improvements", "paired_strict_regressions",
+    )
+    rate_fields = (
+        "baseline_coverage_rate", "baseline_strict_success_rate",
+        "baseline_strict_success_rate_given_detection", "baseline_imprecise_rate",
+        "baseline_wrong_target_rate", "baseline_wrong_target_rate_given_detection",
+        "baseline_abstention_rate", "candidate_coverage_rate",
+        "candidate_strict_success_rate", "candidate_strict_success_rate_given_detection",
+        "candidate_imprecise_rate", "candidate_wrong_target_rate",
+        "candidate_wrong_target_rate_given_detection", "candidate_abstention_rate",
+    )
+    for condition, rows in grouped.items():
+        csv_summary = csv_by_condition[condition]
+        json_summary = report_by_condition[condition]
+        if csv_summary["clutter"] != json_summary.get("clutter"):
+            raise EvidenceAuditError(f"candidate summary {condition}: clutter label differs")
+        _check_numeric_summary(
+            csv_summary, "occlusion_fraction", float(json_summary["occlusion_fraction"]),
+            condition, summary_path,
+        )
+        actual: dict[str, float | int | None] = {"trials": len(rows)}
+        for prefix in ("baseline", "candidate"):
+            detected_rows = [row for row in rows if _bool(row, f"{prefix}_detected", trial_path, 0)]
+            errors = [float(row[f"{prefix}_error_px"]) for row in detected_rows]
+            strict_count = sum(error <= strict_threshold for error in errors)
+            imprecise_count = sum(strict_threshold < error <= projected_radius for error in errors)
+            wrong_count = sum(error > projected_radius for error in errors)
+            abstentions = len(rows) - len(detected_rows)
+            actual.update(
+                {
+                    f"{prefix}_detections": len(detected_rows),
+                    f"{prefix}_coverage_rate": len(detected_rows) / len(rows),
+                    f"{prefix}_strict_successes": strict_count,
+                    f"{prefix}_strict_success_rate": strict_count / len(rows),
+                    f"{prefix}_strict_success_rate_given_detection": (
+                        strict_count / len(detected_rows) if detected_rows else None
+                    ),
+                    f"{prefix}_imprecise_localizations": imprecise_count,
+                    f"{prefix}_imprecise_rate": imprecise_count / len(rows),
+                    f"{prefix}_wrong_targets": wrong_count,
+                    f"{prefix}_wrong_target_rate": wrong_count / len(rows),
+                    f"{prefix}_wrong_target_rate_given_detection": (
+                        wrong_count / len(detected_rows) if detected_rows else None
+                    ),
+                    f"{prefix}_abstentions": abstentions,
+                    f"{prefix}_abstention_rate": abstentions / len(rows),
+                    f"{prefix}_median_error_px": median(errors) if errors else None,
+                    f"{prefix}_p95_error_px": _quantile(errors, 0.95),
+                }
+            )
+        actual["paired_strict_improvements"] = sum(
+            _bool(row, "candidate_strict_success", trial_path, 0)
+            and not _bool(row, "baseline_strict_success", trial_path, 0)
+            for row in rows
+        )
+        actual["paired_strict_regressions"] = sum(
+            _bool(row, "baseline_strict_success", trial_path, 0)
+            and not _bool(row, "candidate_strict_success", trial_path, 0)
+            for row in rows
+        )
+        for field in (*count_fields, *rate_fields, "baseline_median_error_px", "baseline_p95_error_px",
+                      "candidate_median_error_px", "candidate_p95_error_px"):
+            expected = actual.get(field)
+            _check_numeric_summary(csv_summary, field, expected, condition, summary_path)
+            json_value = json_summary.get(field)
+            json_row = {field: "" if json_value is None else str(json_value)}
+            _check_numeric_summary(json_row, field, expected, condition, report_path)
+    return len(trials), len(summaries)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[2])
@@ -619,10 +829,21 @@ def main() -> int:
             print(f"PASS {spec.name}: {trials:,} trial rows, {groups:,} summary groups")
         trials, groups = audit_appearance_dataset(args.root)
         print(f"PASS appearance stress: {trials:,} trial rows, {groups:,} condition groups")
+        for stem, label in (
+            ("perception-candidate-pilot-v1", "candidate detector pilot v1"),
+            ("perception-candidate-development-v2", "candidate detector development v2"),
+            ("perception-candidate-adversarial-review", "candidate detector adversarial review"),
+            ("perception-candidate-validation", "candidate detector validation"),
+        ):
+            trials, groups = audit_candidate_validation_dataset(args.root, stem=stem)
+            print(f"PASS {label}: {trials:,} trial rows, {groups:,} condition groups")
     except (EvidenceAuditError, OSError) as error:
         print(f"Evidence audit failed: {error}", file=sys.stderr)
         return 1
-    print(f"Validated {len(DATASETS)} trial/summary pairs and 1 appearance dataset.")
+    print(
+        f"Validated {len(DATASETS)} trial/summary pairs, 1 appearance dataset, "
+        "and 4 candidate detector datasets."
+    )
     return 0
 
 

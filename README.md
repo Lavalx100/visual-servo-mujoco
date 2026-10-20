@@ -17,6 +17,8 @@ The clips below are selected examples. Their experiment pages link to the full v
 | [![Timestamped post-stop camera frames and completion decisions](assets/demos/previews/timestamped_post_stop_verification.gif)](assets/demos/timestamped_post_stop_verification.mp4) | [![Planar calibration target and reprojection residuals](assets/demos/previews/camera_calibration_planar.gif)](assets/demos/camera_calibration_planar.mp4) |
 | Rendered lighting, clutter, and occlusion stress | Appearance localization scorecard |
 | [![Paired target views under lighting changes, clutter, and partial occlusion](assets/demos/previews/perception_appearance_comparison.gif)](assets/demos/perception_appearance_comparison.mp4) | [![Median detector center error and detection availability by appearance condition](assets/demos/perception-appearance-scorecard.svg)](assets/demos/perception-appearance-scorecard.svg) |
+| Opt-in circle-prior detector validation | Paired detector scorecard |
+| [![Default HSV detector and opt-in circle-prior detector on held-out randomized scenes](assets/demos/previews/perception_candidate_validation.gif)](assets/demos/perception_candidate_validation.mp4) | [![Strict localization, wrong-target selections, and abstentions for both detectors](assets/demos/perception-candidate-validation.svg)](assets/demos/perception-candidate-validation.svg) |
 | Held-out completion-rule validation | Reversal-aware prediction negative result |
 | [![Held-out motion-envelope completion comparison](assets/demos/previews/motion_envelope_comparison.gif)](assets/demos/motion_envelope_comparison.mp4) | [Watch measured target, constant velocity, and reversal-aware estimates](assets/demos/feedback_prediction_sinusoidal_reversal.mp4) |
 
@@ -33,8 +35,11 @@ These results come from controlled MuJoCo and OpenCV experiments, not a physical
 | Post-stop visual completion | A two-frame, 1.0 s age guard confirmed 64.2% of outcomes; 335 false-positive delivery decisions occurred among 3,000 policy outcomes. A fixed image-age rule did not solve target motion during transport. |
 | Reversal-aware prediction | It had lower physical success than the measured-target baseline in all eight paired path, delay, and noise settings. Predictors remain opt-in. |
 | Appearance stress, new | Across 3,200 rendered frames, dim lighting produced 0/50 detections in the clear-target condition. A larger red distractor was selected in 50/50 paired trials (44.5 px median center error). A centered occlusion bar widened from 0% to 75% of target diameter increased median error from 0.08 px to 12.9 px. |
+| Opt-in detector validation, disjoint held-out ranges | On 450 randomized rendered scenes, the circle prior localized within 4 px in 175/450 trials versus 8/450 for the default detector. Wrong-target selections fell from 136 to 6, while the candidate abstained in 266 trials. All six false selections involved red disks under occlusion. |
 
 The appearance benchmark measures target-center localization only. It has no arm controller and does not claim physical reach success. Its target-only scene excludes robot self-occlusion; its lighting and clutter are authored simulator conditions, not measurements from a real camera. The full 64-condition design, per-trial results, and known limits are in [the appearance experiment record](docs/experiments/image-robustness.md).
+
+The circle-prior detector remains experimental and is not the runtime default. Its held-out study uses light, distractor-size/distance, and occlusion-width ranges that were not used during development. It reports localization, wrong-target selection, and abstention separately; it does not measure reaching or fresh visual confirmation. See the [candidate validation record](docs/experiments/perception-candidate-validation.md) for the frozen split and archived development failures.
 
 ## System at a glance
 
@@ -65,6 +70,8 @@ Reproduce the appearance stress study and its CSV, scorecard, MP4, and GIF previ
 
 ```bash
 uv run --locked --extra demo visual-servo-perception-appearance-benchmark
+uv run --locked visual-servo-perception-candidate-validation \
+  --seeds 5 --samples-per-seed 10 --base-seed 9400 --split-name validation
 ```
 
 Run the evidence consistency check and tests used by the configured GitHub Actions workflow:
@@ -85,6 +92,7 @@ Detailed protocols, results, trial-data links, videos, and limitations live outs
 - [Terminal verification and image-quality studies](docs/experiments/terminal-verification.md)
 - [Camera calibration and distortion](docs/experiments/camera-calibration.md)
 - [Rendered lighting, clutter, occlusion, and radial-distortion robustness](docs/experiments/image-robustness.md)
+- [Held-out circle-prior target detector validation](docs/experiments/perception-candidate-validation.md)
 - [Target-motion prediction, including the negative reversal result](docs/experiments/motion-prediction.md)
 - [Commands to reproduce experiments and regenerate demos](docs/reproduction.md)
 - [Full video and preview gallery](docs/video-gallery.md)

@@ -33,6 +33,21 @@ new opt-in east-view check after the controller has stopped.
 | [Opt-in terminal estimate, clean](../assets/demos/terminal_verification_clean.mp4) | A fresh east-view render after control stops; reports its pixel-based distance beside the separate MuJoCo physical reach score. |
 | [Opt-in terminal estimate, 20 px control noise](../assets/demos/terminal_verification_20px-noise.mp4) | The controller sees 20 px target-measurement noise; the terminal verifier uses a fresh clean simulator render and remains outside the control loop. |
 
+The perception-candidate clips compare both detectors on the same rendered
+frame. Yellow crosses mark the ground-truth target center, orange rings mark
+the default detector, and cyan rings mark the opt-in circle prior. The final
+validation examples use disjoint lighting, distractor size/distance, and
+occlusion-width ranges from development. They are illustrative examples; use
+the linked trial table for aggregate results.
+The final validation video also includes all six candidate false-accept examples.
+
+| Demo | What it shows |
+| --- | --- |
+| [Held-out target detector validation](../assets/demos/perception_candidate_validation.mp4) | Paired baseline and candidate detections across the nine held-out scene groups. |
+| [Pilot-v1 false selections](../assets/demos/perception_candidate_pilot_v1.mp4) | The initial candidate ambiguity rule selecting four red distractors in its 450-trial development run. |
+| [Development-v2 comparison](../assets/demos/perception_candidate_development_v2.mp4) | The revised rule's same-seed development examples, with aggregate trial data kept separate. |
+| [Same-distribution adversarial review](../assets/demos/perception_candidate_adversarial_review.mp4) | A subsequent near-size red-disk check that exposed two confident wrong selections before the disjoint-range validation. |
+
 The held-out verifier stress suite has one illustrative clip per injected
 condition. Calibration offsets affect only the verifier's back-projection;
 exposure and marker occlusion affect only its terminal image. Each clip uses
@@ -118,6 +133,12 @@ uv run python scripts/generate_camera_calibration_transfer_demo.py
 uv run visual-servo-camera-calibration-planar --output artifacts/camera-calibration-planar-profile.json
 uv run python scripts/generate_camera_calibration_planar_demo.py
 uv run python scripts/generate_camera_calibration_planar_design_demo.py
+uv run --locked visual-servo-perception-candidate-validation --split-name validation \
+  --seeds 5 --samples-per-seed 10 --base-seed 9400
+uv run --locked visual-servo-perception-candidate-validation --split-name development \
+  --base-seed 9200 --ambiguity-radius-error-px 1.35 --no-partial-arc-competitor-check \
+  --output-dir artifacts/perception-candidate-pilot-v1/results \
+  --media-dir artifacts/perception-candidate-pilot-v1/media
 uv run --extra pdf python scripts/generate_project_explainer.py
 ```
 

@@ -217,3 +217,9 @@ The demo shows the same target positions under clear nominal light, dim light,
 neutral clutter, a red distractor, 50% occlusion, and combined dim/mixed/50%
 conditions. Yellow crosses mark rendered target centers; cyan circles mark the
 detector outputs.
+
+The follow-up [candidate-detector validation](perception-candidate-validation.md)
+compares an experimental projected-size circle prior with this unchanged
+baseline on new seeds and disjoint lighting, distractor, and occlusion ranges.
+It preserves both the first false-selection result and the remaining held-out
+failures.
