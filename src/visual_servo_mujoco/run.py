@@ -585,9 +585,11 @@ def run_trials(
     if not 0 <= video_episode_index < episodes:
         raise ValueError("video_episode_index must be within the requested episodes")
     output_dir.mkdir(parents=True, exist_ok=True)
-    # Keep the compiled physics/render model identical with verification on or
-    # off. The verifier only uses this passive camera after controller stop.
-    model = model_with_verification_views(("east",))
+    model = (
+        model_with_verification_views(("east",))
+        if verify_terminal
+        else mujoco.MjModel.from_xml_string(MODEL_XML)
+    )
     data = mujoco.MjData(model)
     renderer = mujoco.Renderer(model, height=IMAGE_HEIGHT, width=IMAGE_WIDTH)
     target_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "target")
