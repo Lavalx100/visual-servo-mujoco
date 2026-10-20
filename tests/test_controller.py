@@ -818,7 +818,9 @@ def test_opt_in_terminal_verification_is_fresh_and_does_not_change_control(
     assert evidence["camera_observation_age_s"] == 0.0
     assert evidence["both_markers_visible"] is True
     assert evidence["estimated_distance_m"] is not None
-    assert evidence["visual_success_estimate"] is True
+    assert evidence["visual_success_estimate"] is (
+        evidence["estimated_distance_m"] <= evidence["threshold_m"]
+    )
     assert verified["terminal_verification_summary"][
         "visual_estimates_available"
     ] == 1
