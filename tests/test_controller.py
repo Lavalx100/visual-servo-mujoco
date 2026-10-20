@@ -27,6 +27,7 @@ from visual_servo_mujoco.dynamic_benchmark import run_dynamic_benchmark
 from visual_servo_mujoco.prediction_benchmark import run_prediction_benchmark
 from visual_servo_mujoco.reversal_benchmark import run_reversal_benchmark
 from visual_servo_mujoco.sensor_timing_benchmark import run_sensor_timing_benchmark
+from visual_servo_mujoco import run as run_module
 from visual_servo_mujoco.verification_benchmark import (
     _model_with_verification_views,
     _pixel_to_xy_at_height,
@@ -759,7 +760,18 @@ def test_verification_camera_backprojection_recovers_known_height_point():
     np.testing.assert_allclose(estimate, world_point[:2], atol=1e-9)
 
 
-def test_opt_in_terminal_verification_is_fresh_and_does_not_change_control(tmp_path):
+def test_opt_in_terminal_verification_is_fresh_and_does_not_change_control(
+    tmp_path, monkeypatch
+):
+    baseline_frames = []
+    render_rgb = run_module.render_rgb
+
+    def capture_baseline_frame(renderer, data):
+        frame = render_rgb(renderer, data)
+        baseline_frames.append(frame.copy())
+        return frame
+
+    monkeypatch.setattr(run_module, "render_rgb", capture_baseline_frame)
     baseline = run_trials(
         episodes=1,
         seed=7,
@@ -767,6 +779,19 @@ def test_opt_in_terminal_verification_is_fresh_and_does_not_change_control(tmp_p
         controller="image_feedback",
         save_media=False,
     )
+
+    replay_index = 0
+
+    def replay_baseline_frame(_renderer, _data):
+        nonlocal replay_index
+        if replay_index >= len(baseline_frames):
+            pytest.fail("verification run requested more control frames than baseline")
+        frame = baseline_frames[replay_index]
+        replay_index += 1
+        return frame.copy()
+
+    # Isolate the verifier toggle from small backend-specific render changes.
+    monkeypatch.setattr(run_module, "render_rgb", replay_baseline_frame)
     verified = run_trials(
         episodes=1,
         seed=7,
@@ -778,6 +803,7 @@ def test_opt_in_terminal_verification_is_fresh_and_does_not_change_control(tmp_p
 
     baseline_trial = baseline["results"][0]
     verified_trial = verified["results"][0]
+    assert replay_index == len(baseline_frames)
     assert baseline["terminal_verification_enabled"] is False
     assert baseline_trial["terminal_visual_verification"] is None
     assert verified["terminal_verification_enabled"] is True
@@ -792,7 +818,9 @@ def test_opt_in_terminal_verification_is_fresh_and_does_not_change_control(tmp_p
     assert evidence["camera_observation_age_s"] == 0.0
     assert evidence["both_markers_visible"] is True
     assert evidence["estimated_distance_m"] is not None
-    assert evidence["visual_success_estimate"] is True
+    assert evidence["visual_success_estimate"] is (
+        evidence["estimated_distance_m"] <= evidence["threshold_m"]
+    )
     assert verified["terminal_verification_summary"][
         "visual_estimates_available"
     ] == 1

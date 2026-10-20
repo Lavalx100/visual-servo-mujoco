@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="613" viewBox="0 0 1180 613">
+<rect width="100%" height="100%" fill="#f5f7f9"/>
+<text x="34" y="42" font-family="Arial" font-size="25" font-weight="700" fill="#17212b">Held-out red-target detector validation</text>
+<text x="34" y="70" font-family="Arial" font-size="14" fill="#44515e">Bars: within 4 px (green), imprecise but within target disk (amber), wrong target (red), and abstention (gray), across paired rendered trials.</text>
+<text x="34" y="112" font-family="Arial" font-size="14" font-weight="700" fill="#17212b">Condition</text>
+<text x="400" y="112" font-family="Arial" font-size="14" font-weight="700" fill="#17212b">Baseline strict / wrong / abstain</text>
+<text x="795" y="112" font-family="Arial" font-size="14" font-weight="700" fill="#17212b">Circle prior strict / wrong / abstain</text>
+<rect x="20" y="126" width="1140" height="52" rx="6" fill="#ffffff"/>
+<text x="34" y="149" font-family="Arial" font-size="14" fill="#17212b">none · bar 18%</text>
+<rect x="400.0" y="134" width="117.6" height="18" rx="3" fill="#2d8a57"/>
+<rect x="517.6" y="134" width="58.8" height="18" rx="3" fill="#e6b84a"/>
+<rect x="576.4" y="134" width="68.6" height="18" rx="3" fill="#aab4be"/>
+<rect x="400" y="134" width="245" height="18" rx="3" fill="none" stroke="#7c8995" stroke-width="1"/>
+<text x="700" y="149" font-family="Arial" font-size="12" fill="#33404d">48% / 0% / 28%</text>
+<rect x="795.0" y="134" width="245.0" height="18" rx="3" fill="#2d8a57"/>
+<rect x="795" y="134" width="245" height="18" rx="3" fill="none" stroke="#7c8995" stroke-width="1"/>
+<text x="1095" y="149" font-family="Arial" font-size="12" fill="#33404d">100% / 0% / 0%</text>
+<rect x="20" y="178" width="1140" height="52" rx="6" fill="#edf1f4"/>
+<text x="34" y="201" font-family="Arial" font-size="14" fill="#17212b">none · bar 42%</text>
+<rect x="400.0" y="186" width="205.8" height="18" rx="3" fill="#e6b84a"/>
+<rect x="605.8" y="186" width="39.2" height="18" rx="3" fill="#aab4be"/>
+<rect x="400" y="186" width="245" height="18" rx="3" fill="none" stroke="#7c8995" stroke-width="1"/>
+<text x="700" y="201" font-family="Arial" font-size="12" fill="#33404d">0% / 0% / 16%</text>
+<rect x="795.0" y="186" width="245.0" height="18" rx="3" fill="#2d8a57"/>
+<rect x="795" y="186" width="245" height="18" rx="3" fill="none" stroke="#7c8995" stroke-width="1"/>
+<text x="1095" y="201" font-family="Arial" font-size="12" fill="#33404d">100% / 0% / 0%</text>
+<rect x="20" y="230" width="1140" height="52" rx="6" fill="#ffffff"/>
+<text x="34" y="253" font-family="Arial" font-size="14" fill="#17212b">none · bar 68%</text>
+<rect x="400.0" y="238" width="181.3" height="18" rx="3" fill="#e6b84a"/>
+<rect x="581.3" y="238" width="63.7" height="18" rx="3" fill="#aab4be"/>
+<rect x="400" y="238" width="245" height="18" rx="3" fill="none" stroke="#7c8995" stroke-width="1"/>
+<text x="700" y="253" font-family="Arial" font-size="12" fill="#33404d">0% / 0% / 26%</text>
+<rect x="795.0" y="238" width="210.7" height="18" rx="3" fill="#2d8a57"/>
+<rect x="1005.7" y="238" width="4.9" height="18" rx="3" fill="#e6b84a"/>
+<rect x="1010.6" y="238" width="29.4" height="18" rx="3" fill="#aab4be"/>
+<rect x="795" y="238" width="245" height="18" rx="3" fill="none" stroke="#7c8995" stroke-width="1"/>
+<text x="1095" y="253" font-family="Arial" font-size="12" fill="#33404d">86% / 0% / 12%</text>
+<rect x="20" y="282" width="1140" height="52" rx="6" fill="#edf1f4"/>
+<text x="34" y="305" font-family="Arial" font-size="14" fill="#17212b">red_disk · bar 18%</text>
+<rect x="400.0" y="290" width="14.7" height="18" rx="3" fill="#e6b84a"/>
+<rect x="414.7" y="290" width="191.1" height="18" rx="3" fill="#c94c4c"/>
+<rect x="605.8" y="290" width="39.2" height="18" rx="3" fill="#aab4be"/>
+<rect x="400" y="290" width="245" height="18" rx="3" fill="none" stroke="#7c8995" stroke-width="1"/>
+<text x="700" y="305" font-family="Arial" font-size="12" fill="#33404d">0% / 78% / 16%</text>
+<rect x="795.0" y="290" width="181.3" height="18" rx="3" fill="#2d8a57"/>
+<rect x="976.3" y="290" width="63.7" height="18" rx="3" fill="#aab4be"/>
+<rect x="795" y="290" width="245" height="18" rx="3" fill="none" stroke="#7c8995" stroke-width="1"/>
+<text x="1095" y="305" font-family="Arial" font-size="12" fill="#33404d">74% / 0% / 26%</text>
+<rect x="20" y="334" width="1140" height="52" rx="6" fill="#ffffff"/>
+<text x="34" y="357" font-family="Arial" font-size="14" fill="#17212b">red_disk · bar 42%</text>
+<rect x="400.0" y="342" width="4.9" height="18" rx="3" fill="#e6b84a"/>
+<rect x="404.9" y="342" width="181.3" height="18" rx="3" fill="#c94c4c"/>
+<rect x="586.2" y="342" width="58.8" height="18" rx="3" fill="#aab4be"/>
+<rect x="400" y="342" width="245" height="18" rx="3" fill="none" stroke="#7c8995" stroke-width="1"/>
+<text x="700" y="357" font-family="Arial" font-size="12" fill="#33404d">0% / 74% / 24%</text>
+<rect x="795.0" y="342" width="117.6" height="18" rx="3" fill="#2d8a57"/>
+<rect x="912.6" y="342" width="4.9" height="18" rx="3" fill="#e6b84a"/>
+<rect x="917.5" y="342" width="4.9" height="18" rx="3" fill="#c94c4c"/>
+<rect x="922.4" y="342" width="117.6" height="18" rx="3" fill="#aab4be"/>
+<rect x="795" y="342" width="245" height="18" rx="3" fill="none" stroke="#7c8995" stroke-width="1"/>
+<text x="1095" y="357" font-family="Arial" font-size="12" fill="#33404d">48% / 2% / 48%</text>
+<rect x="20" y="386" width="1140" height="52" rx="6" fill="#edf1f4"/>
+<text x="34" y="409" font-family="Arial" font-size="14" fill="#17212b">red_disk · bar 68%</text>
+<rect x="400.0" y="394" width="19.6" height="18" rx="3" fill="#e6b84a"/>
+<rect x="419.6" y="394" width="171.5" height="18" rx="3" fill="#c94c4c"/>
+<rect x="591.1" y="394" width="53.9" height="18" rx="3" fill="#aab4be"/>
+<rect x="400" y="394" width="245" height="18" rx="3" fill="none" stroke="#7c8995" stroke-width="1"/>
+<text x="700" y="409" font-family="Arial" font-size="12" fill="#33404d">0% / 70% / 22%</text>
+<rect x="795.0" y="394" width="107.8" height="18" rx="3" fill="#2d8a57"/>
+<rect x="902.8" y="394" width="4.9" height="18" rx="3" fill="#c94c4c"/>
+<rect x="907.7" y="394" width="132.3" height="18" rx="3" fill="#aab4be"/>
+<rect x="795" y="394" width="245" height="18" rx="3" fill="none" stroke="#7c8995" stroke-width="1"/>
+<text x="1095" y="409" font-family="Arial" font-size="12" fill="#33404d">44% / 2% / 54%</text>
+<rect x="20" y="438" width="1140" height="52" rx="6" fill="#ffffff"/>
+<text x="34" y="461" font-family="Arial" font-size="14" fill="#17212b">red_box · bar 18%</text>
+<rect x="400.0" y="446" width="205.8" height="18" rx="3" fill="#c94c4c"/>
+<rect x="605.8" y="446" width="39.2" height="18" rx="3" fill="#aab4be"/>
+<rect x="400" y="446" width="245" height="18" rx="3" fill="none" stroke="#7c8995" stroke-width="1"/>
+<text x="700" y="461" font-family="Arial" font-size="12" fill="#33404d">0% / 84% / 16%</text>
+<rect x="795.0" y="446" width="235.2" height="18" rx="3" fill="#2d8a57"/>
+<rect x="1030.2" y="446" width="9.8" height="18" rx="3" fill="#aab4be"/>
+<rect x="795" y="446" width="245" height="18" rx="3" fill="none" stroke="#7c8995" stroke-width="1"/>
+<text x="1095" y="461" font-family="Arial" font-size="12" fill="#33404d">96% / 0% / 4%</text>
+<rect x="20" y="490" width="1140" height="52" rx="6" fill="#edf1f4"/>
+<text x="34" y="513" font-family="Arial" font-size="14" fill="#17212b">red_box · bar 42%</text>
+<rect x="400.0" y="498" width="205.8" height="18" rx="3" fill="#c94c4c"/>
+<rect x="605.8" y="498" width="39.2" height="18" rx="3" fill="#aab4be"/>
+<rect x="400" y="498" width="245" height="18" rx="3" fill="none" stroke="#7c8995" stroke-width="1"/>
+<text x="700" y="513" font-family="Arial" font-size="12" fill="#33404d">0% / 84% / 16%</text>
+<rect x="795.0" y="498" width="230.3" height="18" rx="3" fill="#2d8a57"/>
+<rect x="1025.3" y="498" width="4.9" height="18" rx="3" fill="#e6b84a"/>
+<rect x="1030.2" y="498" width="9.8" height="18" rx="3" fill="#aab4be"/>
+<rect x="795" y="498" width="245" height="18" rx="3" fill="none" stroke="#7c8995" stroke-width="1"/>
+<text x="1095" y="513" font-family="Arial" font-size="12" fill="#33404d">94% / 0% / 4%</text>
+<rect x="20" y="542" width="1140" height="52" rx="6" fill="#ffffff"/>
+<text x="34" y="565" font-family="Arial" font-size="14" fill="#17212b">red_box · bar 68%</text>
+<rect x="400.0" y="550" width="4.9" height="18" rx="3" fill="#e6b84a"/>
+<rect x="404.9" y="550" width="181.3" height="18" rx="3" fill="#c94c4c"/>
+<rect x="586.2" y="550" width="58.8" height="18" rx="3" fill="#aab4be"/>
+<rect x="400" y="550" width="245" height="18" rx="3" fill="none" stroke="#7c8995" stroke-width="1"/>
+<text x="700" y="565" font-family="Arial" font-size="12" fill="#33404d">0% / 74% / 24%</text>
+<rect x="795.0" y="550" width="210.7" height="18" rx="3" fill="#2d8a57"/>
+<rect x="1005.7" y="550" width="4.9" height="18" rx="3" fill="#e6b84a"/>
+<rect x="1010.6" y="550" width="29.4" height="18" rx="3" fill="#aab4be"/>
+<rect x="795" y="550" width="245" height="18" rx="3" fill="none" stroke="#7c8995" stroke-width="1"/>
+<text x="1095" y="565" font-family="Arial" font-size="12" fill="#33404d">86% / 0% / 12%</text>
+</svg>

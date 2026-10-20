@@ -1,0 +1,234 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="820" viewBox="0 0 1120 820">
+<rect width="100%" height="100%" fill="#f4f6f8"/>
+<text x="40" y="48" font-family="Arial" font-size="26" font-weight="700" fill="#16202a">Baseline detector center error under rendered appearance stress</text>
+<text x="40" y="78" font-family="Arial" font-size="14" fill="#44515e">Cells show median center localization error and detection availability. Missing detections are gray; lower error is greener. All conditions use paired target positions.</text>
+<text x="40" y="125" font-family="Arial" font-size="18" font-weight="700" fill="#16202a">Clutter: none</text>
+<text x="173.0" y="157" text-anchor="middle" font-family="Arial" font-size="11" fill="#44515e">clear</text>
+<text x="260.0" y="157" text-anchor="middle" font-family="Arial" font-size="11" fill="#44515e">bar 25%</text>
+<text x="347.0" y="157" text-anchor="middle" font-family="Arial" font-size="11" fill="#44515e">bar 50%</text>
+<text x="434.0" y="157" text-anchor="middle" font-family="Arial" font-size="11" fill="#44515e">bar 75%</text>
+<text x="40" y="192" font-family="Arial" font-size="12" fill="#293744">nominal</text>
+<rect x="132" y="165" width="82" height="44" rx="5" fill="#30c053" stroke="#ffffff" stroke-width="1"/>
+<text x="173.0" y="184" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">0.1 px</text>
+<text x="173.0" y="200" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<rect x="219" y="165" width="82" height="44" rx="5" fill="#42b453" stroke="#ffffff" stroke-width="1"/>
+<text x="260.0" y="184" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">5.3 px</text>
+<text x="260.0" y="200" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<rect x="306" y="165" width="82" height="44" rx="5" fill="#4fab53" stroke="#ffffff" stroke-width="1"/>
+<text x="347.0" y="184" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">9.0 px</text>
+<text x="347.0" y="200" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<rect x="393" y="165" width="82" height="44" rx="5" fill="#5da253" stroke="#ffffff" stroke-width="1"/>
+<text x="434.0" y="184" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">12.9 px</text>
+<text x="434.0" y="200" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<text x="40" y="242" font-family="Arial" font-size="12" fill="#293744">dim</text>
+<rect x="132" y="215" width="82" height="44" rx="5" fill="#97a0aa" stroke="#ffffff" stroke-width="1"/>
+<text x="173.0" y="234" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">NO DETECT</text>
+<text x="173.0" y="250" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 0%</text>
+<rect x="219" y="215" width="82" height="44" rx="5" fill="#97a0aa" stroke="#ffffff" stroke-width="1"/>
+<text x="260.0" y="234" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">NO DETECT</text>
+<text x="260.0" y="250" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 0%</text>
+<rect x="306" y="215" width="82" height="44" rx="5" fill="#97a0aa" stroke="#ffffff" stroke-width="1"/>
+<text x="347.0" y="234" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">NO DETECT</text>
+<text x="347.0" y="250" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 0%</text>
+<rect x="393" y="215" width="82" height="44" rx="5" fill="#97a0aa" stroke="#ffffff" stroke-width="1"/>
+<text x="434.0" y="234" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">NO DETECT</text>
+<text x="434.0" y="250" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 0%</text>
+<text x="40" y="292" font-family="Arial" font-size="12" fill="#293744">bright</text>
+<rect x="132" y="265" width="82" height="44" rx="5" fill="#30c053" stroke="#ffffff" stroke-width="1"/>
+<text x="173.0" y="284" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">0.1 px</text>
+<text x="173.0" y="300" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<rect x="219" y="265" width="82" height="44" rx="5" fill="#42b453" stroke="#ffffff" stroke-width="1"/>
+<text x="260.0" y="284" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">5.3 px</text>
+<text x="260.0" y="300" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<rect x="306" y="265" width="82" height="44" rx="5" fill="#4fab53" stroke="#ffffff" stroke-width="1"/>
+<text x="347.0" y="284" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">9.0 px</text>
+<text x="347.0" y="300" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<rect x="393" y="265" width="82" height="44" rx="5" fill="#5da253" stroke="#ffffff" stroke-width="1"/>
+<text x="434.0" y="284" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">12.9 px</text>
+<text x="434.0" y="300" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<text x="40" y="342" font-family="Arial" font-size="12" fill="#293744">side</text>
+<rect x="132" y="315" width="82" height="44" rx="5" fill="#30c053" stroke="#ffffff" stroke-width="1"/>
+<text x="173.0" y="334" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">0.2 px</text>
+<text x="173.0" y="350" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 98%</text>
+<rect x="219" y="315" width="82" height="44" rx="5" fill="#45b253" stroke="#ffffff" stroke-width="1"/>
+<text x="260.0" y="334" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">6.0 px</text>
+<text x="260.0" y="350" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 98%</text>
+<rect x="306" y="315" width="82" height="44" rx="5" fill="#52aa53" stroke="#ffffff" stroke-width="1"/>
+<text x="347.0" y="334" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">9.7 px</text>
+<text x="347.0" y="350" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 98%</text>
+<rect x="393" y="315" width="82" height="44" rx="5" fill="#5fa153" stroke="#ffffff" stroke-width="1"/>
+<text x="434.0" y="334" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">13.5 px</text>
+<text x="434.0" y="350" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 96%</text>
+<text x="580" y="125" font-family="Arial" font-size="18" font-weight="700" fill="#16202a">Clutter: neutral</text>
+<text x="713.0" y="157" text-anchor="middle" font-family="Arial" font-size="11" fill="#44515e">clear</text>
+<text x="800.0" y="157" text-anchor="middle" font-family="Arial" font-size="11" fill="#44515e">bar 25%</text>
+<text x="887.0" y="157" text-anchor="middle" font-family="Arial" font-size="11" fill="#44515e">bar 50%</text>
+<text x="974.0" y="157" text-anchor="middle" font-family="Arial" font-size="11" fill="#44515e">bar 75%</text>
+<text x="580" y="192" font-family="Arial" font-size="12" fill="#293744">nominal</text>
+<rect x="672" y="165" width="82" height="44" rx="5" fill="#30c053" stroke="#ffffff" stroke-width="1"/>
+<text x="713.0" y="184" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">0.1 px</text>
+<text x="713.0" y="200" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<rect x="759" y="165" width="82" height="44" rx="5" fill="#42b453" stroke="#ffffff" stroke-width="1"/>
+<text x="800.0" y="184" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">5.3 px</text>
+<text x="800.0" y="200" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<rect x="846" y="165" width="82" height="44" rx="5" fill="#4fab53" stroke="#ffffff" stroke-width="1"/>
+<text x="887.0" y="184" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">9.0 px</text>
+<text x="887.0" y="200" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<rect x="933" y="165" width="82" height="44" rx="5" fill="#5da253" stroke="#ffffff" stroke-width="1"/>
+<text x="974.0" y="184" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">12.9 px</text>
+<text x="974.0" y="200" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<text x="580" y="242" font-family="Arial" font-size="12" fill="#293744">dim</text>
+<rect x="672" y="215" width="82" height="44" rx="5" fill="#97a0aa" stroke="#ffffff" stroke-width="1"/>
+<text x="713.0" y="234" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">NO DETECT</text>
+<text x="713.0" y="250" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 0%</text>
+<rect x="759" y="215" width="82" height="44" rx="5" fill="#97a0aa" stroke="#ffffff" stroke-width="1"/>
+<text x="800.0" y="234" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">NO DETECT</text>
+<text x="800.0" y="250" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 0%</text>
+<rect x="846" y="215" width="82" height="44" rx="5" fill="#97a0aa" stroke="#ffffff" stroke-width="1"/>
+<text x="887.0" y="234" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">NO DETECT</text>
+<text x="887.0" y="250" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 0%</text>
+<rect x="933" y="215" width="82" height="44" rx="5" fill="#97a0aa" stroke="#ffffff" stroke-width="1"/>
+<text x="974.0" y="234" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">NO DETECT</text>
+<text x="974.0" y="250" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 0%</text>
+<text x="580" y="292" font-family="Arial" font-size="12" fill="#293744">bright</text>
+<rect x="672" y="265" width="82" height="44" rx="5" fill="#30c053" stroke="#ffffff" stroke-width="1"/>
+<text x="713.0" y="284" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">0.1 px</text>
+<text x="713.0" y="300" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<rect x="759" y="265" width="82" height="44" rx="5" fill="#42b453" stroke="#ffffff" stroke-width="1"/>
+<text x="800.0" y="284" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">5.3 px</text>
+<text x="800.0" y="300" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<rect x="846" y="265" width="82" height="44" rx="5" fill="#4fab53" stroke="#ffffff" stroke-width="1"/>
+<text x="887.0" y="284" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">9.0 px</text>
+<text x="887.0" y="300" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<rect x="933" y="265" width="82" height="44" rx="5" fill="#5da253" stroke="#ffffff" stroke-width="1"/>
+<text x="974.0" y="284" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">12.9 px</text>
+<text x="974.0" y="300" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<text x="580" y="342" font-family="Arial" font-size="12" fill="#293744">side</text>
+<rect x="672" y="315" width="82" height="44" rx="5" fill="#30c053" stroke="#ffffff" stroke-width="1"/>
+<text x="713.0" y="334" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">0.2 px</text>
+<text x="713.0" y="350" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 98%</text>
+<rect x="759" y="315" width="82" height="44" rx="5" fill="#45b253" stroke="#ffffff" stroke-width="1"/>
+<text x="800.0" y="334" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">6.0 px</text>
+<text x="800.0" y="350" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 98%</text>
+<rect x="846" y="315" width="82" height="44" rx="5" fill="#52aa53" stroke="#ffffff" stroke-width="1"/>
+<text x="887.0" y="334" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">9.7 px</text>
+<text x="887.0" y="350" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 98%</text>
+<rect x="933" y="315" width="82" height="44" rx="5" fill="#5fa153" stroke="#ffffff" stroke-width="1"/>
+<text x="974.0" y="334" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">13.5 px</text>
+<text x="974.0" y="350" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 96%</text>
+<text x="40" y="470" font-family="Arial" font-size="18" font-weight="700" fill="#16202a">Clutter: red distractor</text>
+<text x="173.0" y="502" text-anchor="middle" font-family="Arial" font-size="11" fill="#44515e">clear</text>
+<text x="260.0" y="502" text-anchor="middle" font-family="Arial" font-size="11" fill="#44515e">bar 25%</text>
+<text x="347.0" y="502" text-anchor="middle" font-family="Arial" font-size="11" fill="#44515e">bar 50%</text>
+<text x="434.0" y="502" text-anchor="middle" font-family="Arial" font-size="11" fill="#44515e">bar 75%</text>
+<text x="40" y="537" font-family="Arial" font-size="12" fill="#293744">nominal</text>
+<rect x="132" y="510" width="82" height="44" rx="5" fill="#cc5853" stroke="#ffffff" stroke-width="1"/>
+<text x="173.0" y="529" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">44.5 px</text>
+<text x="173.0" y="545" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<rect x="219" y="510" width="82" height="44" rx="5" fill="#cc5853" stroke="#ffffff" stroke-width="1"/>
+<text x="260.0" y="529" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">44.5 px</text>
+<text x="260.0" y="545" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<rect x="306" y="510" width="82" height="44" rx="5" fill="#cc5853" stroke="#ffffff" stroke-width="1"/>
+<text x="347.0" y="529" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">44.5 px</text>
+<text x="347.0" y="545" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<rect x="393" y="510" width="82" height="44" rx="5" fill="#cc5853" stroke="#ffffff" stroke-width="1"/>
+<text x="434.0" y="529" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">44.5 px</text>
+<text x="434.0" y="545" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<text x="40" y="587" font-family="Arial" font-size="12" fill="#293744">dim</text>
+<rect x="132" y="560" width="82" height="44" rx="5" fill="#97a0aa" stroke="#ffffff" stroke-width="1"/>
+<text x="173.0" y="579" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">NO DETECT</text>
+<text x="173.0" y="595" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 0%</text>
+<rect x="219" y="560" width="82" height="44" rx="5" fill="#97a0aa" stroke="#ffffff" stroke-width="1"/>
+<text x="260.0" y="579" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">NO DETECT</text>
+<text x="260.0" y="595" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 0%</text>
+<rect x="306" y="560" width="82" height="44" rx="5" fill="#97a0aa" stroke="#ffffff" stroke-width="1"/>
+<text x="347.0" y="579" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">NO DETECT</text>
+<text x="347.0" y="595" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 0%</text>
+<rect x="393" y="560" width="82" height="44" rx="5" fill="#97a0aa" stroke="#ffffff" stroke-width="1"/>
+<text x="434.0" y="579" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">NO DETECT</text>
+<text x="434.0" y="595" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 0%</text>
+<text x="40" y="637" font-family="Arial" font-size="12" fill="#293744">bright</text>
+<rect x="132" y="610" width="82" height="44" rx="5" fill="#cc5853" stroke="#ffffff" stroke-width="1"/>
+<text x="173.0" y="629" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">44.5 px</text>
+<text x="173.0" y="645" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<rect x="219" y="610" width="82" height="44" rx="5" fill="#cc5853" stroke="#ffffff" stroke-width="1"/>
+<text x="260.0" y="629" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">44.5 px</text>
+<text x="260.0" y="645" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<rect x="306" y="610" width="82" height="44" rx="5" fill="#cc5853" stroke="#ffffff" stroke-width="1"/>
+<text x="347.0" y="629" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">44.5 px</text>
+<text x="347.0" y="645" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<rect x="393" y="610" width="82" height="44" rx="5" fill="#cc5853" stroke="#ffffff" stroke-width="1"/>
+<text x="434.0" y="629" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">44.5 px</text>
+<text x="434.0" y="645" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<text x="40" y="687" font-family="Arial" font-size="12" fill="#293744">side</text>
+<rect x="132" y="660" width="82" height="44" rx="5" fill="#cc5853" stroke="#ffffff" stroke-width="1"/>
+<text x="173.0" y="679" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">44.5 px</text>
+<text x="173.0" y="695" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<rect x="219" y="660" width="82" height="44" rx="5" fill="#cc5853" stroke="#ffffff" stroke-width="1"/>
+<text x="260.0" y="679" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">44.5 px</text>
+<text x="260.0" y="695" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<rect x="306" y="660" width="82" height="44" rx="5" fill="#cc5853" stroke="#ffffff" stroke-width="1"/>
+<text x="347.0" y="679" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">44.5 px</text>
+<text x="347.0" y="695" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<rect x="393" y="660" width="82" height="44" rx="5" fill="#cc5853" stroke="#ffffff" stroke-width="1"/>
+<text x="434.0" y="679" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">44.5 px</text>
+<text x="434.0" y="695" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<text x="580" y="470" font-family="Arial" font-size="18" font-weight="700" fill="#16202a">Clutter: mixed</text>
+<text x="713.0" y="502" text-anchor="middle" font-family="Arial" font-size="11" fill="#44515e">clear</text>
+<text x="800.0" y="502" text-anchor="middle" font-family="Arial" font-size="11" fill="#44515e">bar 25%</text>
+<text x="887.0" y="502" text-anchor="middle" font-family="Arial" font-size="11" fill="#44515e">bar 50%</text>
+<text x="974.0" y="502" text-anchor="middle" font-family="Arial" font-size="11" fill="#44515e">bar 75%</text>
+<text x="580" y="537" font-family="Arial" font-size="12" fill="#293744">nominal</text>
+<rect x="672" y="510" width="82" height="44" rx="5" fill="#cc5853" stroke="#ffffff" stroke-width="1"/>
+<text x="713.0" y="529" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">44.5 px</text>
+<text x="713.0" y="545" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<rect x="759" y="510" width="82" height="44" rx="5" fill="#cc5853" stroke="#ffffff" stroke-width="1"/>
+<text x="800.0" y="529" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">44.5 px</text>
+<text x="800.0" y="545" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<rect x="846" y="510" width="82" height="44" rx="5" fill="#cc5853" stroke="#ffffff" stroke-width="1"/>
+<text x="887.0" y="529" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">44.5 px</text>
+<text x="887.0" y="545" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<rect x="933" y="510" width="82" height="44" rx="5" fill="#cc5853" stroke="#ffffff" stroke-width="1"/>
+<text x="974.0" y="529" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">44.5 px</text>
+<text x="974.0" y="545" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<text x="580" y="587" font-family="Arial" font-size="12" fill="#293744">dim</text>
+<rect x="672" y="560" width="82" height="44" rx="5" fill="#97a0aa" stroke="#ffffff" stroke-width="1"/>
+<text x="713.0" y="579" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">NO DETECT</text>
+<text x="713.0" y="595" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 0%</text>
+<rect x="759" y="560" width="82" height="44" rx="5" fill="#97a0aa" stroke="#ffffff" stroke-width="1"/>
+<text x="800.0" y="579" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">NO DETECT</text>
+<text x="800.0" y="595" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 0%</text>
+<rect x="846" y="560" width="82" height="44" rx="5" fill="#97a0aa" stroke="#ffffff" stroke-width="1"/>
+<text x="887.0" y="579" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">NO DETECT</text>
+<text x="887.0" y="595" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 0%</text>
+<rect x="933" y="560" width="82" height="44" rx="5" fill="#97a0aa" stroke="#ffffff" stroke-width="1"/>
+<text x="974.0" y="579" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">NO DETECT</text>
+<text x="974.0" y="595" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 0%</text>
+<text x="580" y="637" font-family="Arial" font-size="12" fill="#293744">bright</text>
+<rect x="672" y="610" width="82" height="44" rx="5" fill="#cc5853" stroke="#ffffff" stroke-width="1"/>
+<text x="713.0" y="629" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">44.5 px</text>
+<text x="713.0" y="645" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<rect x="759" y="610" width="82" height="44" rx="5" fill="#cc5853" stroke="#ffffff" stroke-width="1"/>
+<text x="800.0" y="629" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">44.5 px</text>
+<text x="800.0" y="645" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<rect x="846" y="610" width="82" height="44" rx="5" fill="#cc5853" stroke="#ffffff" stroke-width="1"/>
+<text x="887.0" y="629" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">44.5 px</text>
+<text x="887.0" y="645" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<rect x="933" y="610" width="82" height="44" rx="5" fill="#cc5853" stroke="#ffffff" stroke-width="1"/>
+<text x="974.0" y="629" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">44.5 px</text>
+<text x="974.0" y="645" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<text x="580" y="687" font-family="Arial" font-size="12" fill="#293744">side</text>
+<rect x="672" y="660" width="82" height="44" rx="5" fill="#cc5853" stroke="#ffffff" stroke-width="1"/>
+<text x="713.0" y="679" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">44.5 px</text>
+<text x="713.0" y="695" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<rect x="759" y="660" width="82" height="44" rx="5" fill="#cc5853" stroke="#ffffff" stroke-width="1"/>
+<text x="800.0" y="679" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">44.5 px</text>
+<text x="800.0" y="695" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<rect x="846" y="660" width="82" height="44" rx="5" fill="#cc5853" stroke="#ffffff" stroke-width="1"/>
+<text x="887.0" y="679" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">44.5 px</text>
+<text x="887.0" y="695" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<rect x="933" y="660" width="82" height="44" rx="5" fill="#cc5853" stroke="#ffffff" stroke-width="1"/>
+<text x="974.0" y="679" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#101820">44.5 px</text>
+<text x="974.0" y="695" text-anchor="middle" font-family="Arial" font-size="10" fill="#101820">detect 100%</text>
+<text x="40" y="792" font-family="Arial" font-size="12" fill="#44515e">Localization-only benchmark, no arm/controller, target-only MuJoCo scene. Full trial table: results/perception-appearance-trials.csv</text>
+</svg>

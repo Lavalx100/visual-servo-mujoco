@@ -183,7 +183,7 @@ def _draw_cover(c: canvas.Canvas, root: Path) -> None:
         _rounded(c, x, 94, w, 27, PANEL, stroke=GRID, radius=9)
         _text(c, x + 10, 103, label, 8, color, "Helvetica-Bold")
         x += w + 8
-    _text(c, MARGIN, 48, "Local work on feat/timestamped-visual-confirmation | Updated 19 Oct 2026", 8, MUTED)
+    _text(c, MARGIN, 48, "Local work on feat/independent-benchmark-review | Updated 20 Oct 2026", 8, MUTED)
     c.showPage()
 
 
@@ -313,6 +313,7 @@ def _draw_code_map(c: canvas.Canvas) -> None:
         ("verification_*.py / terminal_verification.py", "fresh-view evidence + quality", "Renders a fresh terminal view, scores marker quality, and measures calibration sensitivity, coverage, and decision errors."),
         ("camera_calibration_*.py", "landmark health + transfer", "Matches fixed landmarks to pinhole projections, freezes a threshold, then evaluates pose transfer, visibility, and radial distortion."),
         ("public_camera_calibration.py / camera_distortion.py", "fit and correct radial lens error", "Fits k1,k2 on recorded checkerboard views; applies optional pixel correction and benchmarks its effect on reaching."),
+        ("perception_candidate.py / perception_candidate_validation.py", "circle prior + held-out test", "Keeps the largest-contour baseline and compares an opt-in size-prior detector with abstention on randomized rendered scenes."),
     ]
     y = PAGE_H - 141
     for index, (file_name, function, explanation) in enumerate(entries):
@@ -1861,6 +1862,138 @@ def _draw_conditional_uncertainty(c: canvas.Canvas, repository: Path) -> None:
     c.showPage()
 
 
+def _draw_perception_candidate_validation(c: canvas.Canvas, repository: Path) -> None:
+    report_path = repository / "results" / "perception-candidate-validation-summary.json"
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    rows = report["condition_summaries"]
+    total_trials = int(report["trial_count"])
+    outcomes = (
+        ("strict_successes", "#57D6A3"),
+        ("imprecise_localizations", "#FFB86C"),
+        ("wrong_targets", "#FF7B72"),
+        ("abstentions", "#718096"),
+    )
+    pooled = {}
+    for prefix in ("baseline", "candidate"):
+        pooled[prefix] = {
+            key: sum(int(row[f"{prefix}_{key}"]) for row in rows)
+            for key, _ in outcomes
+        }
+
+    _header(c, 21, "Held-out target detection")
+    _title(
+        c,
+        "A target-size prior helps, but identity still fails",
+        "An opt-in circle detector is compared with the unchanged largest-red-contour baseline on disjoint rendered lighting, distractor size and distance, and occlusion-width ranges.",
+    )
+    _section_label(c, MARGIN, 665, "Paired detector outcomes across 450 held-out frames", ORANGE)
+    bar_x = MARGIN + 107
+    bar_w = CONTENT_W - 107
+    for index, (prefix, label) in enumerate(
+        (("baseline", "Default"), ("candidate", "Circle prior"))
+    ):
+        y = 615 - index * 58
+        _text(c, MARGIN, y + 4, label, 9, WHITE, "Helvetica-Bold")
+        cursor = bar_x
+        for key, color in outcomes:
+            count = pooled[prefix][key]
+            width = bar_w * count / total_trials
+            if width > 0:
+                c.setFillColor(HexColor(color))
+                c.rect(cursor, y, width, 18, fill=1, stroke=0)
+                cursor += width
+        c.setStrokeColor(GRID)
+        c.setLineWidth(0.55)
+        c.rect(bar_x, y, bar_w, 18, fill=0, stroke=1)
+        strict = pooled[prefix]["strict_successes"]
+        wrong = pooled[prefix]["wrong_targets"]
+        abstain = pooled[prefix]["abstentions"]
+        _text(
+            c,
+            bar_x,
+            y - 13,
+            f"Within 4 px: {strict}/{total_trials}   |   Wrong target: {wrong}/{total_trials}   |   Abstained: {abstain}/{total_trials}",
+            7.5,
+            MUTED,
+        )
+    legend_x = MARGIN + 8
+    legend_y = 490
+    legend = (
+        ("Within 4 px", GREEN),
+        ("Imprecise, within target radius", ORANGE),
+        ("Wrong target", RED),
+        ("Abstained", SUBTLE),
+    )
+    for label, color in legend:
+        c.setFillColor(color)
+        c.roundRect(legend_x, legend_y - 1, 8, 8, 2, fill=1, stroke=0)
+        _text(c, legend_x + 13, legend_y, label, 7.1, MUTED)
+        legend_x += 116 if label != "Imprecise, within target radius" else 180
+
+    _section_label(c, MARGIN, 462, "The red-disk condition remains the hard case", BLUE)
+    breakdown = [["Clutter", "Default: strict / wrong / abstain", "Circle prior: strict / wrong / abstain"]]
+    for clutter in ("none", "red_disk", "red_box"):
+        condition_rows = [row for row in rows if row["clutter"] == clutter]
+        values = [clutter.replace("_", " ")]
+        for prefix in ("baseline", "candidate"):
+            strict = sum(int(row[f"{prefix}_strict_successes"]) for row in condition_rows)
+            wrong = sum(int(row[f"{prefix}_wrong_targets"]) for row in condition_rows)
+            abstain = sum(int(row[f"{prefix}_abstentions"]) for row in condition_rows)
+            values.append(f"{strict}/150   |   {wrong}/150   |   {abstain}/150")
+        breakdown.append(values)
+    table_end = _table(
+        c,
+        MARGIN,
+        446,
+        [82, 209, CONTENT_W - 291],
+        breakdown,
+        font_size=7.1,
+        leading=8.5,
+    )
+
+    _callout(
+        c,
+        MARGIN,
+        249,
+        CONTENT_W,
+        max(85, table_end - 273),
+        "What improved, and what remains unresolved",
+        "The circle prior strictly localized 175/450 frames versus 8/450 for the default, and reduced wrong-target outputs from 136 to 6. It abstained on 266 frames. All six false accepts were small red disks under occlusion; in some frames the candidate's size-fit score was high even though it selected the distractor. The detector needs an identity cue such as a distinct marker, temporal tracking, or depth before it can guide control.",
+        ORANGE,
+        8.1,
+    )
+    _callout(
+        c,
+        MARGIN,
+        143,
+        CONTENT_W,
+        82,
+        "Trace the implementation",
+        "perception_candidate.py computes the 9 cm marker's projected radius, runs red-mask Hough circles, and abstains on competing circles. perception_candidate_validation.py randomizes scene factors and compares both detectors on identical frames. The default detector is unchanged; the experiment does not run the arm.",
+        GREEN,
+        7.8,
+    )
+    _section_label(c, MARGIN, 116, "Replay the validation", GREEN)
+    _text(
+        c,
+        MARGIN,
+        96,
+        "uv run --locked visual-servo-perception-candidate-validation --base-seed 9400",
+        6.3,
+        MUTED,
+        "Courier",
+    )
+    _text(
+        c,
+        MARGIN,
+        79,
+        "450 localization trials only | physical reaching and fresh visual confirmation not measured",
+        7.2,
+        ORANGE,
+    )
+    c.showPage()
+
+
 def main() -> Path:
     repository = Path(__file__).resolve().parents[1]
     output = repository / "output" / "pdf" / "visual-servo-mujoco-project-explainer.pdf"
@@ -1889,6 +2022,7 @@ def main() -> Path:
     _draw_camera_distortion_results(c)
     _draw_next_steps(c)
     _draw_conditional_uncertainty(c, repository)
+    _draw_perception_candidate_validation(c, repository)
     c.save()
     print(f"Wrote {output}")
     return output
