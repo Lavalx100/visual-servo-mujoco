@@ -45,6 +45,8 @@ from .cooperative_pick_demo import (
     LINK_LENGTHS_M,
     OPEN_JAW_OFFSET_M,
     PAYLOAD_INITIAL_Z_M,
+    RELEASE_CLEARANCE_TOOL_RADIUS_M,
+    RELEASE_MIN_TOOL_HEIGHT_OFFSET_M,
     SIMULATION_TIMESTEP_S,
     TARGET_MARKER_LOCAL_Z_M,
     VIDEO_FPS,
@@ -96,8 +98,6 @@ JSON_NAME = "cooperative-pick-pose-validation-summary.json"
 SVG_NAME = "cooperative-pick-pose-validation.svg"
 CONTACT_EVENTS_CSV_NAME = "cooperative-pick-contact-events.csv"
 PHASE_OUTCOMES_SVG_NAME = "cooperative-pick-phase-outcomes.svg"
-RELEASE_CLEARANCE_TOOL_RADIUS_M = 0.110
-RELEASE_MIN_TOOL_HEIGHT_OFFSET_M = 0.035
 RETENTION_KINEMATICS_SAMPLE_STRIDE = 10
 RETENTION_KINEMATICS_PHASES = ("COOPERATIVE LIFT", "HOLD UNDER LOAD")
 

@@ -153,6 +153,176 @@ def render_rgb(renderer: mujoco.Renderer, data: mujoco.MjData) -> np.ndarray:
     return renderer.render()
 
 
+def _measure_terminal_verification(
+    model: mujoco.MjModel,
+    data: mujoco.MjData,
+    camera_id: int,
+    raw_rgb: np.ndarray,
+    *,
+    fovy_error_deg: float,
+    camera_position_error_m: tuple[float, float, float],
+    camera_rotation_error_deg: tuple[float, float, float],
+    brightness_scale: float,
+    occluded_markers: tuple[str, ...],
+    minimum_quality_score: float,
+) -> tuple[dict, np.ndarray]:
+    """Score one verifier condition from a frame captured after control stops."""
+    verification_rgb = apply_verification_image_effects(
+        raw_rgb,
+        lighting_scale=brightness_scale,
+        occluded_markers=occluded_markers,
+    )
+    target_pixel = None
+    end_effector_pixel = None
+    target_detection_quality = None
+    end_effector_detection_quality = None
+    try:
+        target_pixel, target_detection_quality = _detect_marker_with_quality(
+            verification_rgb,
+            marker="target",
+        )
+    except RuntimeError:
+        pass
+    try:
+        end_effector_pixel, end_effector_detection_quality = _detect_marker_with_quality(
+            verification_rgb,
+            marker="end_effector",
+        )
+    except RuntimeError:
+        pass
+
+    estimated_target_xy = None
+    estimated_end_effector_xy = None
+    estimated_distance = None
+    candidate_distance = None
+    visual_success_estimate = None
+    quality_score = (
+        min(
+            target_detection_quality["score"],
+            end_effector_detection_quality["score"],
+        )
+        if target_detection_quality is not None
+        and end_effector_detection_quality is not None
+        else None
+    )
+    quality_gate_passed = (
+        quality_score is not None and quality_score >= minimum_quality_score
+    )
+    estimate_status = None
+    if target_pixel is not None and end_effector_pixel is not None:
+        try:
+            candidate_target_xy = pixel_to_xy_at_height(
+                model,
+                data,
+                camera_id,
+                target_pixel,
+                TARGET_HEIGHT,
+                fovy_error_deg=fovy_error_deg,
+                camera_position_error_m=camera_position_error_m,
+                camera_rotation_error_deg=camera_rotation_error_deg,
+            )
+            candidate_end_effector_xy = pixel_to_xy_at_height(
+                model,
+                data,
+                camera_id,
+                end_effector_pixel,
+                END_EFFECTOR_HEIGHT,
+                fovy_error_deg=fovy_error_deg,
+                camera_position_error_m=camera_position_error_m,
+                camera_rotation_error_deg=camera_rotation_error_deg,
+            )
+        except ValueError:
+            estimate_status = "unavailable_camera_geometry"
+        else:
+            candidate_distance = float(
+                np.linalg.norm(candidate_target_xy - candidate_end_effector_xy)
+            )
+            if quality_gate_passed:
+                estimated_target_xy = candidate_target_xy
+                estimated_end_effector_xy = candidate_end_effector_xy
+                estimated_distance = candidate_distance
+                visual_success_estimate = (
+                    estimated_distance <= SUCCESS_THRESHOLD_METERS
+                )
+            else:
+                estimate_status = "unavailable_detection_quality_below_threshold"
+    if estimated_distance is not None:
+        estimate_status = (
+            "within_threshold" if visual_success_estimate else "outside_threshold"
+        )
+    elif estimate_status == "unavailable_camera_geometry":
+        pass
+    elif target_pixel is None and end_effector_pixel is None:
+        estimate_status = "unavailable_both_markers_not_visible"
+    elif target_pixel is None:
+        estimate_status = "unavailable_target_not_visible"
+    elif end_effector_pixel is None:
+        estimate_status = "unavailable_end_effector_not_visible"
+    elif not quality_gate_passed:
+        estimate_status = "unavailable_detection_quality_below_threshold"
+    else:
+        estimate_status = "unavailable_camera_geometry"
+
+    record = {
+        "camera": "verification_east",
+        "fresh_observation": True,
+        "observation_time_simulated_s": round(float(data.time), 6),
+        "camera_observation_age_s": 0.0,
+        "measurement_noise_std_px": 0.0,
+        "calibration": "simulator camera with estimator-only perturbations",
+        "condition_label": terminal_verification_condition_label(
+            fovy_error_deg=fovy_error_deg,
+            camera_position_error_m=camera_position_error_m,
+            camera_rotation_error_deg=camera_rotation_error_deg,
+            lighting_scale=brightness_scale,
+            occluded_markers=occluded_markers,
+        ),
+        "estimator_fovy_error_deg": fovy_error_deg,
+        "estimator_camera_position_error_m": list(camera_position_error_m),
+        "estimator_camera_rotation_error_deg": list(camera_rotation_error_deg),
+        "image_brightness_scale": brightness_scale,
+        "occluded_markers": list(occluded_markers),
+        "minimum_detection_quality_score": minimum_quality_score,
+        "target_detection_quality": target_detection_quality,
+        "end_effector_detection_quality": end_effector_detection_quality,
+        "combined_detection_quality_score": quality_score,
+        "detection_quality_gate_passed": quality_gate_passed,
+        "target_visible": target_pixel is not None,
+        "end_effector_visible": end_effector_pixel is not None,
+        "both_markers_visible": target_pixel is not None and end_effector_pixel is not None,
+        "target_pixel_xy": (
+            [round(value, 2) for value in target_pixel]
+            if target_pixel is not None
+            else None
+        ),
+        "end_effector_pixel_xy": (
+            [round(value, 2) for value in end_effector_pixel]
+            if end_effector_pixel is not None
+            else None
+        ),
+        "estimated_target_xy_m": (
+            [round(float(value), 4) for value in estimated_target_xy]
+            if estimated_target_xy is not None
+            else None
+        ),
+        "estimated_end_effector_xy_m": (
+            [round(float(value), 4) for value in estimated_end_effector_xy]
+            if estimated_end_effector_xy is not None
+            else None
+        ),
+        "estimated_distance_m": (
+            round(estimated_distance, 5) if estimated_distance is not None else None
+        ),
+        "candidate_estimated_distance_m_for_evaluation_only": (
+            round(candidate_distance, 5) if candidate_distance is not None else None
+        ),
+        "visual_success_estimate": visual_success_estimate,
+        "visual_estimate_status": estimate_status,
+        "threshold_m": SUCCESS_THRESHOLD_METERS,
+    }
+    return record, verification_rgb
+
+
 def _step_with_target_motion(
     model: mujoco.MjModel,
     data: mujoco.MjData,
@@ -399,6 +569,7 @@ def run_trials(
     terminal_verification_brightness_scale: float = 1.0,
     terminal_verification_occluded_markers: tuple[str, ...] = (),
     terminal_verification_min_quality_score: float = 0.0,
+    terminal_verification_stress_candidates: dict[str, dict] | None = None,
     save_media: bool = True,
 ) -> dict:
     """Run reaching trials with optional perception and camera-calibration errors.
@@ -533,7 +704,86 @@ def run_trials(
         or bool(terminal_verification_occluded_markers)
         or terminal_verification_min_quality_score > 0.0
     )
-    if terminal_verification_stressed and not verify_terminal:
+    stress_candidate_overrides = terminal_verification_stress_candidates
+    if stress_candidate_overrides is None:
+        stress_candidate_overrides = {}
+    if not isinstance(stress_candidate_overrides, dict):
+        raise ValueError("terminal_verification_stress_candidates must be a mapping")
+    allowed_stress_keys = {
+        "terminal_verification_fovy_error_deg",
+        "terminal_verification_camera_position_error_m",
+        "terminal_verification_camera_rotation_error_deg",
+        "terminal_verification_brightness_scale",
+        "terminal_verification_occluded_markers",
+        "terminal_verification_min_quality_score",
+    }
+    normalized_stress_candidates = {}
+    for name, overrides in stress_candidate_overrides.items():
+        if not isinstance(name, str) or not name:
+            raise ValueError("terminal verification stress candidate names must be non-empty")
+        if not isinstance(overrides, dict) or set(overrides) - allowed_stress_keys:
+            raise ValueError(f"invalid stress settings for terminal candidate {name!r}")
+        candidate_fovy_error = float(
+            overrides.get(
+                "terminal_verification_fovy_error_deg",
+                terminal_verification_fovy_error_deg,
+            )
+        )
+        candidate_position_error = np.asarray(
+            overrides.get(
+                "terminal_verification_camera_position_error_m",
+                terminal_verification_camera_position_error_m,
+            ),
+            dtype=float,
+        )
+        candidate_rotation_error = np.asarray(
+            overrides.get(
+                "terminal_verification_camera_rotation_error_deg",
+                terminal_verification_camera_rotation_error_deg,
+            ),
+            dtype=float,
+        )
+        candidate_brightness = float(
+            overrides.get(
+                "terminal_verification_brightness_scale",
+                terminal_verification_brightness_scale,
+            )
+        )
+        candidate_occluded_markers = tuple(
+            overrides.get(
+                "terminal_verification_occluded_markers",
+                terminal_verification_occluded_markers,
+            )
+        )
+        candidate_minimum_quality = float(
+            overrides.get(
+                "terminal_verification_min_quality_score",
+                terminal_verification_min_quality_score,
+            )
+        )
+        if (
+            not math.isfinite(candidate_fovy_error)
+            or not -39.0 < candidate_fovy_error < 140.0
+            or candidate_position_error.shape != (3,)
+            or not np.isfinite(candidate_position_error).all()
+            or candidate_rotation_error.shape != (3,)
+            or not np.isfinite(candidate_rotation_error).all()
+            or not math.isfinite(candidate_brightness)
+            or candidate_brightness <= 0.0
+            or set(candidate_occluded_markers) - {"target", "end_effector"}
+            or not math.isfinite(candidate_minimum_quality)
+            or not 0.0 <= candidate_minimum_quality <= 1.0
+        ):
+            raise ValueError(f"invalid stress values for terminal candidate {name!r}")
+        normalized_stress_candidates[name] = {
+            "fovy_error_deg": candidate_fovy_error,
+            "camera_position_error_m": tuple(candidate_position_error.tolist()),
+            "camera_rotation_error_deg": tuple(candidate_rotation_error.tolist()),
+            "brightness_scale": candidate_brightness,
+            "occluded_markers": candidate_occluded_markers,
+            "minimum_quality_score": candidate_minimum_quality,
+        }
+    if (terminal_verification_stressed or normalized_stress_candidates) and not verify_terminal:
         raise ValueError("terminal verifier stress settings require verify_terminal=True")
     if use_current_end_effector_state and controller != "image_feedback":
         raise ValueError("current end-effector state requires image_feedback")
@@ -1238,172 +1488,34 @@ def run_trials(
         if failure_reason is None and not success:
             failure_reason = controller_stop_reason or "final_error_exceeded_threshold"
         terminal_verification = None
+        terminal_verification_candidates = None
         verification_rgb = None
         if verify_terminal:
             renderer.update_scene(data, camera="verification_east")
-            verification_rgb = apply_verification_image_effects(
-                renderer.render(),
-                lighting_scale=terminal_verification_brightness_scale,
+            raw_verification_rgb = renderer.render()
+            terminal_verification, verification_rgb = _measure_terminal_verification(
+                model,
+                data,
+                verification_camera_id,
+                raw_verification_rgb,
+                fovy_error_deg=terminal_verification_fovy_error_deg,
+                camera_position_error_m=tuple(verification_position_error),
+                camera_rotation_error_deg=tuple(verification_rotation_error),
+                brightness_scale=terminal_verification_brightness_scale,
                 occluded_markers=terminal_verification_occluded_markers,
+                minimum_quality_score=terminal_verification_min_quality_score,
             )
-            target_pixel = None
-            end_effector_pixel = None
-            target_detection_quality = None
-            end_effector_detection_quality = None
-            try:
-                target_pixel, target_detection_quality = _detect_marker_with_quality(
-                    verification_rgb,
-                    marker="target",
-                )
-            except RuntimeError:
-                pass
-            try:
-                end_effector_pixel, end_effector_detection_quality = (
-                    _detect_marker_with_quality(
-                        verification_rgb,
-                        marker="end_effector",
-                    )
-                )
-            except RuntimeError:
-                pass
-
-            estimated_target_xy = None
-            estimated_end_effector_xy = None
-            estimated_distance = None
-            candidate_distance = None
-            visual_success_estimate = None
-            quality_score = (
-                min(
-                    target_detection_quality["score"],
-                    end_effector_detection_quality["score"],
-                )
-                if target_detection_quality is not None
-                and end_effector_detection_quality is not None
-                else None
-            )
-            quality_gate_passed = (
-                quality_score is not None
-                and quality_score >= terminal_verification_min_quality_score
-            )
-            estimate_status = None
-            if target_pixel is not None and end_effector_pixel is not None:
-                try:
-                    candidate_target_xy = pixel_to_xy_at_height(
+            if normalized_stress_candidates:
+                terminal_verification_candidates = {}
+                for name, settings in normalized_stress_candidates.items():
+                    candidate_record, _ = _measure_terminal_verification(
                         model,
                         data,
                         verification_camera_id,
-                        target_pixel,
-                        TARGET_HEIGHT,
-                        fovy_error_deg=terminal_verification_fovy_error_deg,
-                        camera_position_error_m=tuple(verification_position_error),
-                        camera_rotation_error_deg=tuple(verification_rotation_error),
+                        raw_verification_rgb,
+                        **settings,
                     )
-                    candidate_end_effector_xy = pixel_to_xy_at_height(
-                        model,
-                        data,
-                        verification_camera_id,
-                        end_effector_pixel,
-                        END_EFFECTOR_HEIGHT,
-                        fovy_error_deg=terminal_verification_fovy_error_deg,
-                        camera_position_error_m=tuple(verification_position_error),
-                        camera_rotation_error_deg=tuple(verification_rotation_error),
-                    )
-                except ValueError:
-                    estimate_status = "unavailable_camera_geometry"
-                else:
-                    candidate_distance = float(
-                        np.linalg.norm(candidate_target_xy - candidate_end_effector_xy)
-                    )
-                    if quality_gate_passed:
-                        estimated_target_xy = candidate_target_xy
-                        estimated_end_effector_xy = candidate_end_effector_xy
-                        estimated_distance = candidate_distance
-                        visual_success_estimate = (
-                            estimated_distance <= SUCCESS_THRESHOLD_METERS
-                        )
-                    else:
-                        estimate_status = "unavailable_detection_quality_below_threshold"
-            if estimated_distance is not None:
-                estimate_status = (
-                    "within_threshold"
-                    if visual_success_estimate
-                    else "outside_threshold"
-                )
-            elif estimate_status == "unavailable_camera_geometry":
-                pass
-            elif target_pixel is None and end_effector_pixel is None:
-                estimate_status = "unavailable_both_markers_not_visible"
-            elif target_pixel is None:
-                estimate_status = "unavailable_target_not_visible"
-            elif end_effector_pixel is None:
-                estimate_status = "unavailable_end_effector_not_visible"
-            elif not quality_gate_passed:
-                estimate_status = "unavailable_detection_quality_below_threshold"
-            else:
-                estimate_status = "unavailable_camera_geometry"
-            terminal_verification = {
-                "camera": "verification_east",
-                "fresh_observation": True,
-                "observation_time_simulated_s": round(float(data.time), 6),
-                "camera_observation_age_s": 0.0,
-                "measurement_noise_std_px": 0.0,
-                "calibration": "simulator camera with estimator-only perturbations",
-                "condition_label": terminal_verification_condition_label(
-                    fovy_error_deg=terminal_verification_fovy_error_deg,
-                    camera_position_error_m=tuple(verification_position_error),
-                    camera_rotation_error_deg=tuple(verification_rotation_error),
-                    lighting_scale=terminal_verification_brightness_scale,
-                    occluded_markers=terminal_verification_occluded_markers,
-                ),
-                "estimator_fovy_error_deg": terminal_verification_fovy_error_deg,
-                "estimator_camera_position_error_m": verification_position_error.tolist(),
-                "estimator_camera_rotation_error_deg": verification_rotation_error.tolist(),
-                "image_brightness_scale": terminal_verification_brightness_scale,
-                "occluded_markers": list(terminal_verification_occluded_markers),
-                "minimum_detection_quality_score": terminal_verification_min_quality_score,
-                "target_detection_quality": target_detection_quality,
-                "end_effector_detection_quality": end_effector_detection_quality,
-                "combined_detection_quality_score": quality_score,
-                "detection_quality_gate_passed": quality_gate_passed,
-                "target_visible": target_pixel is not None,
-                "end_effector_visible": end_effector_pixel is not None,
-                "both_markers_visible": (
-                    target_pixel is not None and end_effector_pixel is not None
-                ),
-                "target_pixel_xy": (
-                    [round(value, 2) for value in target_pixel]
-                    if target_pixel is not None
-                    else None
-                ),
-                "end_effector_pixel_xy": (
-                    [round(value, 2) for value in end_effector_pixel]
-                    if end_effector_pixel is not None
-                    else None
-                ),
-                "estimated_target_xy_m": (
-                    [round(float(value), 4) for value in estimated_target_xy]
-                    if estimated_target_xy is not None
-                    else None
-                ),
-                "estimated_end_effector_xy_m": (
-                    [round(float(value), 4) for value in estimated_end_effector_xy]
-                    if estimated_end_effector_xy is not None
-                    else None
-                ),
-                "estimated_distance_m": (
-                    round(estimated_distance, 5)
-                    if estimated_distance is not None
-                    else None
-                ),
-                "candidate_estimated_distance_m_for_evaluation_only": (
-                    round(candidate_distance, 5)
-                    if candidate_distance is not None
-                    else None
-                ),
-                "visual_success_estimate": visual_success_estimate,
-                "visual_estimate_status": estimate_status,
-                "threshold_m": SUCCESS_THRESHOLD_METERS,
-            }
+                    terminal_verification_candidates[name] = candidate_record
 
         if save_episode_media:
             displayed_final_error = round(final_error, 4)
@@ -1495,6 +1607,7 @@ def run_trials(
             ),
             "success": success,
             "terminal_visual_verification": terminal_verification,
+            "terminal_verification_stress_candidates": terminal_verification_candidates,
             "terminal_verification_video": terminal_verification_video,
             "failure_reason": failure_reason,
             "controller_stop_reason": controller_stop_reason,

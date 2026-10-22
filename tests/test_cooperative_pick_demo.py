@@ -1,18 +1,26 @@
 import json
+from pathlib import Path
 
+import cv2
 import mujoco
 import pytest
+from PIL import Image
 
 from visual_servo_mujoco.cooperative_pick_demo import (
     ARM_COUNT,
     ARM_TOOL_Z_OFFSETS_M,
     CLOSED_JAW_OFFSET_M,
     DEFAULT_PAYLOAD_BODY_MASS_KG,
+    DEMO_DURATION_S,
+    DEMO_FINGER_PAD_HALF_SIZE_M,
     GROUND_BIT,
     OPEN_JAW_OFFSET_M,
     PAYLOAD_BIT,
     PAYLOAD_INITIAL_Z_M,
     TABLE_BIT,
+    VIDEO_FPS,
+    VIDEO_NAMES,
+    VIDEO_SIZE,
     _arm_collision_masks,
     _tool_height_offsets,
     build_model_xml,
@@ -197,6 +205,9 @@ def test_cooperative_pick_lifts_payload_with_finger_contacts(tmp_path):
     metrics = run_demo(tmp_path, render_video=False)
 
     assert metrics["stable_lift"] is True
+    assert metrics["finger_pad_half_sizes_m"] == [
+        DEMO_FINGER_PAD_HALF_SIZE_M
+    ] * ARM_COUNT
     assert metrics["peak_lift_m"] >= 0.07
     assert (
         metrics["minimum_payload_z_during_hold_m"]
@@ -221,3 +232,40 @@ def test_cooperative_pick_lifts_payload_with_finger_contacts(tmp_path):
     assert metrics["payload_final_z_m"] == pytest.approx(PAYLOAD_INITIAL_Z_M, abs=0.01)
     saved = json.loads((tmp_path / "cooperative_pick_triarm.json").read_text())
     assert saved == metrics
+
+
+def test_published_cooperative_pick_videos_and_gifs_decode_and_align():
+    repository = Path(__file__).resolve().parents[1]
+    demo_directory = repository / "assets" / "demos"
+    expected_video_frames = int(round(DEMO_DURATION_S * VIDEO_FPS)) + 1
+    decoded_counts = []
+
+    for filename in VIDEO_NAMES:
+        capture = cv2.VideoCapture(str(demo_directory / filename))
+        assert capture.isOpened(), f"could not open demo video {filename}"
+        assert capture.get(cv2.CAP_PROP_FPS) == pytest.approx(VIDEO_FPS)
+        assert capture.get(cv2.CAP_PROP_FRAME_WIDTH) == VIDEO_SIZE[0]
+        assert capture.get(cv2.CAP_PROP_FRAME_HEIGHT) == VIDEO_SIZE[1]
+        frames = 0
+        while True:
+            ok, _ = capture.read()
+            if not ok:
+                break
+            frames += 1
+        capture.release()
+        assert frames == expected_video_frames, filename
+        decoded_counts.append(frames)
+
+    assert len(set(decoded_counts)) == 1
+    expected_gif_frames = (expected_video_frames + 5) // 6
+    for filename in (
+        "cooperative_pick_triarm.gif",
+        "cooperative_pick_triarm_closeup.gif",
+    ):
+        with Image.open(demo_directory / filename) as gif:
+            assert gif.format == "GIF"
+            assert gif.size == (480, 270)
+            assert gif.n_frames == expected_gif_frames
+            for frame_index in range(gif.n_frames):
+                gif.seek(frame_index)
+                gif.load()

@@ -32,9 +32,9 @@ BASE_HEIGHT_M = 0.36
 TABLE_TOP_M = 0.18
 PAYLOAD_HALF_HEIGHT_M = 0.06
 PAYLOAD_INITIAL_Z_M = TABLE_TOP_M + PAYLOAD_HALF_HEIGHT_M
-# These inertial values match the original compiled payload. The nominal
-# scene keeps its legacy geometry-derived inertia so the scripted demo remains
-# bit-for-bit stable; off-nominal mass experiments use these values explicitly.
+# These inertial values match the original compiled payload. The nominal scene
+# keeps its legacy geometry-derived inertia for comparison with earlier runs;
+# contact outcomes can still vary slightly across simulator builds and CPUs.
 DEFAULT_PAYLOAD_BODY_MASS_KG = 0.7201166534540158
 DEFAULT_PAYLOAD_CANISTER_DENSITY_KG_M3 = 450.0
 PAYLOAD_INERTIAL_POSITION_M = (0.0, 0.0, 0.0019206309215699748)
@@ -50,12 +50,15 @@ APPROACH_TOOL_Z_OFFSETS_M = (0.005, 0.050, 0.095)
 GRASP_RADIUS_M = 0.084
 FINGER_PAD_INWARD_OFFSET_M = 0.022
 FINGER_PAD_CENTER_RADIUS_M = GRASP_RADIUS_M - FINGER_PAD_INWARD_OFFSET_M
+DEMO_FINGER_PAD_HALF_SIZE_M = 0.0155
 OPEN_JAW_OFFSET_M = 0.080
 CLOSED_JAW_OFFSET_M = FINGER_PAD_CENTER_RADIUS_M * math.tan(math.pi / 6.0)
 STAGGER_CONVERGE_JAW_M = 0.060
 INTER_ARM_PENETRATION_LIMIT_M = 0.001
 TARGET_MARKER_LOCAL_Z_M = 0.067
 SIMULATION_TIMESTEP_S = 0.002
+RELEASE_CLEARANCE_TOOL_RADIUS_M = 0.110
+RELEASE_MIN_TOOL_HEIGHT_OFFSET_M = 0.035
 BASE_YAW_ACTUATOR_KP = 300.0
 BASE_YAW_ACTUATOR_KV = 40.0
 BASE_YAW_ACTUATOR_FORCE_NM = 150.0
@@ -542,9 +545,12 @@ def _set_arm_controls(
     radial: float,
     payload_center_height: float,
     jaw: float,
+    *,
+    tool_height_offsets: tuple[float, ...] | None = None,
 ) -> None:
     local_radius = BASE_RADIUS_M - radial
-    tool_height_offsets = _tool_height_offsets(jaw)
+    if tool_height_offsets is None:
+        tool_height_offsets = _tool_height_offsets(jaw)
     for arm_index in range(ARM_COUNT):
         tool_height = payload_center_height + tool_height_offsets[arm_index]
         vertical = tool_height - BASE_HEIGHT_M
@@ -766,9 +772,11 @@ def _annotate_frame(
 
 
 def run_demo(output_dir: Path, *, render_video: bool = True) -> dict[str, object]:
-    """Run the deterministic pick scene and optionally write three MP4 views."""
+    """Run the contact-based pick scene and optionally write three MP4 views."""
     output_dir.mkdir(parents=True, exist_ok=True)
-    model = mujoco.MjModel.from_xml_string(build_model_xml())
+    model = mujoco.MjModel.from_xml_string(
+        build_model_xml(finger_pad_half_size_m=DEMO_FINGER_PAD_HALF_SIZE_M)
+    )
     data = mujoco.MjData(model)
     payload_body = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "payload")
     payload_geom = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_GEOM, "payload_canister")
@@ -845,7 +853,24 @@ def run_demo(output_dir: Path, *, render_video: bool = True) -> dict[str, object
     for frame_index in range(frame_count):
         time_s = min(DEMO_DURATION_S, frame_index * frame_time_s)
         radial, target_z, jaw, _, phase = desired_pick_state(time_s)
-        _set_arm_controls(model, data, radial, target_z, jaw)
+        tool_height_offsets = _tool_height_offsets(jaw)
+        if phase in {"RELEASE", "WITHDRAW"}:
+            # Give the wrist and open fingers clearance from the payload after
+            # it has been lowered onto the table. The pads stay collidable;
+            # only the commanded arm pose changes.
+            radial = max(radial, RELEASE_CLEARANCE_TOOL_RADIUS_M)
+            tool_height_offsets = tuple(
+                max(offset, RELEASE_MIN_TOOL_HEIGHT_OFFSET_M)
+                for offset in tool_height_offsets
+            )
+        _set_arm_controls(
+            model,
+            data,
+            radial,
+            target_z,
+            jaw,
+            tool_height_offsets=tool_height_offsets,
+        )
         target_steps = int(round(time_s / SIMULATION_TIMESTEP_S))
         steps_this_frame = target_steps - simulated_steps
         for _ in range(steps_this_frame):
@@ -942,7 +967,10 @@ def run_demo(output_dir: Path, *, render_video: bool = True) -> dict[str, object
     final_tilt_deg = _payload_tilt_degrees(data, payload_body)
     metrics: dict[str, object] = {
         "experiment": "three-arm cooperative pick and lift",
-        "evidence_type": "deterministic MuJoCo simulation demo; not a benchmark",
+        "evidence_type": (
+            "single scripted MuJoCo simulation demo; contact outcomes can vary slightly "
+            "across simulator builds and CPUs; not a benchmark"
+        ),
         "control_method": "shared scripted Cartesian trajectory with closed-form 3R IK",
         "grasp_method": "six position-actuated fingers; payload lifted by contact and friction",
         "arms": ARM_COUNT,
@@ -960,7 +988,7 @@ def run_demo(output_dir: Path, *, render_video: bool = True) -> dict[str, object
         "approach_tool_height_offsets_m": list(APPROACH_TOOL_Z_OFFSETS_M),
         "grasp_tool_height_offsets_m": list(ARM_TOOL_Z_OFFSETS_M),
         "closed_jaw_center_offset_m": CLOSED_JAW_OFFSET_M,
-        "finger_pad_half_sizes_m": [0.014, 0.014, 0.014],
+        "finger_pad_half_sizes_m": [DEMO_FINGER_PAD_HALF_SIZE_M] * ARM_COUNT,
         "simulation_timestep_s": SIMULATION_TIMESTEP_S,
         "video_fps": VIDEO_FPS,
         "stable_lift_hold_duration_s": round(HOLD_END_S - HOLD_START_S, 2),

@@ -65,14 +65,16 @@ only the separate terminal verifier.
 
 ## Terminal verifier calibration and image-stress benchmark
 
-The verifier robustness benchmark pairs the same 100 held-out reaching trials
-(seeds 100–104, 20 targets per seed) across nine one-factor conditions. The
-reaching controller receives 20 px target-measurement noise. `False +` counts
-visual success estimates on physically failed trials; `Missed` counts visual
-failure estimates on physically successful trials. Counts exclude trials
-where either marker is unavailable. Physical reaching succeeded on 85/100
-trials in every condition. The stress settings did not change any controller
-outcome.
+The verifier robustness benchmark runs 100 held-out reaching trials once
+(seeds 100–104, 20 targets per seed), each with 20 px target-measurement noise.
+After control stops, it renders one terminal RGB frame per trial and evaluates
+the nominal verifier and eight one-factor stress conditions from that same
+frame and final physics state. `False +` counts visual success estimates on
+physically failed trials; `Missed` counts visual failure estimates on
+physically successful trials. Counts exclude trials where either marker is
+unavailable. The shared reaching block succeeded on 85/100 trials; this
+outcome vector is reused by every image condition by design, so the table
+isolates verifier changes without replaying contact-sensitive physics.
 
 | Verifier condition | Markers visible / available | False + | Missed | P95 absolute distance error |
 | --- | ---: | ---: | ---: | ---: |
@@ -85,6 +87,20 @@ outcome.
 | Uniform image exposure ×1.5 | 99/100 | 0 | 10 | 2.52 cm |
 | Target marker occluded | 0/100 | — | — | unavailable |
 | End-effector marker occluded | 0/100 | — | — | unavailable |
+
+The [JSON report](../../results/terminal-verification-robustness-benchmark.json)
+contains all 900 condition records and the 100 shared reaching outcomes. CI
+uses the evidence-audit command to check that each condition uses the same
+trial IDs and physical/controller outcomes.
+
+Recreate the saved report with the same held-out seed block using:
+
+```bash
+uv run --locked visual-servo-verification-robustness-benchmark \
+  --seeds 5 --episodes-per-seed 20 --base-seed 100 \
+  --pixel-noise-std-px 20 \
+  --output results/terminal-verification-robustness-benchmark.json
+```
 
 The ±5° FOV cases show asymmetric classification risk: +5° raised missed
 successes from 7 to 15, while −5° produced one false success. The camera X

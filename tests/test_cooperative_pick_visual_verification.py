@@ -290,6 +290,8 @@ def test_camera_guided_pick_keeps_visual_and_physics_decisions_separate():
     metrics = run_trial(
         DEMO_TARGET_XY,
         controller="camera_estimate",
+        release_profile="clearance",
+        lowest_approach_tool_height_offset_m=0.020,
         visual_verification=True,
         visual_verification_min_upward_displacement_px=50.0,
         visual_verification_max_marker_rotation_from_start_deg=4.0,
@@ -320,6 +322,8 @@ def test_camera_image_fault_is_recorded_as_an_observation_only_change():
     metrics = run_trial(
         DEMO_TARGET_XY,
         controller="camera_estimate",
+        release_profile="clearance",
+        lowest_approach_tool_height_offset_m=0.020,
         visual_verification=True,
         visual_verification_min_upward_displacement_px=50.0,
         visual_verification_max_marker_rotation_from_start_deg=4.0,

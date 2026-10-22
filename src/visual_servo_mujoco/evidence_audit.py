@@ -2332,6 +2332,130 @@ def audit_cooperative_pick_retention_diagnostics(root: Path) -> tuple[int, int]:
     return len(trials), len(frictions) * len(controllers)
 
 
+def audit_terminal_verification_robustness(root: Path) -> tuple[int, int]:
+    """Check that verifier stress rows share one saved reaching run per trial."""
+    from .verification_robustness_benchmark import VERIFIER_STRESS_CONDITIONS
+
+    path = root / "results" / "terminal-verification-robustness-benchmark.json"
+    try:
+        report = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise EvidenceAuditError(f"cannot read terminal-verifier benchmark {path}: {error}") from error
+
+    if not isinstance(report, dict):
+        raise EvidenceAuditError(f"{path} must contain a JSON object")
+    try:
+        seeds = int(report["seeds"])
+        episodes_per_seed = int(report["episodes_per_seed"])
+        base_seed = int(report["base_seed"])
+        rows = report["results"]
+    except (KeyError, TypeError, ValueError) as error:
+        raise EvidenceAuditError(f"{path} has invalid trial metadata") from error
+    expected_trial_count = seeds * episodes_per_seed
+    if (
+        report.get("schema_version") != 3
+        or report.get("benchmark") != "terminal_verifier_quality_coverage_and_image_stress"
+        or report.get("control_controller") != "image_feedback"
+        or report.get("control_policy_changed") is not False
+        or report.get("control_trajectory_shared_across_conditions") is not True
+        or report.get("control_trajectories_per_seed_episode") != 1
+        or report.get("stress_conditions_are_one_factor_at_a_time") is not True
+        or seeds <= 0
+        or episodes_per_seed <= 0
+        or base_seed < 0
+        or not isinstance(rows, list)
+        or len(rows) != len(VERIFIER_STRESS_CONDITIONS)
+    ):
+        raise EvidenceAuditError(f"{path} protocol metadata does not reconcile")
+
+    expected_ids = {
+        f"{seed}:{episode}"
+        for seed in range(base_seed, base_seed + seeds)
+        for episode in range(episodes_per_seed)
+    }
+    reference_outcomes: dict[str, tuple[object, ...]] = {}
+    seen_conditions: set[str] = set()
+    for row in rows:
+        if not isinstance(row, dict):
+            raise EvidenceAuditError(f"{path} contains a malformed condition row")
+        condition = row.get("condition")
+        if not isinstance(condition, str):
+            raise EvidenceAuditError(f"{path} contains an invalid condition name")
+        expected_settings = VERIFIER_STRESS_CONDITIONS.get(condition)
+        if condition in seen_conditions or expected_settings is None:
+            raise EvidenceAuditError(f"{path} contains an unknown or repeated condition")
+        seen_conditions.add(condition)
+        if row.get("stress_settings") != json.loads(json.dumps(expected_settings)):
+            raise EvidenceAuditError(f"{path} condition {condition} has changed stress settings")
+        trials = row.get("trial_results")
+        if (
+            not isinstance(trials, list)
+            or len(trials) != expected_trial_count
+            or row.get("trials") != expected_trial_count
+            or row.get("controller_outcomes_shared_across_stress_conditions")
+            != expected_trial_count
+        ):
+            raise EvidenceAuditError(f"{path} condition {condition} has an incomplete trial set")
+        condition_ids: set[str] = set()
+        for trial in trials:
+            if not isinstance(trial, dict):
+                raise EvidenceAuditError(f"{path} condition {condition} contains a malformed trial")
+            trial_id = trial.get("shared_control_trial_id")
+            expected_id = f"{trial.get('seed')}:{trial.get('episode')}"
+            if (
+                trial_id != expected_id
+                or trial_id not in expected_ids
+                or trial_id in condition_ids
+                or trial.get("controller_outcome_shared_across_stress_conditions") is not True
+            ):
+                raise EvidenceAuditError(f"{path} condition {condition} has an invalid shared-trial identity")
+            condition_ids.add(trial_id)
+            outcome = (
+                trial.get("physical_success"),
+                trial.get("physical_error_m"),
+                trial.get("controller_stop_reason"),
+                trial.get("controller_iterations"),
+            )
+            previous = reference_outcomes.setdefault(trial_id, outcome)
+            if previous != outcome:
+                raise EvidenceAuditError(
+                    f"{path} changes a physical/control outcome across verifier conditions"
+                )
+        if condition_ids != expected_ids:
+            raise EvidenceAuditError(f"{path} condition {condition} does not share the full trial set")
+        if row.get("physical_successes") != sum(
+            trial.get("physical_success") is True for trial in trials
+        ):
+            raise EvidenceAuditError(f"{path} condition {condition} physical-success count does not reconcile")
+        visible = [trial for trial in trials if trial.get("visual_success_estimate") is not None]
+        if row.get("visual_estimate_available_trials") != len(visible):
+            raise EvidenceAuditError(f"{path} condition {condition} availability count does not reconcile")
+        expected_confusion = {
+            "true_positive": sum(
+                trial.get("visual_success_estimate") is True and trial.get("physical_success") is True
+                for trial in visible
+            ),
+            "false_positive": sum(
+                trial.get("visual_success_estimate") is True and trial.get("physical_success") is False
+                for trial in visible
+            ),
+            "true_negative": sum(
+                trial.get("visual_success_estimate") is False and trial.get("physical_success") is False
+                for trial in visible
+            ),
+            "false_negative": sum(
+                trial.get("visual_success_estimate") is False and trial.get("physical_success") is True
+                for trial in visible
+            ),
+        }
+        if row.get("confusion_counts_when_estimate_available") != expected_confusion:
+            raise EvidenceAuditError(f"{path} condition {condition} confusion counts do not reconcile")
+
+    if seen_conditions != set(VERIFIER_STRESS_CONDITIONS) or set(reference_outcomes) != expected_ids:
+        raise EvidenceAuditError(f"{path} condition set or shared physics block does not reconcile")
+    return expected_trial_count, len(rows)
+
+
 def _audit_wilson_interval(successes: int, trials: int) -> list[float] | None:
     if trials <= 0:
         return None
@@ -2378,6 +2502,11 @@ def main() -> int:
         print(f"PASS cooperative-pick contact diagnostics: {trials:,} trial rows, {groups:,} controller/friction groups")
         trials, groups = audit_cooperative_pick_retention_diagnostics(args.root)
         print(f"PASS cooperative-pick retention diagnostics: {trials:,} trial rows, {groups:,} controller/friction groups")
+        trials, conditions = audit_terminal_verification_robustness(args.root)
+        print(
+            f"PASS terminal-verifier robustness: {trials:,} shared physics trials, "
+            f"{trials * conditions:,} condition evaluations"
+        )
     except (EvidenceAuditError, OSError) as error:
         print(f"Evidence audit failed: {error}", file=sys.stderr)
         return 1
@@ -2385,7 +2514,8 @@ def main() -> int:
         f"Validated {len(DATASETS)} trial/summary pairs, 1 appearance dataset, "
         "4 candidate detector datasets, 2 post-pick occlusion splits, 1 occlusion-shape challenge, "
         "1 orthogonal-view challenge, 1 material-stress challenge, "
-        "1 pad/friction challenge, 1 contact-diagnostic challenge, and 1 retention-diagnostic challenge."
+        "1 pad/friction challenge, 1 contact-diagnostic challenge, 1 retention-diagnostic challenge, "
+        "and 1 shared-trajectory verifier benchmark."
     )
     return 0
 

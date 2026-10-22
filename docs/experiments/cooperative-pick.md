@@ -66,17 +66,23 @@ conditions. The two experiments have separate methods and results.
 
 ## Recorded outcome
 
-The checked-in clips are three synchronized views of one deterministic
-simulation run, not a benchmark. The free payload rose 9.48 cm from its initial
-height. It remained at least 8.98 cm above its starting height during the 1.6 s
-hold, with at least five finger-payload contact points and no more than 2.48° of
-tilt. There were no inter-arm contacts during grasping, lifting, or the hold.
-Opening the grippers for release produced brief finger-pad contacts, with a
-maximum measured penetration of 0.72 mm. The run had zero arm-table,
-arm-ground, or non-finger arm-to-payload contacts. The object returned to the
-table at its starting height after release. The generated
-[JSON record](../../assets/demos/cooperative_pick_triarm.json) contains these
-measurements.
+The checked-in clips are three synchronized views of one scripted simulation
+run, not a benchmark. This centered demonstration uses 15.5 mm finger-pad
+half-sizes; the camera-guided randomized experiments continue to use their
+nominal 16 mm pads. The modest demo-specific size was selected after the
+14 mm version narrowly crossed the 5° tilt gate on Ubuntu, while 16 mm produced
+unstable contact on macOS. Both tested platforms pass with 15.5 mm:
+
+| Run | Peak lift | Minimum height during 1.6 s hold | Maximum tilt | Minimum pad contacts | Unexpected arm contacts |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| macOS artifact generation | 10.91 cm | 10.54 cm above start | 3.00° | 5 | 0 |
+| Ubuntu 24.04 OSMesa replay | 10.59 cm | 10.28 cm above start | 2.75° | 6 | 0 |
+
+Neither run had inter-arm, arm-table, arm-ground, or non-finger arm-to-payload
+contacts. The object returned to the table at its starting height after
+release. Contact outcomes can vary slightly across simulator builds and CPUs;
+the generated [JSON record](../../assets/demos/cooperative_pick_triarm.json)
+contains the measurements for the checked-in run.
 
 ## Limits
 
@@ -84,9 +90,8 @@ measurements.
 - Same-arm self-collision is suppressed by collision masks, so the demo checks
   inter-arm and environment collisions but does not model a robot's internal
   link self-collision constraints.
-- The simulator's contact solver permits small pad overlap during release;
-  this run remained below the documented 1 mm limit. It recorded no
-  cross-arm contacts during the grasp and lift phases.
+- The simulation has contact between the pads, payload, and table but does not
+  model deformable fingers, sensor noise, or a calibrated physical gripper.
 - The three arms each move in a fixed vertical plane; this clip demonstrates a
   shared vertical lift, not arbitrary coordinated transport.
 - The payload, friction, camera views, and lighting are selected simulator

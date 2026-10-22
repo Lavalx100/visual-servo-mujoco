@@ -15,6 +15,7 @@ from visual_servo_mujoco.evidence_audit import (
     audit_cooperative_pick_orthogonal_validation,
     audit_cooperative_pick_pad_friction_validation,
     audit_cooperative_pick_retention_diagnostics,
+    audit_terminal_verification_robustness,
     audit_dataset,
 )
 
@@ -282,3 +283,23 @@ def test_retention_audit_rejects_changed_hand_relative_drift_summary(tmp_path):
 
     with pytest.raises(EvidenceAuditError, match="maximum_downward_payload_drift"):
         audit_cooperative_pick_retention_diagnostics(tmp_path)
+
+
+def test_terminal_verification_conditions_share_the_saved_physics_trials():
+    repository = Path(__file__).resolve().parents[1]
+
+    assert audit_terminal_verification_robustness(repository) == (100, 9)
+
+
+def test_terminal_verification_audit_rejects_control_outcome_drift(tmp_path):
+    repository = Path(__file__).resolve().parents[1]
+    destination = tmp_path / "results" / "terminal-verification-robustness-benchmark.json"
+    destination.parent.mkdir(parents=True)
+    source = repository / "results" / "terminal-verification-robustness-benchmark.json"
+    shutil.copy2(source, destination)
+    report = json.loads(destination.read_text())
+    report["results"][1]["trial_results"][0]["controller_iterations"] += 1
+    destination.write_text(json.dumps(report))
+
+    with pytest.raises(EvidenceAuditError, match="changes a physical/control outcome"):
+        audit_terminal_verification_robustness(tmp_path)
