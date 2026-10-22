@@ -1,0 +1,195 @@
+{
+  "evidence_type": "illustrative replay of one paired held-out MuJoCo pose",
+  "pair_id": "38201-005",
+  "target_xy_m": [
+    0.06822194153146671,
+    0.04664333667487933
+  ],
+  "controller": "camera_estimate",
+  "finger_pad_half_size_m": 0.016,
+  "baseline_recorded_strict_success": "False",
+  "clearance_recorded_strict_success": "True",
+  "baseline_replay_metrics": {
+    "controller": "camera_estimate",
+    "release_profile": "baseline",
+    "wrist_center_radial_standoff_m": 0.0,
+    "lowest_approach_tool_height_offset_m": 0.005,
+    "finger_pad_inward_offset_m": 0.022,
+    "control_target_source": "detected_image_position",
+    "target_true_xy_m": [
+      0.06822194153146671,
+      0.04664333667487933
+    ],
+    "target_detected": true,
+    "detected_target_pixel_xy": [
+      345.9024658203125,
+      221.2654266357422
+    ],
+    "camera_estimated_target_xy_m": [
+      0.06778850773755403,
+      0.04681738917896856
+    ],
+    "initial_target_projection_error_m": 0.00046707507735403253,
+    "physical_stable_lift_success": false,
+    "payload_stable_lift_success": true,
+    "full_sequence_collision_safe": false,
+    "fresh_visual_confirmation": "not measured",
+    "failure_reason": "nonfinger_payload_contact",
+    "payload_initial_z_m": 0.24,
+    "finger_pad_half_size_m": 0.016,
+    "payload_peak_z_m": 0.3404,
+    "payload_final_z_m": 0.24,
+    "peak_lift_m": 0.1004,
+    "minimum_payload_z_during_hold_m": 0.3349,
+    "minimum_finger_payload_contact_points_during_hold": 5,
+    "maximum_finger_payload_contact_points": 12,
+    "maximum_payload_tilt_during_hold_deg": 1.83,
+    "physics_steps_with_inter_arm_contact": 342,
+    "maximum_inter_arm_penetration_m": 0.000395,
+    "maximum_inter_arm_penetration_during_hold_m": 0.0,
+    "inter_arm_penetration_limit_m": 0.001,
+    "inter_arm_contact_steps_by_phase": {
+      "POSITION AROUND PAYLOAD": 35,
+      "LOWER TO GRASP": 269,
+      "WITHDRAW": 38
+    },
+    "physics_steps_with_arm_table_or_ground_contact": 0,
+    "physics_steps_with_arm_table_or_ground_contact_during_hold": 0,
+    "physics_steps_with_nonfinger_arm_payload_contact": 246,
+    "physics_steps_with_nonfinger_arm_payload_contact_during_hold": 0,
+    "unexpected_contact_steps_by_phase": {
+      "arm_environment": {},
+      "nonfinger_payload": {
+        "RELEASE": 176,
+        "WITHDRAW": 70
+      }
+    },
+    "unexpected_contact_pairs": {
+      "arm_environment": [],
+      "nonfinger_payload": [
+        {
+          "phase": "RELEASE",
+          "arm_geom": "arm0_wrist_link",
+          "other_geom": "payload_canister",
+          "contact_steps": 176,
+          "maximum_penetration_m": 0.000427,
+          "first_contact_time_s": 10.898,
+          "first_contact_position_m": [
+            0.132037,
+            0.048487,
+            0.298773
+          ]
+        },
+        {
+          "phase": "WITHDRAW",
+          "arm_geom": "arm0_wrist_link",
+          "other_geom": "payload_canister",
+          "contact_steps": 70,
+          "maximum_penetration_m": 0.000347,
+          "first_contact_time_s": 11.25,
+          "first_contact_position_m": [
+            0.127428,
+            0.045029,
+            0.295708
+          ]
+        }
+      ]
+    },
+    "first_unexpected_contact": {
+      "arm_environment": null,
+      "nonfinger_payload": {
+        "time_s": 10.898,
+        "phase": "RELEASE",
+        "category": "nonfinger_payload",
+        "arm_index": 0,
+        "arm_geom": "arm0_wrist_link",
+        "other_geom": "payload_canister",
+        "penetration_m": 0.000107,
+        "position_m": [
+          0.132037,
+          0.048487,
+          0.298773
+        ]
+      }
+    },
+    "stable_lift_hold_duration_s": 1.6,
+    "videos": [
+      "cooperative_pick_release_baseline.mp4"
+    ]
+  },
+  "clearance_replay_metrics": {
+    "controller": "camera_estimate",
+    "release_profile": "clearance",
+    "wrist_center_radial_standoff_m": 0.0,
+    "lowest_approach_tool_height_offset_m": 0.005,
+    "finger_pad_inward_offset_m": 0.022,
+    "control_target_source": "detected_image_position",
+    "target_true_xy_m": [
+      0.06822194153146671,
+      0.04664333667487933
+    ],
+    "target_detected": true,
+    "detected_target_pixel_xy": [
+      345.9024658203125,
+      221.2654266357422
+    ],
+    "camera_estimated_target_xy_m": [
+      0.06778850773755403,
+      0.04681738917896856
+    ],
+    "initial_target_projection_error_m": 0.00046707507735403253,
+    "physical_stable_lift_success": true,
+    "payload_stable_lift_success": true,
+    "full_sequence_collision_safe": true,
+    "fresh_visual_confirmation": "not measured",
+    "failure_reason": "none",
+    "payload_initial_z_m": 0.24,
+    "finger_pad_half_size_m": 0.016,
+    "payload_peak_z_m": 0.3404,
+    "payload_final_z_m": 0.24,
+    "peak_lift_m": 0.1004,
+    "minimum_payload_z_during_hold_m": 0.3349,
+    "minimum_finger_payload_contact_points_during_hold": 5,
+    "maximum_finger_payload_contact_points": 12,
+    "maximum_payload_tilt_during_hold_deg": 1.83,
+    "physics_steps_with_inter_arm_contact": 304,
+    "maximum_inter_arm_penetration_m": 0.000395,
+    "maximum_inter_arm_penetration_during_hold_m": 0.0,
+    "inter_arm_penetration_limit_m": 0.001,
+    "inter_arm_contact_steps_by_phase": {
+      "POSITION AROUND PAYLOAD": 35,
+      "LOWER TO GRASP": 269
+    },
+    "physics_steps_with_arm_table_or_ground_contact": 0,
+    "physics_steps_with_arm_table_or_ground_contact_during_hold": 0,
+    "physics_steps_with_nonfinger_arm_payload_contact": 0,
+    "physics_steps_with_nonfinger_arm_payload_contact_during_hold": 0,
+    "unexpected_contact_steps_by_phase": {
+      "arm_environment": {},
+      "nonfinger_payload": {}
+    },
+    "unexpected_contact_pairs": {
+      "arm_environment": [],
+      "nonfinger_payload": []
+    },
+    "first_unexpected_contact": {
+      "arm_environment": null,
+      "nonfinger_payload": null
+    },
+    "stable_lift_hold_duration_s": 1.6,
+    "videos": [
+      "cooperative_pick_release_clearance.mp4"
+    ]
+  },
+  "videos": [
+    "cooperative_pick_release_baseline.mp4",
+    "cooperative_pick_release_clearance.mp4"
+  ],
+  "previews": [
+    "cooperative_pick_release_baseline.gif",
+    "cooperative_pick_release_clearance.gif"
+  ],
+  "overhead_video_display": "Live overhead frames are rendered for video display; control still uses only the initial image.",
+  "fresh_visual_confirmation": "not measured",
+  "aggregate_counting": "This replay is already part of the held-out 30-pose results; do not add it as another trial."
+}

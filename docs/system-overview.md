@@ -39,6 +39,97 @@ only after the motion to score the trial.
 - `src/visual_servo_mujoco/run.py` implements color detection, both controllers,
   randomized trials, deterministic target-dropout injection, and per-trial
   scoring, including a per-observation target-visibility trace.
+- `src/visual_servo_mujoco/cooperative_pick_demo.py` builds the reusable
+  three-arm MuJoCo scene. Per-arm collision bits enable contact between
+  different arms and with the payload/table while suppressing same-arm
+  self-contact. Elbow-up IK keeps the links above the table; staggered open
+  grippers align six pads into an equatorial grasp. Render-only wrist adapters
+  close the visible seam between wrist links and palm boxes; palm-mounted rails
+  and carriage-mounted finger shanks connect the moving pads. These additions
+  are non-colliding visuals, so the pads remain the modeled grasp surfaces.
+  Contact and friction lift a free payload. The original
+  [scripted experiment](experiments/cooperative-pick.md) preserves its centered
+  baseline and collision evidence.
+- `src/visual_servo_mujoco/camera_guided_cooperative_pick.py` extends that scene
+  with base yaw, independently controlled gripper yaw, a top-down camera and a
+  visual-only target marker. It imports the same red detector from `run.py` and
+  `pixel_to_table_xy` from `controller.py`, then plans camera-estimated or
+  oracle diagnostic target poses for the shared contact-based pick trajectory.
+  Paired randomized outcomes and a camera-plus-physics video are linked from
+  the [camera-guided experiment](experiments/camera-guided-cooperative-pick.md)
+  and [video gallery](video-gallery.md).
+  The rendered demo pairs a live overhead and oblique view, labels the
+  approach/grasp/lift/release stages, and keeps the initial image estimate
+  distinct from current simulation-state and contact readouts.
+- `src/visual_servo_mujoco/cooperative_pick_visual_verification.py` adds an
+  opt-in post-lift image-only check. A fixed side camera observes a visual-only
+  fiducial in the initial frame and two fresh frames during the hold. It reports
+  confirmed, not confirmed, or abstain from pixel displacement and stability;
+  it receives no MuJoCo state.
+- `src/visual_servo_mujoco/cooperative_pick_visual_validation.py` evaluates that
+  frozen image rule on matched randomized target poses under the 5 mm baseline
+  and opt-in 20 mm approach. Its CSV keeps capture-time simulator truth,
+  full-hold stability, and full-sequence collision-safe success as separate
+  columns. See the [visual-confirmation experiment](experiments/cooperative-pick-visual-confirmation.md).
+- `src/visual_servo_mujoco/visual_image_faults.py` applies controlled exposure,
+  fiducial occlusion, horizontal blur, and image-plane camera-shift faults to
+  side-camera RGB after capture. These changes do not reach the overhead
+  controller image or MuJoCo state.
+- `src/visual_servo_mujoco/cooperative_pick_visual_fault_validation.py` runs
+  frozen V3 on the same held-out poses under clean and faulted side-camera
+  images, then compares image decisions while checking physical outcomes stay
+  identical across each pose's image-only conditions.
+- `src/visual_servo_mujoco/cooperative_pick_occlusion_validation.py` tunes a
+  bounded fragment-gap tolerance on seed 39700 and evaluates the frozen value
+  on seed 39800. The optional V4 reuses V3 thresholds and frames; the default
+  V3 detector and motion path are unchanged. Its paired CSV, scorecards, and
+  illustrative clips are linked from the
+  [occlusion experiment](experiments/cooperative-pick-occlusion.md).
+- `src/visual_servo_mujoco/cooperative_pick_orthogonal_validation.py` compares
+  side-camera V3, frozen 28 px V4, and an opt-in two-view V4 candidate on a
+  fresh held-out seed block. It renders an opaque MuJoCo rail in the original
+  camera's sight line, keeps the rail and markers out of collision dynamics,
+  and audits image decisions separately from capture-time truth, hold success,
+  and full-cycle success. V3 remains the default; see the
+  [orthogonal-view experiment](experiments/cooperative-pick-orthogonal-verification.md).
+- `src/visual_servo_mujoco/cooperative_pick_material_validation.py` runs the
+  same 12 target poses across three explicit payload-body masses and three
+  pad/payload friction settings, paired with both the camera-estimate and
+  oracle target controllers. Its CSV, scorecard, and matched demos report
+  physical stable-lift, hold, and full-cycle collision outcomes separately;
+  it does not score fresh visual confirmation. The nominal mass retains the
+  original geometry-derived inertial model; off-nominal mass conditions use
+  explicit inertials and zero-density visual trim.
+  See the [mass/friction experiment](experiments/cooperative-pick-material-robustness.md).
+- `src/visual_servo_mujoco/cooperative_pick_pad_friction_validation.py` runs a
+  fresh-seed 96-trial comparison of 16 mm and 18 mm pad half-sizes at low and
+  high friction, keeping target poses, nominal payload, approach, release, and
+  controllers matched. The larger pad did not rescue any low-friction
+  `no_grasp_contact` trial; it stays experimental. Paired outcome counts,
+  collision-safety components, scorecard, and replay demos are linked from the
+  [pad/friction experiment](experiments/cooperative-pick-pad-friction-validation.md).
+- `src/visual_servo_mujoco/cooperative_pick_contact_diagnostics.py` evaluates
+  12 new poses at low/high friction with the 16 mm baseline pads and both
+  camera-estimate/oracle controllers. The trial runner attributes payload-pad
+  contacts to each finger and phase, reports simulated normal force as a
+  model-only diagnostic, and compares commanded versus measured slide position
+  during closure. The 0/12 low-friction hold score hides transient contact
+  during closing/early lift; follow-up evidence finds no pad contact in the
+  loaded hold. See the [contact-retention experiment](experiments/cooperative-pick-contact-diagnostics.md).
+- `scripts/generate_cooperative_pick_orthogonal_demos.py` replays one counted
+  occlusion-recovery example and one counted false-confirmation rejection as
+  paired-camera MP4/GIF demonstrations; replays add no benchmark trials.
+- `scripts/compare_cooperative_pick_geometry.py` validates a matched-pose,
+  one-parameter geometry comparison and writes paired outcomes with Wilson
+  intervals and contact attribution. The current lowest-pad clearance probe
+  raises only the open approach target. The first held-out 30-pose split
+  improved camera-estimate results but lost one net oracle success; an
+  independent 60-pose split improved both conditions (52/60 to 56/60 camera,
+  53/60 to 58/60 oracle). Confidence intervals still overlap, so it remains
+  opt-in. `scripts/generate_cooperative_pick_approach_clearance_demos.py`
+  replays a logged fail/pass pair as synchronized individual and side-by-side
+  clips. The overhead stream is live for display; only its first frame guides
+  the motion.
 - `src/visual_servo_mujoco/benchmark.py` runs paired seeds across controllers
   and stress conditions, then writes the JSON summary.
 - `src/visual_servo_mujoco/perception_appearance_benchmark.py` measures the

@@ -1,0 +1,168 @@
+{
+  "experiment": "camera-guided cooperative pick pose validation",
+  "evidence_type": "paired randomized MuJoCo simulation; not hardware evidence",
+  "target_sampling": {
+    "distribution": "independent uniform XY samples in a square",
+    "x_range_m": [
+      -0.09,
+      0.09
+    ],
+    "y_range_m": [
+      -0.09,
+      0.09
+    ],
+    "seeds": 3,
+    "samples_per_seed": 10,
+    "base_seed": 28100,
+    "unique_target_positions": 30
+  },
+  "camera_pipeline": {
+    "detector": "unchanged default red HSV contour detector from run.py",
+    "projection": "shared pixel_to_table_xy pinhole helper from controller.py",
+    "camera_height_m": 2.0,
+    "target_marker_height_m": 0.307,
+    "vertical_fov_deg": 40.0,
+    "image_size_px": [
+      640,
+      480
+    ],
+    "recalibration_or_distortion": "none; ideal fixed top-down calibration"
+  },
+  "task_success_definition": {
+    "physical_stable_lift_success": "free payload remains at least 7 cm above start for 1.6 s, has at least three finger-pad contacts, stays within 5 degrees tilt, respects 1 mm inter-arm penetration limit, and has no unexpected arm contacts",
+    "fresh_visual_confirmation": "not measured by this experiment"
+  },
+  "conditions": [
+    {
+      "controller": "camera_estimate",
+      "trials": 30,
+      "physical_stable_lift_successes": 0,
+      "physical_stable_lift_success_rate": 0.0,
+      "target_detection_rate": 1.0,
+      "median_initial_target_projection_error_cm": 0.052,
+      "failure_reasons": {
+        "arm_environment_contact": 1,
+        "insufficient_lift": 2,
+        "inter_arm_collision": 1,
+        "no_grasp_contact": 5,
+        "nonfinger_payload_contact": 2,
+        "payload_tilt": 19
+      }
+    },
+    {
+      "controller": "oracle_xy",
+      "trials": 30,
+      "physical_stable_lift_successes": 5,
+      "physical_stable_lift_success_rate": 0.1667,
+      "target_detection_rate": 1.0,
+      "median_initial_target_projection_error_cm": 0.052,
+      "failure_reasons": {
+        "arm_environment_contact": 1,
+        "insufficient_lift": 2,
+        "no_grasp_contact": 6,
+        "nonfinger_payload_contact": 2,
+        "payload_tilt": 14
+      }
+    }
+  ],
+  "paired_physical_success_outcomes": {
+    "camera_success_oracle_failure": 0,
+    "camera_failure_oracle_success": 5,
+    "both_success": 0,
+    "both_failure": 25
+  },
+  "illustrative_demo_target_xy_m": [
+    -0.08,
+    0.08
+  ],
+  "illustrative_demo_selection": "Development-selected successful camera-guided run; excluded from randomized aggregate statistics.",
+  "demo_metrics": {
+    "controller": "camera_estimate",
+    "control_target_source": "detected_image_position",
+    "target_true_xy_m": [
+      -0.08,
+      0.08
+    ],
+    "target_detected": true,
+    "detected_target_pixel_xy": [
+      288.232,
+      208.239
+    ],
+    "camera_estimated_target_xy_m": [
+      -0.08028,
+      0.08026
+    ],
+    "initial_target_projection_error_m": 0.00038,
+    "physical_stable_lift_success": true,
+    "fresh_visual_confirmation": "not measured",
+    "failure_reason": "none",
+    "payload_initial_z_m": 0.24,
+    "payload_peak_z_m": 0.3453,
+    "payload_final_z_m": 0.24,
+    "peak_lift_m": 0.1053,
+    "minimum_payload_z_during_hold_m": 0.3408,
+    "minimum_finger_payload_contact_points_during_hold": 4,
+    "maximum_finger_payload_contact_points": 12,
+    "maximum_payload_tilt_during_hold_deg": 3.4,
+    "physics_steps_with_inter_arm_contact": 0,
+    "maximum_inter_arm_penetration_m": 0.0,
+    "inter_arm_penetration_limit_m": 0.001,
+    "inter_arm_contact_steps_by_phase": {},
+    "physics_steps_with_arm_table_or_ground_contact": 0,
+    "physics_steps_with_nonfinger_arm_payload_contact": 0,
+    "stable_lift_hold_duration_s": 1.6,
+    "videos": [
+      "camera_guided_cooperative_pick.mp4"
+    ]
+  },
+  "demo_oracle_diagnostic_metrics": {
+    "controller": "oracle_xy",
+    "control_target_source": "oracle_xy",
+    "target_true_xy_m": [
+      -0.08,
+      0.08
+    ],
+    "target_detected": true,
+    "detected_target_pixel_xy": [
+      288.232,
+      208.239
+    ],
+    "camera_estimated_target_xy_m": [
+      -0.08028,
+      0.08026
+    ],
+    "initial_target_projection_error_m": 0.00038,
+    "physical_stable_lift_success": true,
+    "fresh_visual_confirmation": "not measured",
+    "failure_reason": "none",
+    "payload_initial_z_m": 0.24,
+    "payload_peak_z_m": 0.3467,
+    "payload_final_z_m": 0.24,
+    "peak_lift_m": 0.1067,
+    "minimum_payload_z_during_hold_m": 0.3415,
+    "minimum_finger_payload_contact_points_during_hold": 4,
+    "maximum_finger_payload_contact_points": 12,
+    "maximum_payload_tilt_during_hold_deg": 3.16,
+    "physics_steps_with_inter_arm_contact": 0,
+    "maximum_inter_arm_penetration_m": 0.0,
+    "inter_arm_penetration_limit_m": 0.001,
+    "inter_arm_contact_steps_by_phase": {},
+    "physics_steps_with_arm_table_or_ground_contact": 0,
+    "physics_steps_with_nonfinger_arm_payload_contact": 0,
+    "stable_lift_hold_duration_s": 1.6,
+    "videos": []
+  },
+  "limitations": [
+    "The controller estimates a static target pose once at planning time; it does not servo on later images.",
+    "The camera uses ideal intrinsics and no lens distortion, noise, lighting shift, clutter, or occlusion.",
+    "The default detector is used; the opt-in circle-prior detector remains experimental and is not promoted.",
+    "The oracle condition isolates position-estimation effects and is not a deployable controller.",
+    "Physical stable-lift success is not fresh visual confirmation or real-robot performance.",
+    "Same-arm self-collision remains suppressed by the shared scene masks.",
+    "The v1 CSV rounded target coordinates to 5 decimal places; that precision is insufficient to exactly replay this contact-sensitive simulation. v2 exports retain round-trip floating-point coordinates."
+  ],
+  "trial_data": "cooperative-pick-pose-validation-v1-trials.csv",
+  "scorecard": "cooperative-pick-pose-validation-v1.svg",
+  "video": "camera_guided_cooperative_pick_v1.mp4",
+  "preview": "camera_guided_cooperative_pick_v1.gif"
+}

@@ -1,0 +1,113 @@
+{
+  "evidence_type": "illustrative same-pose replays of rows already counted in the challenge CSV",
+  "candidate_gap_tolerance_px": 28,
+  "decision_inputs": "initial side-camera RGB and two fresh side-camera RGB frames only",
+  "simulator_truth": "reported after the visual decision; not an image-verifier input",
+  "demonstrations": [
+    {
+      "case": "clean_nominal_positive",
+      "selection_note": "clean reference case",
+      "source_split": "held-out challenge",
+      "source_pair_id": "40101-009",
+      "stratum": "nominal_pad_16mm",
+      "image_condition": "clean",
+      "fault": null,
+      "target_xy_m": [
+        0.012988249611486674,
+        -0.07598504537986649
+      ],
+      "v3_decision": "confirmed",
+      "v4_decision": "confirmed",
+      "capture_time_truth_raised_and_stable": true,
+      "payload_stable_hold_success": true,
+      "strict_full_sequence_success": true,
+      "failure_reason": "none",
+      "video": "cooperative_pick_occlusion_shape_clean_nominal_positive.mp4",
+      "preview": "cooperative_pick_occlusion_shape_clean_nominal_positive.gif",
+      "additional_benchmark_trials": false
+    },
+    {
+      "case": "nominal_positive_mask",
+      "selection_note": "V4 recovered a positive rejected by V3",
+      "source_split": "held-out challenge",
+      "source_pair_id": "40101-009",
+      "stratum": "nominal_pad_16mm",
+      "image_condition": "horizontal_25_center",
+      "fault": {
+        "kind": "marker_occlusion",
+        "shape": "horizontal_band",
+        "occluded_fraction": 0.25,
+        "label": "horizontal band, 25% height, centered"
+      },
+      "target_xy_m": [
+        0.012988249611486674,
+        -0.07598504537986649
+      ],
+      "v3_decision": "not_confirmed",
+      "v4_decision": "confirmed",
+      "capture_time_truth_raised_and_stable": true,
+      "payload_stable_hold_success": true,
+      "strict_full_sequence_success": true,
+      "failure_reason": "none",
+      "video": "cooperative_pick_occlusion_shape_nominal_positive_mask.mp4",
+      "preview": "cooperative_pick_occlusion_shape_nominal_positive_mask.gif",
+      "additional_benchmark_trials": false
+    },
+    {
+      "case": "hard_negative_clean_false_confirm",
+      "selection_note": "retained V3/V4 clean-frame false-confirmation example",
+      "source_split": "held-out challenge",
+      "source_pair_id": "40202-009",
+      "stratum": "small_pad_14mm_hard_negative",
+      "image_condition": "clean",
+      "fault": null,
+      "target_xy_m": [
+        0.0780231361362153,
+        -0.008218048169793555
+      ],
+      "v3_decision": "confirmed",
+      "v4_decision": "confirmed",
+      "capture_time_truth_raised_and_stable": false,
+      "payload_stable_hold_success": false,
+      "strict_full_sequence_success": false,
+      "failure_reason": "payload_tilt",
+      "video": "cooperative_pick_occlusion_shape_hard_negative_clean_false_confirm.mp4",
+      "preview": "cooperative_pick_occlusion_shape_hard_negative_clean_false_confirm.gif",
+      "additional_benchmark_trials": false
+    },
+    {
+      "case": "hard_negative_occlusion_false_confirm",
+      "selection_note": "retained masked V4 false-confirmation example",
+      "source_split": "held-out challenge",
+      "source_pair_id": "40202-009",
+      "stratum": "small_pad_14mm_hard_negative",
+      "image_condition": "horizontal_75_center",
+      "fault": {
+        "kind": "marker_occlusion",
+        "shape": "horizontal_band",
+        "occluded_fraction": 0.75,
+        "label": "horizontal band, 75% height, centered"
+      },
+      "target_xy_m": [
+        0.0780231361362153,
+        -0.008218048169793555
+      ],
+      "v3_decision": "confirmed",
+      "v4_decision": "confirmed",
+      "capture_time_truth_raised_and_stable": false,
+      "payload_stable_hold_success": false,
+      "strict_full_sequence_success": false,
+      "failure_reason": "payload_tilt",
+      "video": "cooperative_pick_occlusion_shape_hard_negative_occlusion_false_confirm.mp4",
+      "preview": "cooperative_pick_occlusion_shape_hard_negative_occlusion_false_confirm.gif",
+      "additional_benchmark_trials": false
+    }
+  ],
+  "limitations": [
+    "Image masks are synthetic, gray, and aligned to the detected marker bounding box; they are not rendered physical occluders.",
+    "The 14 mm pad stratum is an intentionally failure-prone negative-control geometry; stratum prevalence does not estimate deployment prevalence.",
+    "The ideal magenta fiducial, fixed camera, lighting, and renderer do not model real sensor noise, object clutter, or moving occluders.",
+    "Positive and negative labels describe raised-and-stable state at two capture instants, not continuous hold or safe release.",
+    "V4 remains opt-in; this challenge does not change the default V3 decision path."
+  ]
+}

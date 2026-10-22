@@ -40,6 +40,17 @@ visual-servo-motion-envelope-benchmark = "visual_servo_mujoco.motion_envelope_be
 visual-servo-conditional-uncertainty-benchmark = "visual_servo_mujoco.conditional_uncertainty_benchmark:main"
 visual-servo-perception-appearance-benchmark = "visual_servo_mujoco.perception_appearance_benchmark:main"
 visual-servo-perception-candidate-validation = "visual_servo_mujoco.perception_candidate_validation:main"
+visual-servo-cooperative-pick = "visual_servo_mujoco.cooperative_pick_demo:main"
+visual-servo-camera-guided-cooperative-pick = "visual_servo_mujoco.camera_guided_cooperative_pick:main"
+visual-servo-cooperative-pick-visual-validation = "visual_servo_mujoco.cooperative_pick_visual_validation:main"
+visual-servo-cooperative-pick-visual-fault-validation = "visual_servo_mujoco.cooperative_pick_visual_fault_validation:main"
+visual-servo-cooperative-pick-occlusion-validation = "visual_servo_mujoco.cooperative_pick_occlusion_validation:main"
+visual-servo-cooperative-pick-occlusion-challenge = "visual_servo_mujoco.cooperative_pick_occlusion_challenge:main"
+visual-servo-cooperative-pick-orthogonal-validation = "visual_servo_mujoco.cooperative_pick_orthogonal_validation:main"
+visual-servo-cooperative-pick-material-validation = "visual_servo_mujoco.cooperative_pick_material_validation:main"
+visual-servo-cooperative-pick-pad-friction-validation = "visual_servo_mujoco.cooperative_pick_pad_friction_validation:main"
+visual-servo-cooperative-pick-contact-diagnostics = "visual_servo_mujoco.cooperative_pick_contact_diagnostics:main"
+visual-servo-cooperative-pick-retention-diagnostics = "visual_servo_mujoco.cooperative_pick_retention_diagnostics:main"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

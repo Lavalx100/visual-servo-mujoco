@@ -1,0 +1,424 @@
+{
+  "artifacts": {
+    "demo_metadata": "cooperative_pick_pad_friction_demo.json",
+    "demo_preview": "cooperative_pick_pad_friction_matched.gif",
+    "demo_video": "cooperative_pick_pad_friction_matched.mp4",
+    "scorecard_svg": "cooperative-pick-pad-friction-scorecard.svg",
+    "trials_csv": "cooperative-pick-pad-friction-trials.csv"
+  },
+  "conditions": {
+    "friction-0.5": {
+      "controllers": {
+        "camera_estimate": {
+          "pad_half_size_m_0.016": {
+            "failure_reasons": {
+              "no_grasp_contact": 12
+            },
+            "fresh_visual_confirmation": "not measured",
+            "full_sequence_collision_safe": {
+              "rate": 0.5,
+              "successes": 6,
+              "wilson_95_interval": [
+                0.2538,
+                0.7462
+              ]
+            },
+            "payload_stable_lift_success": {
+              "rate": 0.0,
+              "successes": 0,
+              "wilson_95_interval": [
+                0.0,
+                0.2425
+              ]
+            },
+            "physical_stable_lift_success": {
+              "rate": 0.0,
+              "successes": 0,
+              "wilson_95_interval": [
+                0.0,
+                0.2425
+              ]
+            },
+            "trials": 12
+          },
+          "pad_half_size_m_0.018": {
+            "failure_reasons": {
+              "no_grasp_contact": 12
+            },
+            "fresh_visual_confirmation": "not measured",
+            "full_sequence_collision_safe": {
+              "rate": 0.4167,
+              "successes": 5,
+              "wilson_95_interval": [
+                0.1933,
+                0.6805
+              ]
+            },
+            "payload_stable_lift_success": {
+              "rate": 0.0,
+              "successes": 0,
+              "wilson_95_interval": [
+                0.0,
+                0.2425
+              ]
+            },
+            "physical_stable_lift_success": {
+              "rate": 0.0,
+              "successes": 0,
+              "wilson_95_interval": [
+                0.0,
+                0.2425
+              ]
+            },
+            "trials": 12
+          }
+        },
+        "oracle_xy": {
+          "pad_half_size_m_0.016": {
+            "failure_reasons": {
+              "no_grasp_contact": 12
+            },
+            "fresh_visual_confirmation": "not measured",
+            "full_sequence_collision_safe": {
+              "rate": 0.4167,
+              "successes": 5,
+              "wilson_95_interval": [
+                0.1933,
+                0.6805
+              ]
+            },
+            "payload_stable_lift_success": {
+              "rate": 0.0,
+              "successes": 0,
+              "wilson_95_interval": [
+                0.0,
+                0.2425
+              ]
+            },
+            "physical_stable_lift_success": {
+              "rate": 0.0,
+              "successes": 0,
+              "wilson_95_interval": [
+                0.0,
+                0.2425
+              ]
+            },
+            "trials": 12
+          },
+          "pad_half_size_m_0.018": {
+            "failure_reasons": {
+              "no_grasp_contact": 12
+            },
+            "fresh_visual_confirmation": "not measured",
+            "full_sequence_collision_safe": {
+              "rate": 0.25,
+              "successes": 3,
+              "wilson_95_interval": [
+                0.0889,
+                0.5323
+              ]
+            },
+            "payload_stable_lift_success": {
+              "rate": 0.0,
+              "successes": 0,
+              "wilson_95_interval": [
+                0.0,
+                0.2425
+              ]
+            },
+            "physical_stable_lift_success": {
+              "rate": 0.0,
+              "successes": 0,
+              "wilson_95_interval": [
+                0.0,
+                0.2425
+              ]
+            },
+            "trials": 12
+          }
+        }
+      },
+      "finger_pad_and_payload_sliding_friction": 0.5,
+      "payload_body_mass_kg": 0.7201166534540158,
+      "trials_per_pad_and_controller": 12
+    },
+    "friction-2.2": {
+      "controllers": {
+        "camera_estimate": {
+          "pad_half_size_m_0.016": {
+            "failure_reasons": {
+              "none": 12
+            },
+            "fresh_visual_confirmation": "not measured",
+            "full_sequence_collision_safe": {
+              "rate": 1.0,
+              "successes": 12,
+              "wilson_95_interval": [
+                0.7575,
+                1.0
+              ]
+            },
+            "payload_stable_lift_success": {
+              "rate": 1.0,
+              "successes": 12,
+              "wilson_95_interval": [
+                0.7575,
+                1.0
+              ]
+            },
+            "physical_stable_lift_success": {
+              "rate": 1.0,
+              "successes": 12,
+              "wilson_95_interval": [
+                0.7575,
+                1.0
+              ]
+            },
+            "trials": 12
+          },
+          "pad_half_size_m_0.018": {
+            "failure_reasons": {
+              "none": 12
+            },
+            "fresh_visual_confirmation": "not measured",
+            "full_sequence_collision_safe": {
+              "rate": 1.0,
+              "successes": 12,
+              "wilson_95_interval": [
+                0.7575,
+                1.0
+              ]
+            },
+            "payload_stable_lift_success": {
+              "rate": 1.0,
+              "successes": 12,
+              "wilson_95_interval": [
+                0.7575,
+                1.0
+              ]
+            },
+            "physical_stable_lift_success": {
+              "rate": 1.0,
+              "successes": 12,
+              "wilson_95_interval": [
+                0.7575,
+                1.0
+              ]
+            },
+            "trials": 12
+          }
+        },
+        "oracle_xy": {
+          "pad_half_size_m_0.016": {
+            "failure_reasons": {
+              "none": 12
+            },
+            "fresh_visual_confirmation": "not measured",
+            "full_sequence_collision_safe": {
+              "rate": 1.0,
+              "successes": 12,
+              "wilson_95_interval": [
+                0.7575,
+                1.0
+              ]
+            },
+            "payload_stable_lift_success": {
+              "rate": 1.0,
+              "successes": 12,
+              "wilson_95_interval": [
+                0.7575,
+                1.0
+              ]
+            },
+            "physical_stable_lift_success": {
+              "rate": 1.0,
+              "successes": 12,
+              "wilson_95_interval": [
+                0.7575,
+                1.0
+              ]
+            },
+            "trials": 12
+          },
+          "pad_half_size_m_0.018": {
+            "failure_reasons": {
+              "none": 12
+            },
+            "fresh_visual_confirmation": "not measured",
+            "full_sequence_collision_safe": {
+              "rate": 1.0,
+              "successes": 12,
+              "wilson_95_interval": [
+                0.7575,
+                1.0
+              ]
+            },
+            "payload_stable_lift_success": {
+              "rate": 1.0,
+              "successes": 12,
+              "wilson_95_interval": [
+                0.7575,
+                1.0
+              ]
+            },
+            "physical_stable_lift_success": {
+              "rate": 1.0,
+              "successes": 12,
+              "wilson_95_interval": [
+                0.7575,
+                1.0
+              ]
+            },
+            "trials": 12
+          }
+        }
+      },
+      "finger_pad_and_payload_sliding_friction": 2.2,
+      "payload_body_mass_kg": 0.7201166534540158,
+      "trials_per_pad_and_controller": 12
+    }
+  },
+  "controllers": [
+    "camera_estimate",
+    "oracle_xy"
+  ],
+  "demos": {
+    "benchmark_trials": "replays are not additional trials",
+    "composite_preview": "cooperative_pick_pad_friction_matched.gif",
+    "composite_video": "cooperative_pick_pad_friction_matched.mp4",
+    "fresh_visual_confirmation": "not measured",
+    "purpose": "four-way replay at one held-out pose comparing 16 mm and 18 mm pad half-sizes under low and high friction",
+    "replays": [
+      {
+        "controller": "camera_estimate",
+        "counted_as_additional_benchmark_trial": false,
+        "finger_pad_half_size_m": 0.016,
+        "finger_pad_sliding_friction": 0.5,
+        "fresh_visual_confirmation": "not measured",
+        "full_sequence_collision_safe": false,
+        "payload_body_mass_kg": 0.7201166534540158,
+        "payload_stable_lift_success": false,
+        "physical_stable_lift_success": false,
+        "source_pair_id": "40900-000",
+        "video": "cooperative_pick_pad_friction_mu_0.5_pad_16mm.mp4"
+      },
+      {
+        "controller": "camera_estimate",
+        "counted_as_additional_benchmark_trial": false,
+        "finger_pad_half_size_m": 0.018,
+        "finger_pad_sliding_friction": 0.5,
+        "fresh_visual_confirmation": "not measured",
+        "full_sequence_collision_safe": true,
+        "payload_body_mass_kg": 0.7201166534540158,
+        "payload_stable_lift_success": false,
+        "physical_stable_lift_success": false,
+        "source_pair_id": "40900-000",
+        "video": "cooperative_pick_pad_friction_mu_0.5_pad_18mm.mp4"
+      },
+      {
+        "controller": "camera_estimate",
+        "counted_as_additional_benchmark_trial": false,
+        "finger_pad_half_size_m": 0.016,
+        "finger_pad_sliding_friction": 2.2,
+        "fresh_visual_confirmation": "not measured",
+        "full_sequence_collision_safe": true,
+        "payload_body_mass_kg": 0.7201166534540158,
+        "payload_stable_lift_success": true,
+        "physical_stable_lift_success": true,
+        "source_pair_id": "40900-000",
+        "video": "cooperative_pick_pad_friction_mu_2.2_pad_16mm.mp4"
+      },
+      {
+        "controller": "camera_estimate",
+        "counted_as_additional_benchmark_trial": false,
+        "finger_pad_half_size_m": 0.018,
+        "finger_pad_sliding_friction": 2.2,
+        "fresh_visual_confirmation": "not measured",
+        "full_sequence_collision_safe": true,
+        "payload_body_mass_kg": 0.7201166534540158,
+        "payload_stable_lift_success": true,
+        "physical_stable_lift_success": true,
+        "source_pair_id": "40900-000",
+        "video": "cooperative_pick_pad_friction_mu_2.2_pad_18mm.mp4"
+      }
+    ],
+    "selection_rule": "prefer a camera-estimate low-friction pair where only the candidate succeeds; otherwise show the first discordant pair, else the first pair",
+    "source_pair_id": "40900-000"
+  },
+  "evidence_type": "paired MuJoCo simulation; not hardware evidence",
+  "experiment": "held-out paired finger-pad geometry test under grasp-friction stress",
+  "fresh_visual_confirmation": "not measured; physical stable-lift outcomes do not imply visual confirmation",
+  "frozen_settings": {
+    "baseline_pad_half_size_m": 0.016,
+    "candidate_pad_half_size_m": 0.018,
+    "lowest_approach_tool_height_offset_m": 0.02,
+    "payload_body_mass_kg": 0.7201166534540158,
+    "release_profile": "clearance"
+  },
+  "limitations": [
+    "The 18 mm candidate was identified during prior exploratory work; this independent seed evaluates it but is not a preregistered hardware study.",
+    "Only pad size changes in this comparison; friction, nominal payload mass, target poses, approach, release, and controller are held fixed within each pair.",
+    "The two chosen friction values are synthetic stress points, not calibrated contact properties.",
+    "Twelve poses provide a screening result, not a precise reliability estimate.",
+    "The oracle controller is a diagnostic upper bound and does not represent camera-based deployment.",
+    "The benchmark measures physical hold and collision outcomes, not fresh visual confirmation or real-robot performance."
+  ],
+  "paired_design": "same target pose for each pad size, friction level, and camera-estimate/oracle controller",
+  "paired_success_outcomes": {
+    "friction-0.5": {
+      "camera_estimate": {
+        "baseline_only_success": 0,
+        "both_failure": 12,
+        "both_success": 0,
+        "candidate_only_success": 0
+      },
+      "oracle_xy": {
+        "baseline_only_success": 0,
+        "both_failure": 12,
+        "both_success": 0,
+        "candidate_only_success": 0
+      }
+    },
+    "friction-2.2": {
+      "camera_estimate": {
+        "baseline_only_success": 0,
+        "both_failure": 0,
+        "both_success": 12,
+        "candidate_only_success": 0
+      },
+      "oracle_xy": {
+        "baseline_only_success": 0,
+        "both_failure": 0,
+        "both_success": 12,
+        "candidate_only_success": 0
+      }
+    }
+  },
+  "protocol_version": 1,
+  "target_sampling": {
+    "base_seed": 40900,
+    "distribution": "independent uniform XY samples in a square",
+    "samples_per_seed": 12,
+    "unique_target_poses": 12,
+    "x_range_m": [
+      -0.09,
+      0.09
+    ],
+    "y_range_m": [
+      -0.09,
+      0.09
+    ]
+  },
+  "total_physics_trials": 96,
+  "varied_settings": {
+    "finger_pad_and_payload_sliding_friction": [
+      0.5,
+      2.2
+    ],
+    "finger_pad_half_size_m": [
+      0.016,
+      0.018
+    ],
+    "interpretation": "synthetic simulator friction values, not measurements for a physical gripper or object"
+  }
+}

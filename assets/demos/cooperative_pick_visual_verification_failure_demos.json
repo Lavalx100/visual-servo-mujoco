@@ -1,0 +1,95 @@
+{
+  "evidence_type": "illustrative development-error replays; each pose remains counted only in its original dataset",
+  "cases": [
+    {
+      "evidence_type": "illustrative replay of a previously counted classifier failure; not new benchmark data",
+      "case": "tilted_no_grasp",
+      "source_pair_id": "39100-004",
+      "source_table": "results/cooperative-pick-visual-confirmation-v0-heldout/cooperative-pick-visual-confirmation-trials.csv",
+      "target_xy_m": [
+        -0.06681083560307428,
+        -0.006175014423088489
+      ],
+      "controller": "camera_estimate",
+      "approach_offset_m": 0.005,
+      "release_profile": "clearance",
+      "image_decisions_on_replay": {
+        "V0_translation_only": "confirmed",
+        "V1_orientation_gate": "not_confirmed",
+        "V2_orientation_plus_50px_rise": "not_confirmed",
+        "V3_tighter_orientation_gate": "not_confirmed"
+      },
+      "physical_failure_reason": "no_grasp_contact",
+      "capture_time_truth": false,
+      "payload_stable_hold_success": false,
+      "strict_full_sequence_success": false,
+      "capture_tilt_deg": [
+        17.905,
+        21.57
+      ],
+      "capture_lift_m": [
+        0.089147,
+        0.08702
+      ],
+      "videos": [
+        "cooperative_pick_verification_false_tilt.mp4"
+      ],
+      "previews": [
+        "cooperative_pick_verification_false_tilt.gif"
+      ]
+    },
+    {
+      "evidence_type": "illustrative replay of a previously counted classifier failure; not new benchmark data",
+      "case": "under_lift",
+      "source_pair_id": "39200-018",
+      "source_table": "results/cooperative-pick-visual-confirmation-development/cooperative-pick-visual-confirmation-trials.csv",
+      "target_xy_m": [
+        -0.06803508759160294,
+        -0.025258624021874856
+      ],
+      "controller": "camera_estimate",
+      "approach_offset_m": 0.005,
+      "release_profile": "clearance",
+      "image_decisions_on_replay": {
+        "V0_translation_only": "confirmed",
+        "V1_orientation_gate": "confirmed",
+        "V2_orientation_plus_50px_rise": "not_confirmed",
+        "V3_tighter_orientation_gate": "not_confirmed"
+      },
+      "physical_failure_reason": "insufficient_lift",
+      "capture_time_truth": false,
+      "payload_stable_hold_success": false,
+      "strict_full_sequence_success": false,
+      "capture_tilt_deg": [
+        3.802,
+        4.697
+      ],
+      "capture_lift_m": [
+        0.070102,
+        0.068227
+      ],
+      "videos": [
+        "cooperative_pick_verification_false_underlift.mp4"
+      ],
+      "previews": [
+        "cooperative_pick_verification_false_underlift.gif"
+      ]
+    }
+  ],
+  "visual_verification": {
+    "frame_times_s": [
+      0.0,
+      8.4,
+      8.8
+    ],
+    "V0": "35 px rise and 12 px inter-frame drift",
+    "V1": "V0 plus no more than 12 degrees fiducial rotation",
+    "V2": "V1 with at least 50 px rise in both fresh frames",
+    "V3": "V2 plus no more than 4 degrees fiducial rotation",
+    "simulator_state_is_not_an_input_to_any_image_decision": true
+  },
+  "limitations": [
+    "Both clips replay selected failures from development or the first validation and are not new evaluation trials.",
+    "The side camera, fiducial, image conditions, and physics are synthetic."
+  ]
+}

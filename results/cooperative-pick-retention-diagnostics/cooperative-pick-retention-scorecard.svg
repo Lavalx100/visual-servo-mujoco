@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="650" viewBox="0 0 1180 650">
+<rect width="100%" height="100%" fill="#0b1220"/>
+<style>text{font-family:Arial,Helvetica,sans-serif}.title{fill:#f3f6fb}.muted{fill:#a9b6c8}.blue{fill:#73b7ff}.green{fill:#68dfb3}.orange{fill:#ffbd72}</style>
+<text x="38" y="48" class="title" font-size="27" font-weight="700">What moves when low-friction contact is lost?</text>
+<text x="38" y="80" class="muted" font-size="14">12 new target poses · paired camera/oracle controllers · 16 mm pads · nominal payload</text>
+<text x="38" y="108" class="muted" font-size="13">Loaded-hold contact, payload drift relative to each hand, and actuator tracking are measured separately.</text>
+<text x="45" y="132" class="blue" font-size="20" font-weight="700">μ = 0.5</text>
+<text x="45" y="150" class="title" font-size="16" font-weight="700">Camera estimate · stable lift 0/12</text>
+<text x="45" y="179" class="muted" font-size="13">Median max downward payload drift in hand frame · 0–240 mm</text>
+<rect x="45" y="189" width="470" height="24" rx="6" fill="#253343"/>
+<rect x="45" y="189" width="306.0" height="24" rx="6" fill="#ffbd72"/>
+<text x="525" y="206" class="title" font-size="13">156.3 mm</text>
+<text x="45" y="241" class="green" font-size="13">hold contact fraction 0.000 · median tangential/normal 0.468</text>
+<text x="45" y="265" class="muted" font-size="13">median max finger slide-command error 21.10 mm</text>
+<text x="45" y="289" class="orange" font-size="13">full-sequence collision-safe 6/12</text>
+<text x="45" y="380" class="title" font-size="16" font-weight="700">Oracle XY diagnostic · stable lift 0/12</text>
+<text x="45" y="409" class="muted" font-size="13">Median max downward payload drift in hand frame · 0–240 mm</text>
+<rect x="45" y="419" width="470" height="24" rx="6" fill="#253343"/>
+<rect x="45" y="419" width="305.2" height="24" rx="6" fill="#ffbd72"/>
+<text x="525" y="436" class="title" font-size="13">155.9 mm</text>
+<text x="45" y="471" class="green" font-size="13">hold contact fraction 0.000 · median tangential/normal 0.470</text>
+<text x="45" y="495" class="muted" font-size="13">median max finger slide-command error 17.83 mm</text>
+<text x="45" y="519" class="orange" font-size="13">full-sequence collision-safe 7/12</text>
+<text x="620" y="132" class="blue" font-size="20" font-weight="700">μ = 2.2</text>
+<text x="620" y="150" class="title" font-size="16" font-weight="700">Camera estimate · stable lift 12/12</text>
+<text x="620" y="179" class="muted" font-size="13">Median max downward payload drift in hand frame · 0–240 mm</text>
+<rect x="620" y="189" width="470" height="24" rx="6" fill="#253343"/>
+<rect x="620" y="189" width="59.9" height="24" rx="6" fill="#ffbd72"/>
+<text x="1100" y="206" class="title" font-size="13">30.6 mm</text>
+<text x="620" y="241" class="green" font-size="13">hold contact fraction 0.702 · median tangential/normal 1.299</text>
+<text x="620" y="265" class="muted" font-size="13">median max finger slide-command error 21.46 mm</text>
+<text x="620" y="289" class="orange" font-size="13">full-sequence collision-safe 12/12</text>
+<text x="620" y="380" class="title" font-size="16" font-weight="700">Oracle XY diagnostic · stable lift 12/12</text>
+<text x="620" y="409" class="muted" font-size="13">Median max downward payload drift in hand frame · 0–240 mm</text>
+<rect x="620" y="419" width="470" height="24" rx="6" fill="#253343"/>
+<rect x="620" y="419" width="63.1" height="24" rx="6" fill="#ffbd72"/>
+<text x="1100" y="436" class="title" font-size="13">32.2 mm</text>
+<text x="620" y="471" class="green" font-size="13">hold contact fraction 0.714 · median tangential/normal 1.274</text>
+<text x="620" y="495" class="muted" font-size="13">median max finger slide-command error 21.18 mm</text>
+<text x="620" y="519" class="orange" font-size="13">full-sequence collision-safe 12/12</text>
+<text x="38" y="628" class="orange" font-size="13">Forces and motion are simulated diagnostics. Physical lift success is separate from fresh visual confirmation (not measured).</text>
+</svg>

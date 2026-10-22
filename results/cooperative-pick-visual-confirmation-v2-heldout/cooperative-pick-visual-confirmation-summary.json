@@ -1,0 +1,297 @@
+{
+  "evidence_type": "held-out MuJoCo validation of the orientation-aware image-only verifier",
+  "split": {
+    "base_seed": 39300,
+    "seeds": 3,
+    "samples_per_seed": 20,
+    "target_pose_pairs": 60,
+    "trial_count": 120,
+    "target_xy_range_m": [
+      -0.09,
+      0.09
+    ],
+    "positions_are_matched_across_conditions": true,
+    "demonstration_pose_excluded": [
+      0.03965371929578002,
+      -0.0835736804661705
+    ]
+  },
+  "conditions": {
+    "baseline_5mm": {
+      "approach_offset_m": 0.005,
+      "finger_pad_half_size_m": 0.016,
+      "release_profile": "clearance",
+      "results": {
+        "condition": "baseline_5mm",
+        "trials": 60,
+        "capture_time_ground_truth": {
+          "positive": 52,
+          "negative": 8,
+          "definition": "MuJoCo evaluation only: payload center is at least 7 cm above its start at both captures, the two heights differ by at most 15 mm, and tilt is at most 5 degrees at each capture."
+        },
+        "image_classifier": {
+          "minimum_upward_displacement_px": 50.0,
+          "maximum_interframe_drift_px": 12.0,
+          "maximum_marker_rotation_from_start_deg": 12.0,
+          "trials": 60,
+          "confirmed": 53,
+          "not_confirmed": 7,
+          "abstained": 0,
+          "true_positive": 52,
+          "false_confirmation": 1,
+          "true_negative": 7,
+          "false_nonconfirmation": 0,
+          "resolved_accuracy": 0.9833,
+          "resolved_accuracy_wilson_95": [
+            0.9114,
+            0.9971
+          ],
+          "confirmation_precision": 0.9811,
+          "confirmation_precision_wilson_95": [
+            0.9006,
+            0.9967
+          ],
+          "positive_recall_including_abstentions": 1.0,
+          "positive_recall_wilson_95": [
+            0.9312,
+            1.0
+          ],
+          "negative_specificity_including_abstentions": 0.875,
+          "negative_specificity_wilson_95": [
+            0.5291,
+            0.9776
+          ],
+          "coverage": 1.0,
+          "coverage_wilson_95": [
+            0.9398,
+            1.0
+          ]
+        },
+        "translation_only_baseline": {
+          "trials": 60,
+          "confirmed": 53,
+          "not_confirmed": 7,
+          "abstained": 0,
+          "true_positive": 52,
+          "false_confirmation": 1,
+          "true_negative": 7,
+          "false_nonconfirmation": 0,
+          "resolved_accuracy": 0.9833,
+          "resolved_accuracy_wilson_95": [
+            0.9114,
+            0.9971
+          ],
+          "confirmation_precision": 0.9811,
+          "confirmation_precision_wilson_95": [
+            0.9006,
+            0.9967
+          ],
+          "positive_recall_including_abstentions": 1.0,
+          "positive_recall_wilson_95": [
+            0.9312,
+            1.0
+          ],
+          "negative_specificity_including_abstentions": 0.875,
+          "negative_specificity_wilson_95": [
+            0.5291,
+            0.9776
+          ],
+          "coverage": 1.0,
+          "coverage_wilson_95": [
+            0.9398,
+            1.0
+          ]
+        },
+        "orientation_only_baseline": {
+          "trials": 60,
+          "confirmed": 53,
+          "not_confirmed": 7,
+          "abstained": 0,
+          "true_positive": 52,
+          "false_confirmation": 1,
+          "true_negative": 7,
+          "false_nonconfirmation": 0,
+          "resolved_accuracy": 0.9833,
+          "resolved_accuracy_wilson_95": [
+            0.9114,
+            0.9971
+          ],
+          "confirmation_precision": 0.9811,
+          "confirmation_precision_wilson_95": [
+            0.9006,
+            0.9967
+          ],
+          "positive_recall_including_abstentions": 1.0,
+          "positive_recall_wilson_95": [
+            0.9312,
+            1.0
+          ],
+          "negative_specificity_including_abstentions": 0.875,
+          "negative_specificity_wilson_95": [
+            0.5291,
+            0.9776
+          ],
+          "coverage": 1.0,
+          "coverage_wilson_95": [
+            0.9398,
+            1.0
+          ]
+        },
+        "physical_outcomes": {
+          "payload_stable_hold_successes": 52,
+          "payload_stable_hold_rate": 0.8667,
+          "strict_full_sequence_successes": 52,
+          "strict_full_sequence_rate": 0.8667,
+          "full_sequence_collision_safe_trials": 52
+        }
+      }
+    },
+    "experimental_20mm": {
+      "approach_offset_m": 0.02,
+      "finger_pad_half_size_m": 0.016,
+      "release_profile": "clearance",
+      "results": {
+        "condition": "experimental_20mm",
+        "trials": 60,
+        "capture_time_ground_truth": {
+          "positive": 60,
+          "negative": 0,
+          "definition": "MuJoCo evaluation only: payload center is at least 7 cm above its start at both captures, the two heights differ by at most 15 mm, and tilt is at most 5 degrees at each capture."
+        },
+        "image_classifier": {
+          "minimum_upward_displacement_px": 50.0,
+          "maximum_interframe_drift_px": 12.0,
+          "maximum_marker_rotation_from_start_deg": 12.0,
+          "trials": 60,
+          "confirmed": 60,
+          "not_confirmed": 0,
+          "abstained": 0,
+          "true_positive": 60,
+          "false_confirmation": 0,
+          "true_negative": 0,
+          "false_nonconfirmation": 0,
+          "resolved_accuracy": 1.0,
+          "resolved_accuracy_wilson_95": [
+            0.9398,
+            1.0
+          ],
+          "confirmation_precision": 1.0,
+          "confirmation_precision_wilson_95": [
+            0.9398,
+            1.0
+          ],
+          "positive_recall_including_abstentions": 1.0,
+          "positive_recall_wilson_95": [
+            0.9398,
+            1.0
+          ],
+          "negative_specificity_including_abstentions": null,
+          "negative_specificity_wilson_95": null,
+          "coverage": 1.0,
+          "coverage_wilson_95": [
+            0.9398,
+            1.0
+          ]
+        },
+        "translation_only_baseline": {
+          "trials": 60,
+          "confirmed": 60,
+          "not_confirmed": 0,
+          "abstained": 0,
+          "true_positive": 60,
+          "false_confirmation": 0,
+          "true_negative": 0,
+          "false_nonconfirmation": 0,
+          "resolved_accuracy": 1.0,
+          "resolved_accuracy_wilson_95": [
+            0.9398,
+            1.0
+          ],
+          "confirmation_precision": 1.0,
+          "confirmation_precision_wilson_95": [
+            0.9398,
+            1.0
+          ],
+          "positive_recall_including_abstentions": 1.0,
+          "positive_recall_wilson_95": [
+            0.9398,
+            1.0
+          ],
+          "negative_specificity_including_abstentions": null,
+          "negative_specificity_wilson_95": null,
+          "coverage": 1.0,
+          "coverage_wilson_95": [
+            0.9398,
+            1.0
+          ]
+        },
+        "orientation_only_baseline": {
+          "trials": 60,
+          "confirmed": 60,
+          "not_confirmed": 0,
+          "abstained": 0,
+          "true_positive": 60,
+          "false_confirmation": 0,
+          "true_negative": 0,
+          "false_nonconfirmation": 0,
+          "resolved_accuracy": 1.0,
+          "resolved_accuracy_wilson_95": [
+            0.9398,
+            1.0
+          ],
+          "confirmation_precision": 1.0,
+          "confirmation_precision_wilson_95": [
+            0.9398,
+            1.0
+          ],
+          "positive_recall_including_abstentions": 1.0,
+          "positive_recall_wilson_95": [
+            0.9398,
+            1.0
+          ],
+          "negative_specificity_including_abstentions": null,
+          "negative_specificity_wilson_95": null,
+          "coverage": 1.0,
+          "coverage_wilson_95": [
+            0.9398,
+            1.0
+          ]
+        },
+        "physical_outcomes": {
+          "payload_stable_hold_successes": 59,
+          "payload_stable_hold_rate": 0.9833,
+          "strict_full_sequence_successes": 58,
+          "strict_full_sequence_rate": 0.9667,
+          "full_sequence_collision_safe_trials": 58
+        }
+      }
+    }
+  },
+  "image_verifier": {
+    "decision_inputs": "initial side RGB and two fresh side RGB frames only",
+    "capture_times_s": [
+      8.4,
+      8.8
+    ],
+    "minimum_upward_displacement_px": 35.0,
+    "orientation_aware_minimum_upward_displacement_px": 50.0,
+    "maximum_interframe_drift_px": 12.0,
+    "maximum_marker_rotation_from_start_deg": 12.0,
+    "ablations": {
+      "translation_only_v0": "35 px minimum rise and 12 px maximum drift",
+      "orientation_only_v1": "35 px minimum rise, 12 px maximum drift, 12 degree maximum marker rotation",
+      "orientation_and_rise_v2": "50 px minimum rise, 12 px maximum drift, 12 degree maximum marker rotation"
+    },
+    "thresholds_frozen_before_validation_split": true,
+    "capture_time_truth_is_simulator_evaluation_only": true,
+    "truth_available_to_image_decision": false
+  },
+  "limitations": [
+    "Synthetic fixed MuJoCo side camera and a visual-only payload fiducial; no physical camera, lens, exposure, motion blur, or occlusion validation.",
+    "Two fresh samples test raised-and-stable at those capture times, not continuous holding, release quality, or full-cycle collision safety.",
+    "The 20 mm approach condition is an experimental setting retained as opt-in; this experiment does not promote it to the default.",
+    "Matched poses share one simulation model and ideal calibration; Wilson intervals are descriptive and do not represent hardware generalization."
+  ],
+  "trial_data": "cooperative-pick-visual-confirmation-trials.csv",
+  "scorecard": "cooperative-pick-visual-confirmation-scorecard.svg"
+}

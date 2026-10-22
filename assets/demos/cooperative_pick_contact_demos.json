@@ -1,0 +1,30 @@
+{
+  "purpose": "same-pose camera-estimate replay comparing low and high friction with baseline 16 mm pads",
+  "source_pair_id": "41000-000",
+  "replays_are_additional_trials": false,
+  "fresh_visual_confirmation": "not measured",
+  "paired_video": "cooperative_pick_contact_friction_pair.mp4",
+  "preview": "cooperative_pick_contact_friction_pair.gif",
+  "replays": [
+    {
+      "video": "cooperative_pick_contact_low_friction.mp4",
+      "source_pair_id": "41000-000",
+      "controller": "camera_estimate",
+      "finger_pad_half_size_m": 0.016,
+      "finger_pad_sliding_friction": 0.5,
+      "physical_stable_lift_success": false,
+      "fresh_visual_confirmation": "not measured",
+      "counted_as_additional_benchmark_trial": false
+    },
+    {
+      "video": "cooperative_pick_contact_high_friction.mp4",
+      "source_pair_id": "41000-000",
+      "controller": "camera_estimate",
+      "finger_pad_half_size_m": 0.016,
+      "finger_pad_sliding_friction": 2.2,
+      "physical_stable_lift_success": true,
+      "fresh_visual_confirmation": "not measured",
+      "counted_as_additional_benchmark_trial": false
+    }
+  ]
+}

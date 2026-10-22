@@ -1,0 +1,151 @@
+{
+  "evidence_type": "held-out MuJoCo validation of the orientation-aware image-only verifier",
+  "split": {
+    "base_seed": 39200,
+    "seeds": 1,
+    "samples_per_seed": 20,
+    "target_pose_pairs": 20,
+    "trial_count": 40,
+    "target_xy_range_m": [
+      -0.09,
+      0.09
+    ],
+    "positions_are_matched_across_conditions": true,
+    "demonstration_pose_excluded": [
+      0.03965371929578002,
+      -0.0835736804661705
+    ]
+  },
+  "conditions": {
+    "baseline_5mm": {
+      "approach_offset_m": 0.005,
+      "finger_pad_half_size_m": 0.016,
+      "release_profile": "clearance",
+      "results": {
+        "condition": "baseline_5mm",
+        "trials": 20,
+        "capture_time_ground_truth": {
+          "positive": 19,
+          "negative": 1,
+          "definition": "MuJoCo evaluation only: payload center is at least 7 cm above its start at both captures, the two heights differ by at most 15 mm, and tilt is at most 5 degrees at each capture."
+        },
+        "image_classifier": {
+          "maximum_marker_rotation_from_start_deg": 12.0,
+          "confirmed": 20,
+          "not_confirmed": 0,
+          "abstained": 0,
+          "true_positive": 19,
+          "false_confirmation": 1,
+          "true_negative": 0,
+          "false_nonconfirmation": 0,
+          "resolved_accuracy": 0.95,
+          "resolved_accuracy_wilson_95": [
+            0.7639,
+            0.9911
+          ],
+          "confirmation_precision": 0.95,
+          "confirmation_precision_wilson_95": [
+            0.7639,
+            0.9911
+          ],
+          "positive_recall_including_abstentions": 1.0,
+          "positive_recall_wilson_95": [
+            0.8318,
+            1.0
+          ],
+          "negative_specificity_including_abstentions": 0.0,
+          "negative_specificity_wilson_95": [
+            0.0,
+            0.7935
+          ],
+          "coverage": 1.0,
+          "coverage_wilson_95": [
+            0.8389,
+            1.0
+          ]
+        },
+        "physical_outcomes": {
+          "payload_stable_hold_successes": 19,
+          "payload_stable_hold_rate": 0.95,
+          "strict_full_sequence_successes": 19,
+          "strict_full_sequence_rate": 0.95,
+          "full_sequence_collision_safe_trials": 19
+        }
+      }
+    },
+    "experimental_20mm": {
+      "approach_offset_m": 0.02,
+      "finger_pad_half_size_m": 0.016,
+      "release_profile": "clearance",
+      "results": {
+        "condition": "experimental_20mm",
+        "trials": 20,
+        "capture_time_ground_truth": {
+          "positive": 20,
+          "negative": 0,
+          "definition": "MuJoCo evaluation only: payload center is at least 7 cm above its start at both captures, the two heights differ by at most 15 mm, and tilt is at most 5 degrees at each capture."
+        },
+        "image_classifier": {
+          "maximum_marker_rotation_from_start_deg": 12.0,
+          "confirmed": 20,
+          "not_confirmed": 0,
+          "abstained": 0,
+          "true_positive": 20,
+          "false_confirmation": 0,
+          "true_negative": 0,
+          "false_nonconfirmation": 0,
+          "resolved_accuracy": 1.0,
+          "resolved_accuracy_wilson_95": [
+            0.8389,
+            1.0
+          ],
+          "confirmation_precision": 1.0,
+          "confirmation_precision_wilson_95": [
+            0.8389,
+            1.0
+          ],
+          "positive_recall_including_abstentions": 1.0,
+          "positive_recall_wilson_95": [
+            0.8389,
+            1.0
+          ],
+          "negative_specificity_including_abstentions": null,
+          "negative_specificity_wilson_95": null,
+          "coverage": 1.0,
+          "coverage_wilson_95": [
+            0.8389,
+            1.0
+          ]
+        },
+        "physical_outcomes": {
+          "payload_stable_hold_successes": 20,
+          "payload_stable_hold_rate": 1.0,
+          "strict_full_sequence_successes": 20,
+          "strict_full_sequence_rate": 1.0,
+          "full_sequence_collision_safe_trials": 20
+        }
+      }
+    }
+  },
+  "image_verifier": {
+    "decision_inputs": "initial side RGB and two fresh side RGB frames only",
+    "capture_times_s": [
+      8.4,
+      8.8
+    ],
+    "minimum_upward_displacement_px": 35.0,
+    "maximum_interframe_drift_px": 12.0,
+    "maximum_marker_rotation_from_start_deg": 12.0,
+    "thresholds_frozen_before_validation_split": true,
+    "capture_time_truth_is_simulator_evaluation_only": true,
+    "truth_available_to_image_decision": false
+  },
+  "limitations": [
+    "Synthetic fixed MuJoCo side camera and a visual-only payload fiducial; no physical camera, lens, exposure, motion blur, or occlusion validation.",
+    "Two fresh samples test raised-and-stable at those capture times, not continuous holding, release quality, or full-cycle collision safety.",
+    "The 20 mm approach condition is an experimental setting retained as opt-in; this experiment does not promote it to the default.",
+    "Matched poses share one simulation model and ideal calibration; Wilson intervals are descriptive and do not represent hardware generalization."
+  ],
+  "trial_data": "cooperative-pick-visual-confirmation-trials.csv",
+  "scorecard": "cooperative-pick-visual-confirmation-scorecard.svg"
+}

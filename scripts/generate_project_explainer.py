@@ -5,11 +5,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from reportlab.lib.colors import HexColor, Color
+from reportlab.lib.colors import Color, HexColor
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.utils import ImageReader, simpleSplit
 from reportlab.pdfgen import canvas
-
 
 PAGE_W, PAGE_H = A4
 MARGIN = 42
@@ -157,7 +156,7 @@ def _draw_cover(c: canvas.Canvas, root: Path) -> None:
     _text(c, MARGIN, PAGE_H - 72, "ROBOTICS PORTFOLIO | PROJECT GUIDE", 9, GREEN, "Helvetica-Bold")
     _text(c, MARGIN, PAGE_H - 122, "Camera-Based", 30, WHITE, "Helvetica-Bold")
     _text(c, MARGIN, PAGE_H - 160, "Visual Servoing", 30, WHITE, "Helvetica-Bold")
-    _text(c, MARGIN, PAGE_H - 190, "A project explainer for visual-servo-mujoco", 12, MUTED)
+    _text(c, MARGIN, PAGE_H - 190, "From planar servoing to multi-arm contact", 12, MUTED)
     image_path = root / "assets" / "camera_view.png"
     image = ImageReader(str(image_path))
     image_x, image_y, image_w, image_h = MARGIN, 260, CONTENT_W, CONTENT_W * 0.75
@@ -183,7 +182,7 @@ def _draw_cover(c: canvas.Canvas, root: Path) -> None:
         _rounded(c, x, 94, w, 27, PANEL, stroke=GRID, radius=9)
         _text(c, x + 10, 103, label, 8, color, "Helvetica-Bold")
         x += w + 8
-    _text(c, MARGIN, 48, "Local work on feat/independent-benchmark-review | Updated 20 Oct 2026", 8, MUTED)
+    _text(c, MARGIN, 48, "Local work on feat/cooperative-multiarm-pick-demo | Updated 22 Oct 2026", 8, MUTED)
     c.showPage()
 
 
@@ -1994,6 +1993,1491 @@ def _draw_perception_candidate_validation(c: canvas.Canvas, repository: Path) ->
     c.showPage()
 
 
+def _draw_multiarm_integration(c: canvas.Canvas, root: Path) -> None:
+    report = json.loads(
+        (root / "results" / "cooperative-pick-pad-size-comparison.json").read_text()
+    )
+    baseline = {row["controller"]: row for row in report["baseline"]["conditions"]}
+    candidate = {row["controller"]: row for row in report["candidate"]["conditions"]}
+
+    _header(c, 22, "Multi-arm integration")
+    _title(
+        c,
+        "Connecting perception to physical contact",
+        "The tri-arm extension reuses the project's detector and camera geometry, then evaluates a real MuJoCo contact task with the same free-payload scene as the scripted baseline.",
+    )
+
+    nodes = [
+        ("01  RENDER", "Top-down MuJoCo RGB; a visual-only red marker sits above the free payload.", BLUE),
+        ("02  DETECT + PROJECT", "Unchanged detect_red_target() and pixel_to_table_xy() produce target XY.", GREEN),
+        ("03  PAIRED INPUT", "Camera estimate plans the pick. Oracle XY uses ground truth only as a diagnostic.", ORANGE),
+        ("04  PLAN THREE ARMS", "Base yaw + elbow-up 3R IK + gripper yaw reuse the shared pick phases.", BLUE),
+        ("05  CONTACT + SCORE", "Free payload, gravity, friction, and arm colliders drive lift and physical checks.", PURPLE),
+    ]
+    box_w = 94
+    box_h = 110
+    gap = (CONTENT_W - box_w * len(nodes)) / (len(nodes) - 1)
+    top = 654
+    for index, (label, body, accent) in enumerate(nodes):
+        x = MARGIN + index * (box_w + gap)
+        _rounded(c, x, top - box_h, box_w, box_h, PANEL_ALT, stroke=GRID, radius=8)
+        c.setFillColor(accent)
+        c.roundRect(x, top - 7, box_w, 7, 3, fill=1, stroke=0)
+        _paragraph(c, x + 8, top - 25, label, box_w - 16, 7.0, 8, accent, "Helvetica-Bold")
+        _paragraph(c, x + 8, top - 47, body, box_w - 16, 7.1, 9.5, MUTED)
+        if index < len(nodes) - 1:
+            _arrow(c, x + box_w + 2, top - box_h / 2, x + box_w + gap - 2, top - box_h / 2, GREEN, 1.0)
+
+    _section_label(c, MARGIN, 519, "Follow the shared code path", GREEN)
+    code_rows = [
+        ("run.py", "detect_red_target", "Existing OpenCV HSV detector returns the red marker center."),
+        ("controller.py", "pixel_to_table_xy", "Existing pinhole projection maps that pixel to tabletop XY."),
+        ("camera_guided_cooperative_pick.py", "run_trial / _set_camera_guided_arm_controls", "Pairs camera/oracle input and updates the three arm references."),
+        ("cooperative_pick_demo.py", "_arm_collision_masks / desired_pick_state", "Reuses cross-arm colliders and task phases; visual wrist adapters, palm rails, and finger shanks connect to pads, which remain the grasp surfaces."),
+    ]
+    row_y = 497
+    for index, (filename, function, detail) in enumerate(code_rows):
+        row_h = 48
+        _rounded(c, MARGIN, row_y - row_h, CONTENT_W, row_h, PANEL if index % 2 == 0 else PANEL_ALT, radius=7)
+        _text(c, MARGIN + 11, row_y - 15, filename, 7.6, BLUE, "Helvetica-Bold")
+        _right_text(c, PAGE_W - MARGIN - 11, row_y - 15, function, 6.8, GREEN, "Helvetica-Bold")
+        _paragraph(c, MARGIN + 11, row_y - 30, detail, CONTENT_W - 22, 7.3, 9, MUTED)
+        row_y -= row_h + 4
+
+    _section_label(c, MARGIN, 277, "Same-pose held-out contact-geometry comparison", ORANGE)
+    chart_x = MARGIN + 22
+    chart_w = CONTENT_W - 120
+    chart_bottom = 129
+    for condition_index, (key, label) in enumerate(
+        (("camera_estimate", "Camera estimate"), ("oracle_xy", "Oracle XY diagnostic"))
+    ):
+        y = chart_bottom + condition_index * 64
+        _text(c, MARGIN, y + 68, label, 7.3, WHITE, "Helvetica-Bold")
+        for pad_index, row in enumerate((baseline[key], candidate[key])):
+            bar_y = y + 24 + pad_index * 18
+            width = chart_w * row["physical_stable_lift_success_rate"]
+            color = BLUE if pad_index == 0 else GREEN
+            _text(c, chart_x, bar_y + 3, f"{row['pad_half_size_m'] * 1000:.0f} mm", 6.9, MUTED)
+            x = chart_x + 34
+            c.setFillColor(PANEL_ALT)
+            c.roundRect(x, bar_y, chart_w - 34, 12, 3, fill=1, stroke=0)
+            c.setFillColor(color)
+            c.roundRect(x, bar_y, max(2, width), 12, 3, fill=1, stroke=0)
+            _right_text(
+                c,
+                PAGE_W - MARGIN,
+                bar_y + 2,
+                f"{row['physical_stable_lift_successes']}/{row['trials']}  ({row['physical_stable_lift_success_rate']:.0%})",
+                7.0,
+                WHITE,
+                "Helvetica-Bold",
+            )
+
+    _callout(
+        c,
+        MARGIN,
+        56,
+        CONTENT_W,
+        78,
+        "What the result points to next",
+        "On the same 30 poses, 16 mm pads lifted in 12/30 camera trials versus 4/30 at 14 mm; detector median error stayed 0.48 mm. Yet arm-environment and nonfinger payload contacts remain common. Improve collision-aware approach and grasp reliability before changing perception. This is one-shot camera-guided planning: physical lifting is not fresh visual confirmation, and the camera is not used during the lift.",
+        ORANGE,
+        7.7,
+    )
+    c.showPage()
+
+
+def _draw_release_profile(c: canvas.Canvas, root: Path) -> None:
+    report = json.loads(
+        (root / "results" / "cooperative-pick-release-heldout-comparison.json").read_text()
+    )
+    outcomes = report["outcomes_by_condition"]
+    _header(c, 23, "Release collision study")
+    _title(
+        c,
+        "A safer release follows the measured failure",
+        "Contact attribution showed that many successful holds became strict failures during release and withdrawal. The clearance profile changes only those actuator targets, preserving the free payload and active colliders.",
+    )
+
+    nodes = [
+        ("1  IDENTIFY", "Wrist-to-payload and fingertip-to-table contacts cluster during release and withdrawal.", ORANGE),
+        ("2  CLEAR", "Raise the lowest open tool offset to 35 mm and keep tool centers at least 110 mm from the target.", GREEN),
+        ("3  REPLAY", "Gravity, friction, arm colliders, and the strict full-cycle rule remain active.", BLUE),
+    ]
+    gap = 10
+    box_w = (CONTENT_W - gap * (len(nodes) - 1)) / len(nodes)
+    for index, (label, body, color) in enumerate(nodes):
+        x = MARGIN + index * (box_w + gap)
+        _rounded(c, x, 622, box_w, 78, PANEL_ALT, stroke=GRID, radius=8)
+        _text(c, x + 11, 681, label, 8, color, "Helvetica-Bold")
+        _paragraph(c, x + 11, 661, body, box_w - 22, 7.4, 10, MUTED)
+        if index < len(nodes) - 1:
+            _arrow(c, x + box_w + 1, 659, x + box_w + gap - 1, 659, GREEN, 1.0)
+
+    _section_label(c, MARGIN, 588, "Fresh paired validation | seed 38200 | 30 poses", GREEN)
+    chart_x = MARGIN + 157
+    chart_w = 270
+    def draw_pair(y: float, title: str, metric: str, condition: str) -> None:
+        base = outcomes[condition]["baseline"][metric]["successes"]
+        candidate = outcomes[condition]["clearance"][metric]["successes"]
+        _text(c, MARGIN, y + 6, title, 7.7, WHITE, "Helvetica-Bold")
+        for index, (name, value, color) in enumerate(
+            (("base", base, BLUE), ("clear", candidate, GREEN))
+        ):
+            bar_y = y - 11 - index * 18
+            _text(c, chart_x - 41, bar_y + 2, name, 6.5, MUTED)
+            c.setFillColor(PANEL_ALT)
+            c.roundRect(chart_x, bar_y, chart_w, 10, 3, fill=1, stroke=0)
+            c.setFillColor(color)
+            c.roundRect(chart_x, bar_y, chart_w * value / 30, 10, 3, fill=1, stroke=0)
+            _right_text(c, PAGE_W - MARGIN, bar_y + 1, f"{value}/30", 7, WHITE, "Helvetica-Bold")
+
+    draw_pair(560, "Camera strict score", "physical_stable_lift_success", "camera_estimate")
+    draw_pair(490, "Oracle strict score", "physical_stable_lift_success", "oracle_xy")
+    _paragraph(
+        c,
+        MARGIN,
+        424,
+        "Payload-hold counts did not change: camera 26/30, oracle 23/30. The strict-score gains were paired: 12 camera poses and 12 oracle poses passed only under clearance; none passed only under baseline.",
+        CONTENT_W,
+        8.0,
+        11,
+        MUTED,
+    )
+
+    _section_label(c, MARGIN, 384, "Unexpected contacts by trial", ORANGE)
+    contact_text = (
+        "Camera estimate: arm-table 7 -> 2; nonfinger arm-payload 14 -> 4.  "
+        "Oracle XY: arm-table 6 -> 0; nonfinger arm-payload 18 -> 5.\n"
+        "Counts include any contact over the full trial. Remaining failures cluster in earlier grasp, lift, and lowering phases."
+    )
+    _callout(c, MARGIN, 266, CONTENT_W, 93, "What changed in the simulator", contact_text, ORANGE, 8.0)
+
+    _callout(
+        c,
+        MARGIN,
+        113,
+        CONTENT_W,
+        124,
+        "Interpretation and next work",
+        "The 35 mm and 110 mm settings were tuned after reviewing seed 38100; seed 38200 is a separate evaluation set, still only 30 poses. The selected demo pose is already in that aggregate. This measures physical contact and lift only: no new image confirms the payload after release. Broaden the evaluation and address remaining approach/lift contacts before claiming a generally reliable grasp.",
+        GREEN,
+        8.0,
+    )
+    _text(
+        c,
+        MARGIN,
+        83,
+        "Code: _apply_release_profile() and run_trial() | Evidence: results/cooperative-pick-release-heldout-comparison.json",
+        6.8,
+        MUTED,
+        "Courier",
+    )
+    c.showPage()
+
+
+def _draw_approach_clearance(c: canvas.Canvas, root: Path) -> None:
+    report = json.loads(
+        (root / "results" / "cooperative-pick-approach-clearance-comparison.json").read_text()
+    )
+    outcomes = report["outcomes_by_condition"]
+    paired = report["paired_outcomes"]
+    baseline_mm = round(report["baseline"]["lowest_approach_tool_height_offset_m"] * 1000)
+    candidate_mm = round(report["candidate"]["lowest_approach_tool_height_offset_m"] * 1000)
+    _header(c, 24, "Approach-clearance study")
+    _title(
+        c,
+        "A 15 mm lift clears the lowest open pad",
+        "Contact traces revealed a table strike during the approach. Raising only that arm's open approach target removes the modeled overlap while leaving the finger geometry and closed grasp target unchanged.",
+    )
+
+    _section_label(c, MARGIN, 690, "Read the cross-section")
+    panel_gap = 12
+    panel_width = (CONTENT_W - panel_gap) / 2
+    panel_y, panel_h = 450, 226
+    table_y = 488
+    payload_center_y = table_y + 60
+    scale = 1.0
+    for index, (title, offset_mm, candidate) in enumerate(
+        (("5 mm baseline", baseline_mm, False), ("20 mm candidate", candidate_mm, True))
+    ):
+        x = MARGIN + index * (panel_width + panel_gap)
+        _rounded(c, x, panel_y, panel_width, panel_h, PANEL, stroke=GRID, radius=10)
+        _text(c, x + 12, panel_y + panel_h - 22, title, 9.5, GREEN if candidate else BLUE, "Helvetica-Bold")
+        _text(c, x + 12, panel_y + panel_h - 38, f"tool center = payload center + {offset_mm} mm", 7.2, MUTED)
+        # Cross-section uses the actual local pad offset: its center is 50 mm
+        # below tool Z and its half-height is 16 mm.
+        tool_y = payload_center_y + offset_mm * scale
+        pad_center_y = payload_center_y + (offset_mm - 50) * scale
+        pad_bottom_y = pad_center_y - 16 * scale
+        c.setStrokeColor(Color(BLUE.red, BLUE.green, BLUE.blue, alpha=0.65))
+        c.setDash(2, 2)
+        c.line(x + 21, payload_center_y, x + panel_width - 16, payload_center_y)
+        c.setDash()
+        _rounded(c, x + 43, table_y, 46, 120, PANEL_ALT, stroke=HexColor("#496b8a"), radius=8)
+        _text(c, x + 50, payload_center_y - 3, "PAYLOAD", 5.7, MUTED, "Helvetica-Bold")
+        c.setStrokeColor(HexColor("#8D9AA8"))
+        c.setLineWidth(4)
+        c.line(x + 18, table_y, x + panel_width - 16, table_y)
+        c.setFillColor(PANEL_ALT)
+        c.rect(x + 18, table_y - 18, panel_width - 34, 17, fill=1, stroke=0)
+        _text(c, x + 21, table_y - 13, "TABLE TOP  |  z = 0.180 m", 5.8, MUTED, "Helvetica-Bold")
+        c.setFillColor(BLUE)
+        c.circle(x + 165, tool_y, 4, fill=1, stroke=0)
+        c.setStrokeColor(BLUE)
+        c.setLineWidth(2.3)
+        c.line(x + 165, tool_y - 4, x + 165, pad_center_y + 16)
+        c.setFillColor(HexColor("#CED9E5"))
+        c.setStrokeColor(WHITE)
+        c.setLineWidth(0.8)
+        c.roundRect(x + 149, pad_center_y - 16, 32, 32, 4, fill=1, stroke=1)
+        _text(c, x + 105, tool_y + 2, "tool center", 6.0, MUTED)
+        _text(c, x + 187, pad_center_y - 2, "PAD", 6.0, WHITE, "Helvetica-Bold")
+        if candidate:
+            c.setStrokeColor(GREEN)
+            c.setLineWidth(1.4)
+            c.line(x + 198, table_y, x + 198, pad_bottom_y)
+            c.line(x + 194, table_y, x + 202, table_y)
+            c.line(x + 194, pad_bottom_y, x + 202, pad_bottom_y)
+            _text(c, x + 204, (table_y + pad_bottom_y) / 2 - 2, "+14 mm", 7.4, GREEN, "Helvetica-Bold")
+            status, status_color = "14 mm TABLE CLEARANCE", GREEN
+        else:
+            c.setStrokeColor(RED)
+            c.setLineWidth(2)
+            c.line(x + 191, table_y - 5, x + 201, table_y + 5)
+            c.line(x + 191, table_y + 5, x + 201, table_y - 5)
+            status, status_color = "1 mm NOMINAL TABLE OVERLAP", RED
+        _text(c, x + 12, panel_y + 10, status, 7.2, status_color, "Helvetica-Bold")
+
+    _section_label(c, MARGIN, 426, "Exact paired held-out score | seed 38300")
+    chart_y, chart_h = 282, 132
+    _rounded(c, MARGIN, chart_y, CONTENT_W, chart_h, PANEL, stroke=GRID, radius=10)
+    sub_gap = 16
+    sub_width = (CONTENT_W - 3 * sub_gap) / 2
+    for index, (condition, label) in enumerate(
+        (("camera_estimate", "Camera estimate"), ("oracle_xy", "Oracle XY diagnostic"))
+    ):
+        x = MARGIN + sub_gap + index * (sub_width + sub_gap)
+        base = outcomes[condition]["baseline"]["physical_stable_lift_success"]
+        candidate = outcomes[condition]["candidate"]["physical_stable_lift_success"]
+        pair = paired[condition]["physical_stable_lift_success"]
+        _text(c, x, chart_y + chart_h - 21, label, 8.5, WHITE, "Helvetica-Bold")
+        for row_index, (name, value, color) in enumerate(
+            ((f"{baseline_mm} mm", base, BLUE), (f"{candidate_mm} mm", candidate, GREEN))
+        ):
+            bar_y = chart_y + chart_h - 48 - row_index * 20
+            _text(c, x, bar_y + 2, name, 6.5, MUTED)
+            bar_x = x + 40
+            bar_w = sub_width - 92
+            c.setFillColor(PANEL_ALT)
+            c.roundRect(bar_x, bar_y, bar_w, 10, 3, fill=1, stroke=0)
+            c.setFillColor(color)
+            c.roundRect(bar_x, bar_y, max(2, bar_w * value["rate"]), 10, 3, fill=1, stroke=0)
+            _right_text(c, x + sub_width - 4, bar_y + 1, f"{value['successes']}/30", 7, WHITE, "Helvetica-Bold")
+        ci = base["wilson_95_interval"], candidate["wilson_95_interval"]
+        _text(c, x, chart_y + 30, f"Wilson 95%: {ci[0][0]:.0%}-{ci[0][1]:.0%} / {ci[1][0]:.0%}-{ci[1][1]:.0%}", 6.1, MUTED)
+        _text(c, x, chart_y + 14, f"Paired: {pair['candidate_only_success']} candidate-only, {pair['baseline_only_success']} baseline-only", 6.1, GREEN if pair["candidate_only_success"] >= pair["baseline_only_success"] else ORANGE)
+
+    _section_label(c, MARGIN, 263, "Trace the result and keep the limits in view", ORANGE)
+    cards_y, cards_h = 72, 178
+    card_gap = 9
+    card_w = (CONTENT_W - 2 * card_gap) / 3
+    cards = [
+        (
+            "The paired failure",
+            "Pose 38301-003: arm0_right_pad contacts the table during lower-to-grasp and finger closure. The 5 mm run makes no stable grasp; the 20 mm replay passes the same physical score.",
+            ORANGE,
+        ),
+        (
+            "What changed",
+            "Camera score: 27/30 to 30/30, with three candidate-only wins and no baseline-only wins. Any camera-trial arm-table/ground contact falls from 2/30 to 0/30.",
+            GREEN,
+        ),
+        (
+            "What remains uncertain",
+            "Oracle score moves 28/30 to 27/30. Camera confidence intervals overlap; n=30, ideal fixed calibration, no hardware, and no fresh post-pick visual confirmation.",
+            BLUE,
+        ),
+    ]
+    for index, (heading, body, color) in enumerate(cards):
+        x = MARGIN + index * (card_w + card_gap)
+        _rounded(c, x, cards_y, card_w, cards_h, PANEL_ALT, stroke=GRID, radius=8)
+        _text(c, x + 10, cards_y + cards_h - 21, heading, 8.2, color, "Helvetica-Bold")
+        _paragraph(c, x + 10, cards_y + cards_h - 42, body, card_w - 20, 7.2, 10, MUTED)
+
+    _text(
+        c,
+        MARGIN,
+        50,
+        "Code: _tool_height_offsets() / run_trial() | Evidence: approach-clearance-comparison.json and paired.csv",
+        6.2,
+        MUTED,
+        "Courier",
+    )
+    c.showPage()
+
+
+def _draw_extended_approach_clearance(c: canvas.Canvas, root: Path) -> None:
+    report = json.loads(
+        (root / "results" / "cooperative-pick-approach-clearance-extended-comparison.json").read_text()
+    )
+    conditions = report["outcomes_by_condition"]
+    paired = report["paired_outcomes"]
+    contacts = report["contact_attribution"]
+    metadata = json.loads(
+        (root / "assets" / "demos" / "cooperative_pick_approach_clearance_extended_pair.json").read_text()
+    )
+    baseline_mm = round(report["baseline"]["lowest_approach_tool_height_offset_m"] * 1000)
+    candidate_mm = round(report["candidate"]["lowest_approach_tool_height_offset_m"] * 1000)
+
+    _header(c, 25, "Independent approach validation")
+    _title(
+        c,
+        "The gain repeats across 60 new poses",
+        "A second seed block improves both camera-guided and oracle diagnostic scores. The paired reversals and overlapping confidence intervals still argue for caution.",
+    )
+
+    panel_gap = 12
+    panel_width = (CONTENT_W - panel_gap) / 2
+    panel_y, panel_h = 466, 204
+    for index, (condition, title) in enumerate(
+        (("camera_estimate", "Camera estimate"), ("oracle_xy", "Oracle XY diagnostic"))
+    ):
+        x = MARGIN + index * (panel_width + panel_gap)
+        _rounded(c, x, panel_y, panel_width, panel_h, PANEL, stroke=GRID, radius=10)
+        _text(c, x + 12, panel_y + panel_h - 22, title, 9, WHITE, "Helvetica-Bold")
+        metric_base = conditions[condition]["baseline"]["physical_stable_lift_success"]
+        metric_candidate = conditions[condition]["candidate"]["physical_stable_lift_success"]
+        pair = paired[condition]["physical_stable_lift_success"]
+        for row_index, (name, metric, color) in enumerate(
+            ((f"{baseline_mm} mm", metric_base, BLUE), (f"{candidate_mm} mm", metric_candidate, GREEN))
+        ):
+            row_y = panel_y + panel_h - 57 - row_index * 26
+            _text(c, x + 12, row_y + 2, name, 7.2, MUTED)
+            bar_x, bar_w = x + 54, panel_width - 105
+            c.setFillColor(PANEL_ALT)
+            c.roundRect(bar_x, row_y, bar_w, 12, 3, fill=1, stroke=0)
+            c.setFillColor(color)
+            c.roundRect(bar_x, row_y, max(2, bar_w * metric["rate"]), 12, 3, fill=1, stroke=0)
+            _right_text(c, x + panel_width - 11, row_y + 2, f"{metric['successes']}/60", 7.5, WHITE, "Helvetica-Bold")
+        base_ci = metric_base["wilson_95_interval"]
+        candidate_ci = metric_candidate["wilson_95_interval"]
+        _text(
+            c,
+            x + 12,
+            panel_y + 85,
+            f"Wilson 95%: {base_ci[0]:.0%}-{base_ci[1]:.0%} vs. {candidate_ci[0]:.0%}-{candidate_ci[1]:.0%}",
+            6.3,
+            MUTED,
+        )
+        _text(
+            c,
+            x + 12,
+            panel_y + 65,
+            f"Paired wins/losses: {pair['candidate_only_success']} candidate-only / {pair['baseline_only_success']} baseline-only",
+            6.6,
+            GREEN if pair["candidate_only_success"] >= pair["baseline_only_success"] else ORANGE,
+        )
+        net = metric_candidate["successes"] - metric_base["successes"]
+        _text(
+            c,
+            x + 12,
+            panel_y + 36,
+            f"Net change: {net:+d} of 60",
+            8.5,
+            GREEN if net >= 0 else RED,
+            "Helvetica-Bold",
+        )
+
+    _section_label(c, MARGIN, 441, "Contact trials over the complete pick cycle", ORANGE)
+    contact_y, contact_h = 302, 125
+    _rounded(c, MARGIN, contact_y, CONTENT_W, contact_h, PANEL_ALT, stroke=GRID, radius=9)
+    for index, (condition, label) in enumerate(
+        (("camera_estimate", "Camera estimate"), ("oracle_xy", "Oracle XY diagnostic"))
+    ):
+        x = MARGIN + index * (CONTENT_W / 2) + 11
+        _text(c, x, contact_y + contact_h - 19, label, 7.8, WHITE, "Helvetica-Bold")
+        arm_base = contacts["baseline"][condition]["arm_environment"]["trials_with_contact"]
+        arm_candidate = contacts["candidate"][condition]["arm_environment"]["trials_with_contact"]
+        payload_base = contacts["baseline"][condition]["nonfinger_payload"]["trials_with_contact"]
+        payload_candidate = contacts["candidate"][condition]["nonfinger_payload"]["trials_with_contact"]
+        _text(c, x, contact_y + 76, f"Arm-table/ground: {arm_base}/60 → {arm_candidate}/60", 7.2, MUTED)
+        _text(c, x, contact_y + 54, f"Nonfinger arm-payload: {payload_base}/60 → {payload_candidate}/60", 7.2, MUTED)
+        _text(c, x, contact_y + 25, "Trials with any contact; categories can overlap.", 6.1, SUBTLE)
+
+    _section_label(c, MARGIN, 277, "Matched replay and interpretation", GREEN)
+    image_path = root / "assets" / "demos" / "cooperative_pick_approach_clearance_extended_contact.png"
+    image = ImageReader(str(image_path))
+    c.drawImage(image, MARGIN, 140, width=320, height=92, preserveAspectRatio=True, anchor="c", mask="auto")
+    _text(c, MARGIN, 127, f"Pose {metadata['pair_id']} | same camera-estimate target, fail → pass", 6.8, MUTED)
+    _rounded(c, MARGIN + 331, 83, CONTENT_W - 331, 160, PANEL, stroke=GRID, radius=8)
+    _text(c, MARGIN + 343, 225, "Evidence boundary", 8.2, ORANGE, "Helvetica-Bold")
+    _paragraph(
+        c,
+        MARGIN + 343,
+        207,
+        "This is a 60-pose MuJoCo split, not hardware evidence. The 4 camera baseline-only outcomes remain visible in the paired counts. Camera intrinsics are ideal and fixed; the target is detected once; fresh post-pick visual confirmation is not measured. Keep the 20 mm setting opt-in.",
+        CONTENT_W - 355,
+        7.1,
+        9.3,
+        MUTED,
+    )
+    _text(
+        c,
+        MARGIN,
+        50,
+        "Code: compare_cooperative_pick_geometry.py | Evidence: extended-comparison.json, extended-paired.csv, and paired replay metadata",
+        5.9,
+        MUTED,
+        "Courier",
+    )
+    c.showPage()
+
+
+def _draw_cooperative_pick_visual_confirmation(c: canvas.Canvas, root: Path) -> None:
+    summary = json.loads(
+        (
+            root
+            / "results"
+            / "cooperative-pick-visual-confirmation"
+            / "cooperative-pick-visual-confirmation-summary.json"
+        ).read_text()
+    )
+    conditions = summary["conditions"]
+    paired_physics = summary["paired_physical_comparison"]["outcomes"]
+    classifier_names = (
+        ("translation_only_baseline", "V0  rise + drift"),
+        ("orientation_only_baseline", "V1  + fiducial angle"),
+        ("rise_orientation_baseline", "V2  + higher rise gate"),
+        ("image_classifier", "V3  tighter angle gate"),
+    )
+    aggregate: dict[str, dict[str, int]] = {}
+    for key, _ in classifier_names:
+        aggregate[key] = {
+            field: sum(
+                condition["results"][key].get(field, 0)
+                for condition in conditions.values()
+            )
+            for field in ("trials", "true_positive", "false_confirmation", "true_negative", "false_nonconfirmation", "abstained", "confirmed", "not_confirmed")
+        }
+    total_positive = sum(
+        condition["results"]["capture_time_ground_truth"]["positive"]
+        for condition in conditions.values()
+    )
+    total_trials = sum(condition["results"]["trials"] for condition in conditions.values())
+
+    _header(c, 26, "Fresh visual verification")
+    _title(
+        c,
+        "A second view checks the cooperative lift",
+        "After the initial overhead image plans the motion, a fixed side camera takes two fresh images. The image decision and the simulator's physical audit remain separate.",
+    )
+
+    _section_label(c, MARGIN, 678, "Three RGB observations from one simulated pick", GREEN)
+    tile_gap = 10
+    tile_w = (CONTENT_W - tile_gap * 2) / 3
+    tile_y, tile_h = 545, 112
+    for index, label in enumerate(("START  |  0.0 s", "FRESH  |  8.4 s", "FRESH  |  8.8 s")):
+        x = MARGIN + index * (tile_w + tile_gap)
+        _rounded(c, x, tile_y, tile_w, tile_h, PANEL, stroke=GRID, radius=8)
+        _text(c, x + 9, tile_y + tile_h - 17, label, 7.4, WHITE, "Helvetica-Bold")
+        window_x, window_y = x + 18, tile_y + 25
+        c.setFillColor(PANEL_ALT)
+        c.roundRect(window_x, window_y, tile_w - 36, 55, 5, fill=1, stroke=0)
+        marker_x = x + tile_w / 2
+        marker_y = window_y + (14 if index == 0 else 39 if index == 1 else 37)
+        c.setFillColor(PURPLE)
+        c.roundRect(marker_x - 5, marker_y - 11, 10, 22, 2, fill=1, stroke=0)
+        c.setStrokeColor(GREEN)
+        c.setLineWidth(1.2)
+        c.line(marker_x + 14, window_y + 14, marker_x + 14, window_y + 42)
+        c.line(marker_x + 14, window_y + 42, marker_x + 10, window_y + 36)
+        c.line(marker_x + 14, window_y + 42, marker_x + 18, window_y + 36)
+        _text(c, x + 9, tile_y + 10, "magenta fiducial | image-space measurement", 6.1, MUTED)
+
+    left_x, right_x = MARGIN, MARGIN + CONTENT_W / 2 + 7
+    panel_w = CONTENT_W / 2 - 7
+    panel_y, panel_h = 308, 214
+    _rounded(c, left_x, panel_y, panel_w, panel_h, PANEL, stroke=GRID, radius=9)
+    _section_label(c, left_x + 12, panel_y + panel_h - 20, "Classifier changes on the held-out split", BLUE)
+    _text(c, left_x + 12, panel_y + panel_h - 40, "Same frames for V0 / V1 / V2 / V3", 7.5, MUTED)
+    _table(
+        c,
+        left_x + 10,
+        panel_y + panel_h - 52,
+        [100, 42, 42, 42],
+        [["Image rule", "False\nconfirm", "Recall", "Coverage"]]
+        + [
+            [
+                label,
+                str(aggregate[key]["false_confirmation"]),
+                f"{aggregate[key]['true_positive'] / total_positive:.0%}" if total_positive else "n/a",
+                f"{(aggregate[key]['confirmed'] + aggregate[key]['not_confirmed']) / total_trials:.0%}" if total_trials else "n/a",
+            ]
+            for key, label in classifier_names
+        ],
+        font_size=6.3,
+        leading=8,
+    )
+    _paragraph(
+        c,
+        left_x + 12,
+        panel_y + 29,
+        "V0 checks rise and drift; V1 adds angle; V2 raises minimum rise to 50 px; V3 tightens angle to 4 degrees. All four match on seed 39400 (112 TP, 8 TN, zero errors or abstentions), so V3 shows no measured gain here. Eight negative labels leave specificity uncertain.",
+        panel_w - 24,
+        6.2,
+        7.8,
+        MUTED,
+    )
+
+    _rounded(c, right_x, panel_y, panel_w, panel_h, PANEL, stroke=GRID, radius=9)
+    _section_label(c, right_x + 12, panel_y + panel_h - 20, "Physical outcomes - separate score", ORANGE)
+    _text(c, right_x + 12, panel_y + panel_h - 40, f"{total_trials} trials across two matched approach profiles", 7.2, MUTED)
+    y = panel_y + panel_h - 68
+    for condition_name, label in (("baseline_5mm", "5 mm baseline"), ("experimental_20mm", "20 mm experimental")):
+        result = conditions[condition_name]["results"]["physical_outcomes"]
+        _text(c, right_x + 12, y, label, 7.2, WHITE, "Helvetica-Bold")
+        _text(c, right_x + 112, y, f"hold {result['payload_stable_hold_successes']}/{conditions[condition_name]['results']['trials']}", 7.0, GREEN)
+        _text(c, right_x + 220, y, f"strict {result['strict_full_sequence_successes']}/{conditions[condition_name]['results']['trials']}", 7.0, BLUE)
+        y -= 24
+    _paragraph(
+        c,
+        right_x + 12,
+        y - 1,
+        f"Same-pose strict comparison: 20 mm had {paired_physics['strict_full_sequence_success']['experimental_20mm_only_successes']} candidate-only wins and {paired_physics['strict_full_sequence_success']['baseline_5mm_only_successes']} baseline-only wins. Classifier labels, full hold, and full-cycle collision safety remain separate.",
+        panel_w - 24,
+        6.6,
+        8.5,
+        MUTED,
+    )
+
+    _callout(
+        c,
+        MARGIN,
+        70,
+        CONTENT_W,
+        224,
+        "Evidence boundary and next failure",
+        "The first translation-only validation produced two false confirmations when the payload was highly tilted and had no grasp contact. Development then exposed an under-lift false confirmation, which motivated the 50 px rise gate. A later split found a 5.23 degree payload tilt that passed the 12 degree rule, so the angle gate was tightened to 4 degrees. Seed 39400 is the independent evaluation of V3. This remains an ideal synthetic camera with a visual-only fiducial and two samples; it does not prove continuous holding, safe release, or real-camera robustness. Keep the 20 mm approach opt-in.",
+        ORANGE,
+        7.1,
+    )
+    _text(
+        c,
+        MARGIN,
+        50,
+        "Code: cooperative_pick_visual_verification.py / cooperative_pick_visual_validation.py | Data: seed-39400 summary, CSV, and SVG scorecard",
+        5.4,
+        MUTED,
+        "Courier",
+    )
+    c.showPage()
+
+
+def _draw_cooperative_pick_visual_faults(c: canvas.Canvas, root: Path) -> None:
+    summary = json.loads(
+        (
+            root
+            / "results"
+            / "cooperative-pick-visual-fault-validation"
+            / "cooperative-pick-visual-fault-summary.json"
+        ).read_text()
+    )
+    conditions = summary["fault_conditions"]
+    split = summary["split"]
+    _header(c, 27, "IMAGE FAULT VALIDATION")
+    _title(
+        c,
+        "Stress the camera path without changing the pick",
+        "V3 thresholds stay frozen while controlled faults alter only the side-camera RGB. The initial overhead control image and MuJoCo physics remain unchanged.",
+    )
+
+    _section_label(c, MARGIN, 678, "Keep the image and physical paths separate", GREEN)
+    flow_y, flow_h = 598, 62
+    gap = 12
+    flow_w = (CONTENT_W - gap * 3) / 4
+    flow_items = (
+        ("CONTROL INPUT", "Initial overhead RGB"),
+        ("OBSERVATIONS", "Side RGB at 0.0 / 8.4 / 8.8 s"),
+        ("FAULT INJECTION", "Post-capture image transforms"),
+        ("EVALUATION", "MuJoCo truth and full motion"),
+    )
+    for index, (heading, detail) in enumerate(flow_items):
+        x = MARGIN + index * (flow_w + gap)
+        _rounded(c, x, flow_y, flow_w, flow_h, PANEL, stroke=GRID, radius=7)
+        _text(c, x + 8, flow_y + flow_h - 17, heading, 6.4, GREEN if index < 3 else ORANGE, "Helvetica-Bold")
+        _paragraph(c, x + 8, flow_y + 27, detail, flow_w - 16, 6.6, 8, MUTED)
+        if index < len(flow_items) - 1:
+            _arrow(c, x + flow_w + 2, flow_y + flow_h / 2, x + flow_w + gap - 2, flow_y + flow_h / 2, BLUE, 0.9)
+
+    _section_label(
+        c,
+        MARGIN,
+        574,
+        "Frozen V3 against capture-time labels | 58 positive / 2 negative per condition",
+        BLUE,
+    )
+    labels = {
+        "clean": "Clean RGB",
+        "dim_exposure_x0_25": "Dim exposure x0.25",
+        "bright_exposure_x1_5": "Bright exposure x1.5",
+        "marker_occlusion_50pct": "50% marker occlusion",
+        "horizontal_blur_9px": "Horizontal blur 9 px",
+        "camera_shift_up_25px": "Fresh camera shift up 25 px",
+    }
+    table_rows = [["Image condition", "False\nconfirm", "False\nreject", "Abstain", "Coverage", "Recall", "Specificity"]]
+    for key in labels:
+        result = conditions[key]["results"]
+        table_rows.append(
+            [
+                labels[key],
+                str(result["false_confirmation"]),
+                str(result["false_nonconfirmation"]),
+                str(result["abstained"]),
+                f"{result['coverage']:.0%}",
+                f"{result['positive_recall_including_abstentions']:.0%}" if result["positive_recall_including_abstentions"] is not None else "n/a",
+                f"{result['negative_specificity_including_abstentions']:.0%}" if result["negative_specificity_including_abstentions"] is not None else "n/a",
+            ]
+        )
+    _table(
+        c,
+        MARGIN + 4,
+        552,
+        [142, 52, 52, 58, 65, 70, 70],
+        table_rows,
+        font_size=7.0,
+        leading=8,
+    )
+
+    dim = conditions["dim_exposure_x0_25"]["results"]
+    shifted = conditions["camera_shift_up_25px"]["results"]
+    all_physics_same = summary["physical_outcomes_identical_across_faults_for_every_pose"]
+    body = (
+        f"Seed {split['base_seed']} covers {split['matched_target_poses']} matched poses in "
+        f"{split['trial_count']} runs. The seed-39500 smoke check was excluded from validation. "
+        f"Dimming produced {dim['abstained']} abstentions and {dim['false_confirmation']} false confirmations; "
+        f"a 25 px fresh-frame shift produced {shifted['false_confirmation']} false confirmations. "
+        "Only two capture-time negatives were present, so observed specificity is weak evidence. "
+        f"Physical truth and full-motion outcomes matched across each pose's six repeats: "
+        f"{'yes' if all_physics_same else 'no'}. These are authored image transforms, not real-camera data. "
+        "Next, test gap-tolerant marker components and an image-quality abstention gate on development seeds, then keep the change opt-in until a separate frozen split validates it."
+    )
+    _callout(
+        c,
+        MARGIN,
+        78,
+        CONTENT_W,
+        178,
+        "Evidence boundary and next engineering step",
+        body,
+        ORANGE,
+        7.0,
+    )
+    _text(
+        c,
+        MARGIN,
+        50,
+        "Code: visual_image_faults.py / cooperative_pick_visual_fault_validation.py | Data: seed-39600 summary, CSV, and SVG scorecard",
+        5.4,
+        MUTED,
+        "Courier",
+    )
+    c.showPage()
+
+
+def _draw_cooperative_pick_occlusion(c: canvas.Canvas, root: Path) -> None:
+    development = json.loads(
+        (
+            root
+            / "results"
+            / "cooperative-pick-occlusion-development"
+            / "cooperative-pick-occlusion-summary.json"
+        ).read_text()
+    )
+    heldout = json.loads(
+        (
+            root
+            / "results"
+            / "cooperative-pick-occlusion-heldout"
+            / "cooperative-pick-occlusion-summary.json"
+        ).read_text()
+    )
+    selected = development["selected_gap_tolerance_px"]
+    _header(c, 28, "POST-PICK OCCLUSION VALIDATION")
+    _title(
+        c,
+        "Rejoin a split fiducial with bounded evidence",
+        "The measured failure was partial occlusion: the marker split into components and V3 rejected real lifts. V4 groups aligned fragments while measuring only pixels that remain visible.",
+    )
+
+    card_y, card_h = 545, 132
+    left_x, right_x = MARGIN, PAGE_W / 2 + 5
+    card_w = (CONTENT_W - 10) / 2
+    _rounded(c, left_x, card_y, card_w, card_h, PANEL, stroke=GRID, radius=8)
+    _rounded(c, right_x, card_y, card_w, card_h, PANEL, stroke=GRID, radius=8)
+    _section_label(c, left_x + 12, card_y + card_h - 18, "Observed components", ORANGE)
+    _section_label(c, right_x + 12, card_y + card_h - 18, "V4 bounded union", GREEN)
+    for panel_x, tolerant in ((left_x, False), (right_x, True)):
+        marker_x = panel_x + 45
+        marker_bottom, marker_top = card_y + 33, card_y + 99
+        c.setFillColor(PURPLE)
+        c.roundRect(marker_x, marker_bottom, 13, 30, 3, fill=1, stroke=0)
+        c.roundRect(marker_x, marker_bottom + 36, 13, 30, 3, fill=1, stroke=0)
+        c.setFillColor(HexColor("#606b79"))
+        c.rect(marker_x - 7, marker_bottom + 30, 27, 6, fill=1, stroke=0)
+        c.setStrokeColor(GREEN if tolerant else ORANGE)
+        c.setLineWidth(1.1)
+        c.setDash(3, 2) if tolerant else c.setDash()
+        c.rect(marker_x - 4, marker_bottom - 2, 21, 70, fill=0, stroke=1)
+        c.setDash()
+        if tolerant:
+            c.setStrokeColor(GREEN)
+            c.line(marker_x + 27, marker_bottom + 2, marker_x + 27, marker_top - 2)
+            c.line(marker_x + 27, marker_top - 2, marker_x + 24, marker_top - 8)
+            c.line(marker_x + 27, marker_top - 2, marker_x + 30, marker_top - 8)
+            _text(c, marker_x + 41, card_y + 84, f"{selected} px max gap", 7.1, GREEN, "Helvetica-Bold")
+            _text(c, marker_x + 41, card_y + 68, "2 visible parts", 7.1, MUTED)
+            _text(c, marker_x + 41, card_y + 52, "union from pixels", 7.1, MUTED)
+        else:
+            _text(c, marker_x + 30, card_y + 84, "Middle band hidden", 7.1, ORANGE, "Helvetica-Bold")
+            _text(c, marker_x + 30, card_y + 68, "V3 chooses one", 7.1, MUTED)
+            _text(c, marker_x + 30, card_y + 52, "largest component", 7.1, MUTED)
+    _text(c, MARGIN, 528, "A gap is not filled: the detector uses the coordinates of observed pixels for its center and PCA angle.", 7.0, MUTED)
+
+    selected_v4 = f"gap_tolerant_{selected}px"
+    development_poses = development["split"]["matched_target_poses"]
+    heldout_poses = heldout["split"]["matched_target_poses"]
+    table_y, table_h = 280, 192
+    _rounded(c, left_x, table_y, card_w, table_h, PANEL, stroke=GRID, radius=8)
+    _rounded(c, right_x, table_y, card_w, table_h, PANEL, stroke=GRID, radius=8)
+    for panel_x, split, title, poses in (
+        (left_x, development, "DEVELOPMENT | SEED 39700", development_poses),
+        (right_x, heldout, "FROZEN VALIDATION | SEED 39800", heldout_poses),
+    ):
+        _section_label(c, panel_x + 12, table_y + table_h - 18, title, BLUE)
+        _text(c, panel_x + 12, table_y + table_h - 34, f"{poses} matched poses | same V3 thresholds", 6.8, MUTED)
+        y = table_y + table_h - 57
+        for condition, label in (("clean", "Clean"), ("marker_occlusion_50pct", "50% occlusion")):
+            v3 = split["conditions"][condition]["v3"]
+            v4 = split["conditions"][condition][selected_v4]
+            row_text = (
+                f"{label}: V3 TP {v3['true_positive']}/{v3['capture_time_truth_positive']}, "
+                f"FP {v3['false_confirmation']}, FN {v3['false_nonconfirmation']}"
+            )
+            _text(c, panel_x + 12, y, row_text, 6.7, WHITE, "Helvetica-Bold")
+            y -= 13
+            row_text = (
+                f"V4 TP {v4['true_positive']}/{v4['capture_time_truth_positive']}, "
+                f"FP {v4['false_confirmation']}, FN {v4['false_nonconfirmation']}"
+            )
+            _text(c, panel_x + 22, y, row_text, 6.7, GREEN)
+            y -= 25
+        physical = split["conditions"]["clean"]["physical_outcomes"]
+        _text(
+            c,
+            panel_x + 12,
+            table_y + 17,
+            f"Physics unchanged by image condition: hold {physical['payload_stable_hold_successes']}/{physical['trials']}; strict {physical['strict_full_sequence_successes']}/{physical['trials']}",
+            6.1,
+            ORANGE,
+        )
+
+    _callout(
+        c,
+        MARGIN,
+        82,
+        CONTENT_W,
+        126,
+        "What the comparison supports",
+        f"On the development split, the frozen {selected} px option preserved all clean V3 decisions and raised occluded positive recall from {development['conditions']['marker_occlusion_50pct']['v3']['true_positive']}/{development['conditions']['marker_occlusion_50pct']['v3']['capture_time_truth_positive']} to {development['conditions']['marker_occlusion_50pct'][selected_v4]['true_positive']}/{development['conditions']['marker_occlusion_50pct'][selected_v4]['capture_time_truth_positive']}. The separate seed-39800 split tests this one frozen option. Each split contains few negative labels; these results support better tolerance to this authored marker band only. V3 remains the default, and a visual confirmation remains separate from physical hold and full-cycle collision safety.",
+        ORANGE,
+        6.7,
+    )
+    _text(
+        c,
+        MARGIN,
+        50,
+        "Code: cooperative_pick_visual_verification.py / cooperative_pick_occlusion_validation.py | Data: seeds 39700 and 39800, CSV and SVG scorecards",
+        5.1,
+        MUTED,
+        "Courier",
+    )
+    c.showPage()
+
+
+def _draw_cooperative_pick_occlusion_challenge(c: canvas.Canvas, root: Path) -> None:
+    report = json.loads(
+        (
+            root
+            / "results"
+            / "cooperative-pick-occlusion-shape-challenge"
+            / "cooperative-pick-occlusion-shape-summary.json"
+        ).read_text()
+    )
+    strata = report["strata"]
+    nominal = strata["nominal_pad_16mm"]
+    hard = strata["small_pad_14mm_hard_negative"]
+    _header(c, 29, "FROZEN OCCLUSION CHALLENGE")
+    _title(
+        c,
+        "Gap tolerance helps only some occlusions",
+        "The 28 px option was frozen before this challenge. Each physical pose was simulated once, then nine image variants were evaluated from the same initial and two fresh side-camera frames.",
+    )
+
+    card_y, card_h = 625, 73
+    card_w = (CONTENT_W - 12) / 2
+    for x, title, result, color in (
+        (MARGIN, "NOMINAL PADS | 100 POSES", nominal, BLUE),
+        (MARGIN + card_w + 12, "14 mm HARD-NEGATIVE PADS | 100 POSES", hard, ORANGE),
+    ):
+        _rounded(c, x, card_y, card_w, card_h, PANEL, stroke=GRID, radius=8)
+        _section_label(c, x + 11, card_y + card_h - 17, title, color)
+        physics = result["physical_outcomes"]
+        _text(
+            c,
+            x + 11,
+            card_y + 36,
+            f"Capture-time truth: +{physics['capture_time_truth_positive']} / −{physics['capture_time_truth_negative']}",
+            8.1,
+            WHITE,
+            "Helvetica-Bold",
+        )
+        _text(
+            c,
+            x + 11,
+            card_y + 18,
+            f"Payload hold {physics['payload_stable_hold_successes']}/100 | strict full cycle {physics['strict_full_sequence_successes']}/100",
+            7.1,
+            MUTED,
+        )
+
+    _section_label(c, MARGIN, 594, "Authored side-camera masks | shown relative to the fiducial", PURPLE)
+    mask_items = [
+        ("horizontal_25_center", "H band 25%"),
+        ("horizontal_50_upper", "H upper 50%"),
+        ("horizontal_50_lower", "H lower 50%"),
+        ("horizontal_75_center", "H band 75%"),
+        ("vertical_30_center", "V band 30%"),
+        ("diagonal_25_plus45", "Diagonal +45°"),
+        ("diagonal_25_minus45", "Diagonal −45°"),
+        ("patch_45_upper_left", "Corner patch"),
+    ]
+    mini_w, mini_h, mini_gap = 118, 48, 10
+    mini_top_rows = (581, 526)
+    for index, (condition, label) in enumerate(mask_items):
+        col, row = index % 4, index // 4
+        x = MARGIN + col * (mini_w + mini_gap)
+        y = mini_top_rows[row] - mini_h
+        _rounded(c, x, y, mini_w, mini_h, PANEL, stroke=GRID, radius=5)
+        _text(c, x + 6, y + mini_h - 12, label, 6.5, WHITE, "Helvetica-Bold")
+        marker_x = x + mini_w / 2 - 5
+        marker_y = y + 5
+        marker_h = 27
+        c.setFillColor(PURPLE)
+        c.roundRect(marker_x, marker_y, 10, marker_h, 2, fill=1, stroke=0)
+        c.setFillColor(HexColor("#606b79"))
+        if condition.startswith("horizontal"):
+            band_h = {"horizontal_25_center": 4, "horizontal_50_upper": 8, "horizontal_50_lower": 8, "horizontal_75_center": 12}[condition]
+            center = marker_y + marker_h / 2
+            if condition.endswith("upper"):
+                center += 4
+            elif condition.endswith("lower"):
+                center -= 4
+            c.rect(marker_x - 3, center - band_h / 2, 16, band_h, fill=1, stroke=0)
+        elif condition == "vertical_30_center":
+            c.rect(marker_x + 3.5, marker_y - 2, 3, marker_h + 4, fill=1, stroke=0)
+        elif condition.startswith("diagonal"):
+            direction = 1 if condition.endswith("plus45") else -1
+            c.setStrokeColor(HexColor("#606b79"))
+            c.setLineWidth(4)
+            c.line(
+                marker_x + (0 if direction > 0 else 10),
+                marker_y + 4,
+                marker_x + (10 if direction > 0 else 0),
+                marker_y + marker_h - 4,
+            )
+        else:
+            c.setFillColor(HexColor("#606b79"))
+            c.rect(marker_x, marker_y + marker_h * 0.55, 5, marker_h * 0.45, fill=1, stroke=0)
+
+    table_rows = [
+        ["Image condition", "16 mm positives\nV3 → V4 / 94", "14 mm positives\nV3 → V4 / 18", "False confirms\nV3 → V4 / 82 negatives"],
+    ]
+    for condition, label in (
+        ("clean", "Clean"),
+        ("horizontal_25_center", "Horizontal 25% centered"),
+        ("horizontal_50_upper", "Horizontal 50% upper"),
+        ("horizontal_50_lower", "Horizontal 50% lower"),
+        ("horizontal_75_center", "Horizontal 75% centered"),
+        ("vertical_30_center", "Vertical 30% centered"),
+        ("diagonal_25_plus45", "Diagonal +45°"),
+        ("diagonal_25_minus45", "Diagonal −45°"),
+        ("patch_45_upper_left", "Upper-left patch"),
+    ):
+        nominal_item = nominal["image_conditions"][condition]
+        hard_item = hard["image_conditions"][condition]
+        n_v3, n_v4 = nominal_item["v3"], nominal_item["v4_frozen_28px"]
+        h_v3, h_v4 = hard_item["v3"], hard_item["v4_frozen_28px"]
+        table_rows.append(
+            [
+                label,
+                f"{n_v3['true_positive']} → {n_v4['true_positive']}",
+                f"{h_v3['true_positive']} → {h_v4['true_positive']}",
+                f"{h_v3['false_confirmation']} → {h_v4['false_confirmation']}",
+            ]
+        )
+    _table(
+        c,
+        MARGIN,
+        465,
+        [177, 111, 111, CONTENT_W - 399],
+        table_rows,
+        font_size=6.6,
+        leading=7.5,
+    )
+
+    _callout(
+        c,
+        MARGIN,
+        49,
+        CONTENT_W,
+        130,
+        "What the challenge changed",
+        "Moderate horizontal bands let V4 recover some true lifts, but the vertical, diagonal, and patch masks show no gain. At 75% band height, nominal true positives fell from 37/94 to 6/94. In the 14 mm hard-negative stratum, the 25% mask added one false confirmation and the severe mask still produced five among 82 capture-time negatives. This mask/pad mix is an authored stress test, not a deployment prevalence estimate. Keep V4 opt-in and V3 as the default. Capture-time visual truth remains separate from payload hold and full-cycle safety.",
+        ORANGE,
+        6.8,
+    )
+    _text(
+        c,
+        MARGIN,
+        38,
+        "Code: visual_image_faults.py / cooperative_pick_occlusion_challenge.py | Data: seeds 40100 and 40200, 1,800 image rows",
+        5.0,
+        MUTED,
+        "Courier",
+    )
+    c.showPage()
+
+
+def _draw_orthogonal_verification(c: canvas.Canvas, root: Path) -> None:
+    report = json.loads(
+        (
+            root
+            / "results"
+            / "cooperative-pick-orthogonal-verification-heldout"
+            / "cooperative-pick-orthogonal-verification-summary.json"
+        ).read_text()
+    )
+    summaries = report["results"]
+    methods = ("V3_side", "V4_side_28px", "V4_two_view")
+    labels = ("V3 | side", "V4 | side 28px", "V4 + orthogonal")
+    totals = {}
+    for method, label in zip(methods, labels, strict=True):
+        totals[label] = {
+            key: sum(summaries[name]["methods"][method][key] for name in summaries)
+            for key in (
+                "true_positive",
+                "false_confirmation",
+                "true_negative",
+                "false_nonconfirmation",
+                "abstained",
+            )
+        }
+    total_positives = sum(item["capture_truth_positive"] for item in summaries.values())
+    total_negatives = sum(item["capture_truth_negative"] for item in summaries.values())
+    total_runs = report["total_unique_physical_pose_runs"]
+    _header(c, 30, "ORTHOGONAL FRESH VERIFICATION")
+    _title(
+        c,
+        "A second view catches a hidden tilt",
+        "The latest held-out experiment renders an actual MuJoCo rail across one camera's sight line, then checks the same free payload from two perpendicular side views.",
+    )
+
+    image_path = root / "assets" / "demos" / "cooperative_pick_orthogonal_verification_card.png"
+    image = ImageReader(str(image_path))
+    image_w = CONTENT_W
+    image_h = image_w * 624 / 1280
+    image_y = 445
+    _rounded(c, MARGIN - 2, image_y - 2, image_w + 4, image_h + 4, PANEL, stroke=GRID, radius=7)
+    c.drawImage(image, MARGIN, image_y, width=image_w, height=image_h, mask="auto")
+    _text(
+        c,
+        MARGIN,
+        image_y - 14,
+        "Counted held-out replay: original camera rail, independent view, image verdict, and separate simulator audit",
+        6.7,
+        MUTED,
+    )
+
+    card_y, card_h = 369, 42
+    card_w = (CONTENT_W - 16) / 3
+    cards = (
+        ("240", "physical pose runs", BLUE),
+        ("121", "capture-time negatives", ORANGE),
+        ("0 / 121", "two-view false confirms", GREEN),
+    )
+    for index, (value, label, accent) in enumerate(cards):
+        x = MARGIN + index * (card_w + 8)
+        _rounded(c, x, card_y, card_w, card_h, PANEL, stroke=GRID, radius=7)
+        _text(c, x + 9, card_y + 24, value, 12, accent, "Helvetica-Bold")
+        _text(c, x + 68, card_y + 24, label, 7.1, MUTED)
+
+    table_rows = [["Image rule", "TP / 119", "False confirms / 121", "TN / 121", "Abstain", "Coverage"]]
+    for label in labels:
+        result = totals[label]
+        coverage = total_runs - result["abstained"]
+        table_rows.append(
+            [
+                label,
+                str(result["true_positive"]),
+                str(result["false_confirmation"]),
+                str(result["true_negative"]),
+                str(result["abstained"]),
+                f"{coverage}/{total_runs}",
+            ]
+        )
+    _table(
+        c,
+        MARGIN,
+        351,
+        [126, 62, 105, 63, 62, CONTENT_W - 418],
+        table_rows,
+        font_size=7.1,
+        leading=8.0,
+    )
+
+    nominal = summaries["nominal_pad_16mm"]
+    hard = summaries["small_pad_14mm_negative_control"]
+    stratum_card_y, stratum_card_h = 190, 56
+    stratum_card_w = (CONTENT_W - 12) / 2
+    for index, (title, result, color) in enumerate(
+        (
+            ("16 mm nominal pads", nominal, BLUE),
+            ("14 mm hard-negative control", hard, ORANGE),
+        )
+    ):
+        x = MARGIN + index * (stratum_card_w + 12)
+        _rounded(c, x, stratum_card_y, stratum_card_w, stratum_card_h, PANEL, stroke=GRID, radius=7)
+        _section_label(c, x + 9, stratum_card_y + stratum_card_h - 15, title, color)
+        _text(
+            c,
+            x + 9,
+            stratum_card_y + 25,
+            f"Capture truth +{result['capture_truth_positive']} / −{result['capture_truth_negative']}",
+            7.3,
+            WHITE,
+            "Helvetica-Bold",
+        )
+        candidate_row = result["methods"]["V4_two_view"]
+        _text(
+            c,
+            x + 9,
+            stratum_card_y + 10,
+            f"Two-view TP {candidate_row['true_positive']} | false confirms {candidate_row['false_confirmation']} | abstain {candidate_row['abstained']}",
+            6.7,
+            MUTED,
+        )
+
+    physical = [
+        summaries[name]
+        for name in ("nominal_pad_16mm", "small_pad_14mm_negative_control")
+    ]
+    hold = sum(item["stable_hold_successes"] for item in physical)
+    strict = sum(item["strict_full_cycle_successes"] for item in physical)
+    candidate = totals["V4 + orthogonal"]
+    callout_y, callout_h = 53, 122
+    _callout(
+        c,
+        MARGIN,
+        callout_y,
+        CONTENT_W,
+        callout_h,
+        "A safer decision, with more abstentions",
+        f"The two-view option confirms {candidate['true_positive']}/{total_positives} positives and makes 0/{total_negatives} false confirmations (Wilson 95% upper bound 3.1%). It abstains on {candidate['abstained']} poses and misses 19 positives; side-only V4 misses 18. Across the same 240 trajectories, {hold}/240 pass the full payload-hold check and {strict}/240 pass the strict full cycle. These physical outcomes are independent of the image decision. Keep V3 as the runtime default; V4 and two-view V4 remain opt-in.",
+        ORANGE,
+        7.2,
+    )
+    _text(
+        c,
+        MARGIN,
+        40,
+        "Code: cooperative_pick_visual_verification.py / cooperative_pick_orthogonal_validation.py | Data: seeds 40500 and 40600, 240 poses",
+        5.1,
+        MUTED,
+        "Courier",
+    )
+    c.showPage()
+
+
+def _draw_cooperative_pick_material(c: canvas.Canvas, root: Path) -> None:
+    report = json.loads(
+        (
+            root
+            / "results"
+            / "cooperative-pick-material-validation"
+            / "cooperative-pick-material-summary.json"
+        ).read_text()
+    )
+    conditions = report["conditions"]
+    _header(c, 31, "MASS AND FRICTION STRESS")
+    _title(
+        c,
+        "Contact has a friction threshold",
+        "A paired MuJoCo stress map separates the camera target estimate from the shared grasp and contact trajectory.",
+    )
+
+    card_y, card_h = 661, 43
+    card_w = (CONTENT_W - 16) / 3
+    cards = (
+        ("216", "paired physics trials", BLUE),
+        ("12", "shared target poses", GREEN),
+        ("9", "mass/friction settings", ORANGE),
+    )
+    for index, (value, label, accent) in enumerate(cards):
+        x = MARGIN + index * (card_w + 8)
+        _rounded(c, x, card_y, card_w, card_h, PANEL, stroke=GRID, radius=7)
+        _text(c, x + 10, card_y + 24, value, 13, accent, "Helvetica-Bold")
+        _text(c, x + 50, card_y + 24, label, 7.2, MUTED)
+        _text(c, x + 10, card_y + 9, "base seed 40800 | same poses in every cell", 6.4, SUBTLE)
+
+    masses = tuple(report["varied_material_assumptions"]["payload_body_mass_kg"])
+    frictions = tuple(report["varied_material_assumptions"]["finger_pad_and_payload_sliding_friction"])
+    panels = (
+        ("camera_estimate", "Camera-estimated target", MARGIN),
+        ("oracle_xy", "Oracle target upper bound", PAGE_W / 2 + 4),
+    )
+    panel_w = CONTENT_W / 2 - 6
+    top = 609
+    for controller, label, panel_x in panels:
+        _rounded(c, panel_x, 350, panel_w, 253, PANEL, stroke=GRID, radius=8)
+        _section_label(c, panel_x + 10, top - 17, label, BLUE)
+        _text(c, panel_x + 10, top - 39, "pad/payload sliding friction", 6.6, MUTED)
+        grid_x = panel_x + 82
+        cell_w, cell_h, col_gap = 48, 49, 5
+        for col, friction in enumerate(frictions):
+            x = grid_x + col * (cell_w + col_gap)
+            _text(c, x + 10, top - 39, f"{friction:g}", 7, GREEN, "Helvetica-Bold")
+        for row_index, mass in enumerate(masses):
+            y = top - 105 - row_index * 59
+            mass_label = "0.72 kg*" if abs(mass - 0.7201166534540158) < 1e-8 else f"{mass:.2f} kg"
+            _text(c, panel_x + 9, y + 25, mass_label, 6.6, WHITE, "Helvetica-Bold")
+            for col, friction in enumerate(frictions):
+                key = f"mass-{mass:g}_friction-{friction:g}"
+                record = conditions[key]["controllers"][controller]
+                strict = record["physical_stable_lift_success"]["successes"]
+                hold = record["payload_stable_lift_success"]["successes"]
+                cycle = record["full_sequence_collision_safe"]["successes"]
+                rate = strict / record["trials"]
+                fill = Color(
+                    0.12 + 0.10 * rate,
+                    0.16 + 0.48 * rate,
+                    0.25 + 0.34 * rate,
+                )
+                x = grid_x + col * (cell_w + col_gap)
+                _rounded(c, x, y, cell_w, cell_h, fill, stroke=GRID, radius=5)
+                _text(c, x + 6, y + 28, f"{strict}/12", 9.1, WHITE, "Helvetica-Bold")
+                _text(c, x + 5, y + 12, f"H {hold} / C {cycle}", 5.7, MUTED)
+        _text(c, panel_x + 10, 365, "Strict / 12     H = stable hold     C = full-cycle collision-safe", 5.5, MUTED)
+
+    _text(c, MARGIN + 9, 337, "* Nominal mass: 0.720116653454 kg; original compiled inertia preserved.", 7, MUTED)
+    _callout(
+        c,
+        MARGIN,
+        132,
+        CONTENT_W,
+        110,
+        "What the result says",
+        "At friction 0.5, neither controller achieved a strict success in any mass cell; all 72 runs were labeled no grasp contact. At friction 2.2, camera-estimated success was 11/12, 10/12, and 11/12 across light, nominal, and heavy payloads. Matching oracle failures at low friction point to contact mechanics or the shared trajectory, while the small, author-selected simulator sweep cannot establish real-object reliability.",
+        ORANGE,
+        7.7,
+    )
+    _text(
+        c,
+        MARGIN,
+        111,
+        "Visual confirmation: not measured | Code: cooperative_pick_material_validation.py | Data: 216 paired rows",
+        6.3,
+        MUTED,
+        "Courier",
+    )
+    _text(
+        c,
+        MARGIN,
+        96,
+        "The CSV preserves strict lift, hold-only, and full-cycle collision outcomes as separate columns.",
+        6.3,
+        MUTED,
+    )
+    c.showPage()
+
+
+def _draw_cooperative_pick_pad_friction(c: canvas.Canvas, root: Path) -> None:
+    report = json.loads(
+        (
+            root
+            / "results"
+            / "cooperative-pick-pad-friction-validation"
+            / "cooperative-pick-pad-friction-summary.json"
+        ).read_text()
+    )
+    conditions = report["conditions"]
+    _header(c, 32, "Held-out pad geometry")
+    _title(
+        c,
+        "A larger pad did not restore hold contact",
+        "New-seed paired MuJoCo test: vary pad half-size while keeping nominal payload, friction, pose, approach, release, and controller matched.",
+    )
+
+    card_y, card_h = 661, 43
+    card_w = (CONTENT_W - 16) / 3
+    cards = (
+        ("96", "paired physics trials", BLUE),
+        ("12", "shared target poses", GREEN),
+        ("2 × 2", "pad and friction settings", ORANGE),
+    )
+    for index, (value, label, accent) in enumerate(cards):
+        x = MARGIN + index * (card_w + 8)
+        _rounded(c, x, card_y, card_w, card_h, PANEL, stroke=GRID, radius=7)
+        _text(c, x + 10, card_y + 24, value, 13, accent, "Helvetica-Bold")
+        _text(c, x + 54, card_y + 24, label, 7.2, MUTED)
+        _text(c, x + 10, card_y + 9, "seed 40900 | camera estimate + oracle diagnostic", 6.2, SUBTLE)
+
+    pad_sizes = tuple(report["varied_settings"]["finger_pad_half_size_m"])
+    for friction, panel_x in ((0.5, MARGIN), (2.2, PAGE_W / 2 + 4)):
+        panel_w = CONTENT_W / 2 - 6
+        panel_y, panel_h = 363, 267
+        _rounded(c, panel_x, panel_y, panel_w, panel_h, PANEL, stroke=GRID, radius=8)
+        _section_label(c, panel_x + 10, panel_y + panel_h - 20, f"Sliding friction μ = {friction:g}", BLUE)
+        for controller, label, row_top in (
+            ("camera_estimate", "Camera estimate", panel_y + 207),
+            ("oracle_xy", "Oracle XY diagnostic", panel_y + 111),
+        ):
+            _text(c, panel_x + 10, row_top + 13, label, 7.2, WHITE, "Helvetica-Bold")
+            controller_rows = conditions[f"friction-{friction:g}"]["controllers"][controller]
+            for index, pad_size in enumerate(pad_sizes):
+                record = controller_rows[f"pad_half_size_m_{pad_size:g}"]
+                strict = record["physical_stable_lift_success"]
+                hold = record["payload_stable_lift_success"]["successes"]
+                cycle = record["full_sequence_collision_safe"]["successes"]
+                row_y = row_top - 12 - index * 38
+                _text(c, panel_x + 10, row_y + 5, f"{pad_size * 1000:.0f} mm", 6.6, MUTED)
+                bar_x, bar_w = panel_x + 67, 105
+                c.setFillColor(PANEL_ALT)
+                c.roundRect(bar_x, row_y, bar_w, 15, 4, fill=1, stroke=0)
+                rate_w = bar_w * strict["successes"] / report["target_sampling"]["samples_per_seed"]
+                if rate_w > 0:
+                    c.setFillColor(SUBTLE if index == 0 else GREEN)
+                    c.roundRect(bar_x, row_y, rate_w, 15, 4, fill=1, stroke=0)
+                _text(c, bar_x + bar_w + 7, row_y + 4, f"{strict['successes']}/12", 6.8, WHITE, "Helvetica-Bold")
+                _text(c, panel_x + 67, row_y - 9, f"hold {hold}   |   full-cycle safe {cycle}", 5.8, MUTED)
+
+    _callout(
+        c,
+        MARGIN,
+        229,
+        CONTENT_W,
+        100,
+        "Measured conclusion",
+        "At friction 0.5, both pad sizes produced 0/12 strict lifts for camera and oracle; the legacy no_grasp_contact label means zero contacts in the scored hold window. At friction 2.2, both pad sizes scored 12/12 in both controllers. The 18 mm candidate did not improve low-friction hold contact, so the runtime 16 mm geometry stays in place.",
+        ORANGE,
+        7.5,
+    )
+    _text(c, MARGIN + 3, 202, "NEXT: phase traces find contact in closure/early lift, then none in loaded hold; measure relative slip next.", 7.4, BLUE, "Helvetica-Bold")
+    _text(c, MARGIN, 91, "Hold and full-cycle collision safety remain separate metrics; visual confirmation: not measured.", 6.5, MUTED)
+    _text(c, MARGIN, 76, "Code: cooperative_pick_pad_friction_validation.py | Data: seed 40900, 96 paired rows", 6.3, MUTED, "Courier")
+    _text(c, MARGIN, 61, "The four-panel video replays one counted pose and adds no benchmark trials.", 6.3, MUTED)
+    c.showPage()
+
+
+def _draw_cooperative_pick_contact_diagnostics(c: canvas.Canvas, root: Path) -> None:
+    report = json.loads(
+        (
+            root
+            / "results"
+            / "cooperative-pick-contact-diagnostics"
+            / "cooperative-pick-contact-summary.json"
+        ).read_text()
+    )
+    conditions = report["conditions"]
+    _header(c, 33, "Contact retention diagnostic")
+    _title(
+        c,
+        "Contact disappears before hold",
+        "A new 48-trial block samples six named finger pads at each MuJoCo physics step to separate closure, cooperative lift, and loaded hold.",
+    )
+
+    card_y, card_h = 661, 43
+    card_w = (CONTENT_W - 16) / 3
+    cards = (
+        ("48", "paired physics trials", BLUE),
+        ("288", "per-finger traces", GREEN),
+        ("2 ms", "physics timestep", ORANGE),
+    )
+    for index, (value, label, accent) in enumerate(cards):
+        x = MARGIN + index * (card_w + 8)
+        _rounded(c, x, card_y, card_w, card_h, PANEL, stroke=GRID, radius=7)
+        _text(c, x + 10, card_y + 24, value, 13, accent, "Helvetica-Bold")
+        _text(c, x + 55, card_y + 24, label, 7.2, MUTED)
+        _text(c, x + 10, card_y + 9, "seed 41000 | same poses at mu 0.5 and 2.2", 6.2, SUBTLE)
+
+    pad_trials = report["target_sampling"]["samples_per_seed"] * 6
+    phase_rows = (
+        ("Approach / close / secure", "pad_trials_with_contact_during_approach_close_or_secure", BLUE),
+        ("Cooperative lift", "pad_trials_with_contact_during_cooperative_lift", ORANGE),
+        ("Hold under load", "pad_trials_with_contact_during_hold_under_load", GREEN),
+    )
+    for friction, panel_x in ((0.5, MARGIN), (2.2, PAGE_W / 2 + 4)):
+        panel_w = CONTENT_W / 2 - 6
+        panel_y, panel_h = 340, 295
+        _rounded(c, panel_x, panel_y, panel_w, panel_h, PANEL, stroke=GRID, radius=8)
+        _section_label(c, panel_x + 10, panel_y + panel_h - 20, f"Sliding friction μ = {friction:g}", BLUE)
+        for controller, label, title_y in (
+            ("camera_estimate", "Camera estimate", panel_y + 250),
+            ("oracle_xy", "Oracle XY diagnostic", panel_y + 122),
+        ):
+            summary = conditions[f"friction-{friction:g}"][controller]
+            _text(c, panel_x + 10, title_y, label, 7.3, WHITE, "Helvetica-Bold")
+            for index, (phase_label, field, color) in enumerate(phase_rows):
+                count = summary[field]
+                bar_y = title_y - 20 - index * 29
+                bar_x, bar_w = panel_x + 132, 96
+                _text(c, panel_x + 10, bar_y + 4, phase_label, 5.8, MUTED)
+                c.setFillColor(PANEL_ALT)
+                c.roundRect(bar_x, bar_y, bar_w, 14, 4, fill=1, stroke=0)
+                if count:
+                    c.setFillColor(color)
+                    c.roundRect(bar_x, bar_y, bar_w * count / pad_trials, 14, 4, fill=1, stroke=0)
+                _text(c, bar_x + bar_w + 5, bar_y + 3, f"{count}/{pad_trials}", 6.2, WHITE, "Helvetica-Bold")
+            strict = summary["physical_stable_lift_success"]["successes"]
+            _text(c, panel_x + 10, title_y - 111, f"Strict lift {strict}/12   |   hold {summary['payload_stable_lift_successes']}   |   cycle-safe {summary['full_sequence_collision_safe_trials']}", 6.3, ORANGE)
+
+    _callout(
+        c,
+        MARGIN,
+        211,
+        CONTENT_W,
+        105,
+        "What the phase data resolves",
+        "At mu 0.5, both controllers show pad contact during closure and early lift, but none of the 24 trials retains any pad contact in the loaded hold. At mu 2.2, camera-estimate succeeds 12/12 and oracle succeeds 11/12. The low-friction failure is contact retention through lift; this study does not distinguish tangential slip from finger separation.",
+        ORANGE,
+        7.4,
+    )
+    _text(c, MARGIN + 3, 183, "The old no_grasp_contact label means zero contacts in its scored hold window; it does not mean the fingers never touched.", 6.9, BLUE, "Helvetica-Bold")
+    _text(c, MARGIN, 93, "Contact wrench is a MuJoCo solver output, not a calibrated sensor. Visual confirmation: not measured.", 6.3, MUTED)
+    _text(c, MARGIN, 78, "Code: cooperative_pick_contact_diagnostics.py | Data: seed 41000, 48 paired rows", 6.3, MUTED, "Courier")
+    _text(c, MARGIN, 63, "Next: test one opt-in grip-preload change on new held-out poses.", 6.3, MUTED)
+    c.showPage()
+
+
+def _draw_cooperative_pick_retention_diagnostics(c: canvas.Canvas, root: Path) -> None:
+    report_path = (
+        root / "results" / "cooperative-pick-retention-diagnostics"
+        / "cooperative-pick-retention-summary.json"
+    )
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    conditions = report["conditions"]
+    sample_count = report["target_sampling"]["samples_per_seed"]
+    _header(c, 34, "Low-friction failure diagnosis")
+    _title(
+        c,
+        "The payload slips relative to closed fingers",
+        "A fresh 48-trial split measures hand-relative payload motion, pad contact forces, and finger position tracking through the loaded hold.",
+    )
+
+    card_y, card_h = 665, 46
+    card_w = (CONTENT_W - 16) / 3
+    for index, (value, label, accent) in enumerate((
+        ("48", "paired physics trials", BLUE),
+        ("576", "pad and phase records", GREEN),
+        ("20 ms", "diagnostic sample period", ORANGE),
+    )):
+        x = MARGIN + index * (card_w + 8)
+        _rounded(c, x, card_y, card_w, card_h, PANEL, stroke=GRID, radius=7)
+        _text(c, x + 10, card_y + 25, value, 13, accent, "Helvetica-Bold")
+        _text(c, x + 70, card_y + 25, label, 7.4, MUTED)
+        _text(c, x + 10, card_y + 9, "seed 42000 | 12 matched poses per condition", 6.2, SUBTLE)
+
+    _rounded(c, MARGIN, 398, CONTENT_W, 232, PANEL, stroke=GRID, radius=9)
+    _section_label(c, MARGIN + 14, 611, "Median maximum downward payload drift relative to the gripper hand (mm)", BLUE)
+    _rounded(c, PAGE_W - MARGIN - 168, 585, 10, 10, ORANGE, radius=2)
+    _text(c, PAGE_W - MARGIN - 153, 587, "mu 0.5", 7.2, MUTED)
+    _rounded(c, PAGE_W - MARGIN - 99, 585, 10, 10, GREEN, radius=2)
+    _text(c, PAGE_W - MARGIN - 84, 587, "mu 2.2", 7.2, MUTED)
+
+    chart_x, chart_top, chart_width = MARGIN + 187, 565, 282
+    scale_m = 0.17
+    for tick_mm in (0, 40, 80, 120, 160):
+        tick_x = chart_x + chart_width * tick_mm / (scale_m * 1000)
+        c.setStrokeColor(GRID)
+        c.setLineWidth(0.45)
+        c.line(tick_x, 421, tick_x, chart_top + 2)
+        _text(c, tick_x - 6, 407, str(tick_mm), 6.2, MUTED)
+    for controller, controller_label, y_base in (
+        ("camera_estimate", "Camera estimate", 527),
+        ("oracle_xy", "Oracle XY", 456),
+    ):
+        _text(c, MARGIN + 14, y_base + 8, controller_label, 8, WHITE, "Helvetica-Bold")
+        for friction, color, row_y in ((0.5, ORANGE, y_base + 14), (2.2, GREEN, y_base - 9)):
+            summary = conditions[f"friction-{friction:g}"][controller]
+            drift_mm = 1000 * summary[
+                "maximum_downward_payload_drift_in_hand_frame_m_median"
+            ]
+            c.setFillColor(PANEL_ALT)
+            c.roundRect(chart_x, row_y, chart_width, 12, 4, fill=1, stroke=0)
+            c.setFillColor(color)
+            c.roundRect(
+                chart_x, row_y,
+                chart_width * min(drift_mm / (scale_m * 1000), 1.0), 12,
+                4, fill=1, stroke=0,
+            )
+            _text(c, chart_x + chart_width + 8, row_y + 2, f"{drift_mm:.1f}", 7.3, WHITE, "Helvetica-Bold")
+
+    low_camera = conditions["friction-0.5"]["camera_estimate"]
+    low_oracle = conditions["friction-0.5"]["oracle_xy"]
+    high_camera = conditions["friction-2.2"]["camera_estimate"]
+    high_oracle = conditions["friction-2.2"]["oracle_xy"]
+    low_camera_safe = low_camera["collision_safe_trials"]
+    low_oracle_safe = low_oracle["collision_safe_trials"]
+    high_camera_safe = high_camera["collision_safe_trials"]
+    high_oracle_safe = high_oracle["collision_safe_trials"]
+    camera_ratio = low_camera[
+        "mean_tangential_to_normal_force_ratio_when_contacting_median"
+    ]
+    oracle_ratio = low_oracle[
+        "mean_tangential_to_normal_force_ratio_when_contacting_median"
+    ]
+    camera_drift_mm = 1000 * high_camera[
+        "maximum_downward_payload_drift_in_hand_frame_m_median"
+    ]
+    oracle_drift_mm = 1000 * high_oracle[
+        "maximum_downward_payload_drift_in_hand_frame_m_median"
+    ]
+    _callout(
+        c,
+        MARGIN,
+        265,
+        CONTENT_W,
+        112,
+        "Evidence points to payload slip, not an open gripper",
+        f"At mu 0.5, all {sample_count * 2} camera/oracle trials lost pad contact during hold. Median maximum finger-slide error during hold stayed at {1000 * low_camera['maximum_slide_tracking_error_during_hold_m_median']:.3f} mm (camera) and {1000 * low_oracle['maximum_slide_tracking_error_during_hold_m_median']:.3f} mm (oracle). Contacting-sample tangential/normal force ratios were {camera_ratio:.3f} and {oracle_ratio:.3f}, near the selected friction value. At mu 2.2, both controllers lifted {high_camera['physical_stable_lift_successes']}/{sample_count}, with {camera_drift_mm:.0f} and {oracle_drift_mm:.0f} mm median hand-relative drift.",
+        ORANGE,
+        8.0,
+    )
+    _callout(
+        c,
+        MARGIN,
+        113,
+        CONTENT_W,
+        130,
+        "Safety and confirmation remain separate",
+        f"Only {low_camera_safe}/{sample_count} camera and {low_oracle_safe}/{sample_count} oracle low-friction runs passed the full-cycle collision checks; at high friction {high_camera_safe}/{sample_count} camera and {high_oracle_safe}/{sample_count} oracle runs passed. These are simulation outcomes under one scripted grasp and author-selected friction. No fresh visual confirmation was measured. Next, test a single opt-in grip-preload candidate on new matched poses and keep physical lift, collision safety, and image confirmation as separate scores.",
+        BLUE,
+        8.2,
+    )
+    _text(c, MARGIN, 82, "Code: cooperative_pick_retention_diagnostics.py | Data: seed 42000, 48 trials, 576 pad-phase rows", 6.3, MUTED, "Courier")
+    c.showPage()
+
+
 def main() -> Path:
     repository = Path(__file__).resolve().parents[1]
     output = repository / "output" / "pdf" / "visual-servo-mujoco-project-explainer.pdf"
@@ -2001,7 +3485,7 @@ def main() -> Path:
     c = canvas.Canvas(str(output), pagesize=A4, pageCompression=1)
     c.setTitle("Visual Servo MuJoCo Project Explainer")
     c.setAuthor("Jad")
-    c.setSubject("Visual servoing project architecture, code, benchmarks, and next milestone")
+    c.setSubject("Visual servoing project architecture, code, benchmarks, and fresh pick verification")
     _draw_cover(c, repository)
     _draw_pipeline(c)
     _draw_control(c)
@@ -2023,6 +3507,19 @@ def main() -> Path:
     _draw_next_steps(c)
     _draw_conditional_uncertainty(c, repository)
     _draw_perception_candidate_validation(c, repository)
+    _draw_multiarm_integration(c, repository)
+    _draw_release_profile(c, repository)
+    _draw_approach_clearance(c, repository)
+    _draw_extended_approach_clearance(c, repository)
+    _draw_cooperative_pick_visual_confirmation(c, repository)
+    _draw_cooperative_pick_visual_faults(c, repository)
+    _draw_cooperative_pick_occlusion(c, repository)
+    _draw_cooperative_pick_occlusion_challenge(c, repository)
+    _draw_orthogonal_verification(c, repository)
+    _draw_cooperative_pick_material(c, repository)
+    _draw_cooperative_pick_pad_friction(c, repository)
+    _draw_cooperative_pick_contact_diagnostics(c, repository)
+    _draw_cooperative_pick_retention_diagnostics(c, repository)
     c.save()
     print(f"Wrote {output}")
     return output

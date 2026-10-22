@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="650" viewBox="0 0 1160 650">
+<rect width="100%" height="100%" fill="#0b1220"/>
+<style>text{font-family:Arial,Helvetica,sans-serif}.title{fill:#f3f6fb}.muted{fill:#a9b6c8}.blue{fill:#73b7ff}.green{fill:#68dfb3}.orange{fill:#ffbd72}</style>
+<text x="36" y="46" class="title" font-size="27" font-weight="700">Where does contact disappear?</text>
+<text x="36" y="76" class="muted" font-size="14">12 new poses · 16 mm pads · nominal 0.720 kg payload · closure, lift, and hold sampled at physics-step rate</text>
+<text x="36" y="100" class="muted" font-size="13">Bars count unique finger-pad/pose pairs with any contact in each phase; this separates closure, early lift, and loaded hold.</text>
+<text x="40" y="132" class="blue" font-size="19" font-weight="700">Sliding friction μ = 0.5</text>
+<text x="40" y="155" class="title" font-size="15" font-weight="700">Camera-estimate</text>
+<text x="40" y="193" class="muted" font-size="12">Approach / close / secure</text>
+<rect x="210" y="177" width="330" height="26" rx="6" fill="#253343"/>
+<rect x="210" y="177" width="311.7" height="26" rx="6" fill="#73b7ff"/>
+<text x="550" y="195" class="title" font-size="13" font-weight="700">68/72</text>
+<text x="40" y="231" class="muted" font-size="12">Cooperative lift</text>
+<rect x="210" y="215" width="330" height="26" rx="6" fill="#253343"/>
+<rect x="210" y="215" width="288.8" height="26" rx="6" fill="#ffbd72"/>
+<text x="550" y="233" class="title" font-size="13" font-weight="700">63/72</text>
+<text x="40" y="269" class="muted" font-size="12">Hold under load</text>
+<rect x="210" y="253" width="330" height="26" rx="6" fill="#253343"/>
+<rect x="210" y="253" width="0.0" height="26" rx="6" fill="#68dfb3"/>
+<text x="550" y="271" class="title" font-size="13" font-weight="700">0/72</text>
+<text x="40" y="303" class="orange" font-size="13">Stable lift 0/12 · hold 0 · cycle-safe 5</text>
+<text x="40" y="375" class="title" font-size="15" font-weight="700">Oracle XY diagnostic</text>
+<text x="40" y="413" class="muted" font-size="12">Approach / close / secure</text>
+<rect x="210" y="397" width="330" height="26" rx="6" fill="#253343"/>
+<rect x="210" y="397" width="302.5" height="26" rx="6" fill="#73b7ff"/>
+<text x="550" y="415" class="title" font-size="13" font-weight="700">66/72</text>
+<text x="40" y="451" class="muted" font-size="12">Cooperative lift</text>
+<rect x="210" y="435" width="330" height="26" rx="6" fill="#253343"/>
+<rect x="210" y="435" width="288.8" height="26" rx="6" fill="#ffbd72"/>
+<text x="550" y="453" class="title" font-size="13" font-weight="700">63/72</text>
+<text x="40" y="489" class="muted" font-size="12">Hold under load</text>
+<rect x="210" y="473" width="330" height="26" rx="6" fill="#253343"/>
+<rect x="210" y="473" width="0.0" height="26" rx="6" fill="#68dfb3"/>
+<text x="550" y="491" class="title" font-size="13" font-weight="700">0/72</text>
+<text x="40" y="523" class="orange" font-size="13">Stable lift 0/12 · hold 0 · cycle-safe 5</text>
+<text x="590" y="132" class="blue" font-size="19" font-weight="700">Sliding friction μ = 2.2</text>
+<text x="590" y="155" class="title" font-size="15" font-weight="700">Camera-estimate</text>
+<text x="590" y="193" class="muted" font-size="12">Approach / close / secure</text>
+<rect x="760" y="177" width="330" height="26" rx="6" fill="#253343"/>
+<rect x="760" y="177" width="330.0" height="26" rx="6" fill="#73b7ff"/>
+<text x="1100" y="195" class="title" font-size="13" font-weight="700">72/72</text>
+<text x="590" y="231" class="muted" font-size="12">Cooperative lift</text>
+<rect x="760" y="215" width="330" height="26" rx="6" fill="#253343"/>
+<rect x="760" y="215" width="320.8" height="26" rx="6" fill="#ffbd72"/>
+<text x="1100" y="233" class="title" font-size="13" font-weight="700">70/72</text>
+<text x="590" y="269" class="muted" font-size="12">Hold under load</text>
+<rect x="760" y="253" width="330" height="26" rx="6" fill="#253343"/>
+<rect x="760" y="253" width="270.4" height="26" rx="6" fill="#68dfb3"/>
+<text x="1100" y="271" class="title" font-size="13" font-weight="700">59/72</text>
+<text x="590" y="303" class="orange" font-size="13">Stable lift 12/12 · hold 12 · cycle-safe 12</text>
+<text x="590" y="375" class="title" font-size="15" font-weight="700">Oracle XY diagnostic</text>
+<text x="590" y="413" class="muted" font-size="12">Approach / close / secure</text>
+<rect x="760" y="397" width="330" height="26" rx="6" fill="#253343"/>
+<rect x="760" y="397" width="330.0" height="26" rx="6" fill="#73b7ff"/>
+<text x="1100" y="415" class="title" font-size="13" font-weight="700">72/72</text>
+<text x="590" y="451" class="muted" font-size="12">Cooperative lift</text>
+<rect x="760" y="435" width="330" height="26" rx="6" fill="#253343"/>
+<rect x="760" y="435" width="330.0" height="26" rx="6" fill="#ffbd72"/>
+<text x="1100" y="453" class="title" font-size="13" font-weight="700">72/72</text>
+<text x="590" y="489" class="muted" font-size="12">Hold under load</text>
+<rect x="760" y="473" width="330" height="26" rx="6" fill="#253343"/>
+<rect x="760" y="473" width="275.0" height="26" rx="6" fill="#68dfb3"/>
+<text x="1100" y="491" class="title" font-size="13" font-weight="700">60/72</text>
+<text x="590" y="523" class="orange" font-size="13">Stable lift 11/12 · hold 11 · cycle-safe 11</text>
+<text x="36" y="620" class="orange" font-size="13">Hold contact and full-sequence collision safety are separate from fresh visual confirmation, which was not measured.</text>
+</svg>

@@ -1,0 +1,248 @@
+{
+  "artifacts": {
+    "scorecard_svg": "cooperative-pick-orthogonal-verification-scorecard.svg",
+    "trials_csv": "cooperative-pick-orthogonal-verification-trials.csv"
+  },
+  "experiment": "orthogonal-view fresh visual verification under a rendered MuJoCo occluder",
+  "image_decision_inputs": "initial and two fresh RGB observations from two perpendicular MuJoCo side cameras",
+  "limitations": [
+    "The two cameras and payload fiducials are ideal rendered sensors; this is not a physical-camera result.",
+    "The static optical rail has collision disabled to isolate visual occlusion and does not test obstacle avoidance.",
+    "The 14 mm pad stratum is enriched for failures and does not estimate deployment prevalence.",
+    "Capture-time raised/stable labels do not establish continuous hold or safe release; physical outcomes are reported separately.",
+    "Two views provide only image-plane evidence. Marker visibility and view geometry remain synthetic assumptions.",
+    "V3 remains the default; V4 and the two-view candidate are experimental and opt-in."
+  ],
+  "minimum_negative_pose_requirement_met": true,
+  "minimum_unique_capture_time_negative_poses": 80,
+  "occluder": {
+    "collision_enabled": false,
+    "geometry": "fixed opaque MuJoCo box named verification_occluder_rail",
+    "half_size_m": [
+      0.12,
+      0.008,
+      0.006
+    ],
+    "location_m": [
+      0.0,
+      -0.62,
+      0.347
+    ],
+    "role": "optical challenge fixture; contact physics remains isolated",
+    "view": "verification_side only"
+  },
+  "protocol_version": 1,
+  "results": {
+    "nominal_pad_16mm": {
+      "capture_truth_negative": 2,
+      "capture_truth_positive": 98,
+      "description": "nominal 16 mm finger-pad half-size",
+      "failure_reasons": {
+        "no_grasp_contact": 1,
+        "none": 96,
+        "payload_tilt": 3
+      },
+      "methods": {
+        "V3_side": {
+          "abstained": 1,
+          "capture_truth_negative": 2,
+          "capture_truth_positive": 98,
+          "coverage": 0.99,
+          "coverage_wilson_95": [
+            0.9455,
+            0.9982
+          ],
+          "evaluations": 100,
+          "false_confirmation": 0,
+          "false_nonconfirmation": 82,
+          "negative_specificity": 0.5,
+          "negative_specificity_wilson_95": [
+            0.0945,
+            0.9055
+          ],
+          "positive_recall": 0.1633,
+          "positive_recall_wilson_95": [
+            0.1031,
+            0.2489
+          ],
+          "true_negative": 1,
+          "true_positive": 16
+        },
+        "V4_side_28px": {
+          "abstained": 1,
+          "capture_truth_negative": 2,
+          "capture_truth_positive": 98,
+          "coverage": 0.99,
+          "coverage_wilson_95": [
+            0.9455,
+            0.9982
+          ],
+          "evaluations": 100,
+          "false_confirmation": 0,
+          "false_nonconfirmation": 13,
+          "negative_specificity": 0.5,
+          "negative_specificity_wilson_95": [
+            0.0945,
+            0.9055
+          ],
+          "positive_recall": 0.8673,
+          "positive_recall_wilson_95": [
+            0.7862,
+            0.9208
+          ],
+          "true_negative": 1,
+          "true_positive": 85
+        },
+        "V4_two_view": {
+          "abstained": 2,
+          "capture_truth_negative": 2,
+          "capture_truth_positive": 98,
+          "coverage": 0.98,
+          "coverage_wilson_95": [
+            0.93,
+            0.9945
+          ],
+          "evaluations": 100,
+          "false_confirmation": 0,
+          "false_nonconfirmation": 13,
+          "negative_specificity": 0.0,
+          "negative_specificity_wilson_95": [
+            0.0,
+            0.6576
+          ],
+          "positive_recall": 0.8673,
+          "positive_recall_wilson_95": [
+            0.7862,
+            0.9208
+          ],
+          "true_negative": 0,
+          "true_positive": 85
+        }
+      },
+      "stable_hold_successes": 96,
+      "strict_full_cycle_successes": 96,
+      "unique_physical_pose_runs": 100
+    },
+    "small_pad_14mm_negative_control": {
+      "capture_truth_negative": 119,
+      "capture_truth_positive": 21,
+      "description": "previously failure-prone 14 mm pad geometry; enriched negative control",
+      "failure_reasons": {
+        "insufficient_lift": 11,
+        "no_grasp_contact": 23,
+        "none": 12,
+        "nonfinger_payload_contact": 4,
+        "payload_tilt": 90
+      },
+      "methods": {
+        "V3_side": {
+          "abstained": 8,
+          "capture_truth_negative": 119,
+          "capture_truth_positive": 21,
+          "coverage": 0.9429,
+          "coverage_wilson_95": [
+            0.8913,
+            0.9708
+          ],
+          "evaluations": 140,
+          "false_confirmation": 3,
+          "false_nonconfirmation": 18,
+          "negative_specificity": 0.9076,
+          "negative_specificity_wilson_95": [
+            0.842,
+            0.9476
+          ],
+          "positive_recall": 0.1429,
+          "positive_recall_wilson_95": [
+            0.0498,
+            0.3464
+          ],
+          "true_negative": 108,
+          "true_positive": 3
+        },
+        "V4_side_28px": {
+          "abstained": 8,
+          "capture_truth_negative": 119,
+          "capture_truth_positive": 21,
+          "coverage": 0.9429,
+          "coverage_wilson_95": [
+            0.8913,
+            0.9708
+          ],
+          "evaluations": 140,
+          "false_confirmation": 4,
+          "false_nonconfirmation": 5,
+          "negative_specificity": 0.8992,
+          "negative_specificity_wilson_95": [
+            0.832,
+            0.9414
+          ],
+          "positive_recall": 0.7619,
+          "positive_recall_wilson_95": [
+            0.5491,
+            0.8937
+          ],
+          "true_negative": 107,
+          "true_positive": 16
+        },
+        "V4_two_view": {
+          "abstained": 24,
+          "capture_truth_negative": 119,
+          "capture_truth_positive": 21,
+          "coverage": 0.8286,
+          "coverage_wilson_95": [
+            0.7576,
+            0.882
+          ],
+          "evaluations": 140,
+          "false_confirmation": 0,
+          "false_nonconfirmation": 6,
+          "negative_specificity": 0.7983,
+          "negative_specificity_wilson_95": [
+            0.7174,
+            0.8606
+          ],
+          "positive_recall": 0.7143,
+          "positive_recall_wilson_95": [
+            0.5004,
+            0.8619
+          ],
+          "true_negative": 95,
+          "true_positive": 15
+        }
+      },
+      "stable_hold_successes": 16,
+      "strict_full_cycle_successes": 12,
+      "unique_physical_pose_runs": 140
+    }
+  },
+  "simulator_truth_is_input_to_vision": false,
+  "strata": [
+    {
+      "base_seed": 40500,
+      "description": "nominal 16 mm finger-pad half-size",
+      "finger_pad_half_size_m": 0.016,
+      "name": "nominal_pad_16mm",
+      "samples_per_seed": 20,
+      "seeds": 5,
+      "unique_physical_pose_runs": 100
+    },
+    {
+      "base_seed": 40600,
+      "description": "previously failure-prone 14 mm pad geometry; enriched negative control",
+      "finger_pad_half_size_m": 0.014,
+      "name": "small_pad_14mm_negative_control",
+      "samples_per_seed": 20,
+      "seeds": 7,
+      "unique_physical_pose_runs": 140
+    }
+  ],
+  "thresholds_frozen_before_run": {
+    "V4_vertical_gap_tolerance_px": 28,
+    "maximum_interframe_drift_px": 12.0,
+    "maximum_marker_rotation_from_start_deg": 4.0,
+    "minimum_upward_displacement_px": 50.0
+  },
+  "total_image_method_evaluations": 720,
+  "total_unique_physical_pose_runs": 240
+}

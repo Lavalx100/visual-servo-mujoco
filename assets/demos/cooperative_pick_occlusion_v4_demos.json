@@ -1,0 +1,53 @@
+{
+  "evidence_type": "illustrative replay of two already-counted development rows; not additional benchmark trials",
+  "pair_id": "39700-001",
+  "split": "development",
+  "development_base_seed": 39700,
+  "candidate_gap_tolerance_px": 28,
+  "controller": "camera_estimate using initial overhead RGB for planning",
+  "decision_inputs": "initial side RGB and two fresh side RGB frames only",
+  "fault_scope": "the 50% gray band is applied after render to side-camera RGB; physics, overhead control image, and trajectory are unchanged",
+  "cases": [
+    {
+      "condition": "clean",
+      "pair_id": "39700-001",
+      "target_xy_m": [
+        0.08837753236809034,
+        0.0810366888648525
+      ],
+      "v3_decision": "confirmed",
+      "v3_reason": "raised_and_stable_in_two_fresh_frames",
+      "v4_decision": "confirmed",
+      "v4_reason": "raised_and_stable_in_two_fresh_frames",
+      "capture_time_truth_raised_and_stable": true,
+      "payload_stable_hold_success": true,
+      "strict_full_sequence_success": true,
+      "physical_failure_reason": "none",
+      "video": "cooperative_pick_occlusion_v4_clean.mp4",
+      "preview": "cooperative_pick_occlusion_v4_clean.gif"
+    },
+    {
+      "condition": "marker_occlusion_50pct",
+      "pair_id": "39700-001",
+      "target_xy_m": [
+        0.08837753236809034,
+        0.0810366888648525
+      ],
+      "v3_decision": "not_confirmed",
+      "v3_reason": "marker_orientation_changed_too_much",
+      "v4_decision": "confirmed",
+      "v4_reason": "raised_and_stable_in_two_fresh_frames",
+      "capture_time_truth_raised_and_stable": true,
+      "payload_stable_hold_success": true,
+      "strict_full_sequence_success": true,
+      "physical_failure_reason": "none",
+      "video": "cooperative_pick_occlusion_v4_marker_occlusion_50pct.mp4",
+      "preview": "cooperative_pick_occlusion_v4_marker_occlusion_50pct.gif"
+    }
+  ],
+  "limitations": [
+    "The clips illustrate one development pose and are not held-out evidence.",
+    "The occlusion is a synthetic band and the fiducial is an ideal rendered marker.",
+    "V3 remains the default; V4 is an opt-in experimental image measurement."
+  ]
+}

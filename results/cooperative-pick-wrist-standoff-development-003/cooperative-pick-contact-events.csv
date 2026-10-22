@@ -1,0 +1,14 @@
+pair_id,seed,sample_index,controller,target_x_m,target_y_m,category,phase,arm_geom,other_geom,contact_steps,maximum_penetration_m,first_contact_time_s,first_contact_x_m,first_contact_y_m,first_contact_z_m
+38100-009,38100,9,camera_estimate,-0.08109603307889762,-0.02821719067990195,nonfinger_payload,LOWER TO TABLE,arm0_wrist_link,payload_canister,44,0.000197,10.412,-0.005574,-0.026879,0.306112
+38100-009,38100,9,camera_estimate,-0.08109603307889762,-0.02821719067990195,nonfinger_payload,LOWER TO TABLE,arm1_wrist_link,payload_canister,3,0.00205,9.76,-0.121026,0.056301,0.322503
+38100-009,38100,9,camera_estimate,-0.08109603307889762,-0.02821719067990195,nonfinger_payload,RELEASE,arm0_wrist_link,payload_canister,256,0.000308,10.5,-0.006231,-0.026684,0.30589
+38101-004,38101,4,camera_estimate,-0.0534265700538347,0.0766023980904912,nonfinger_payload,RELEASE,arm0_wrist_link,payload_canister,164,0.000534,10.762,0.031204,0.075457,0.321802
+38101-004,38101,4,camera_estimate,-0.0534265700538347,0.0766023980904912,nonfinger_payload,WITHDRAW,arm0_wrist_link,payload_canister,111,0.019026,11.25,0.043156,0.078755,0.299375
+38101-009,38101,9,camera_estimate,-0.05676770336836986,-0.05519927854911754,nonfinger_payload,LOWER TO TABLE,arm2_wrist_link,payload_canister,5,0.000225,10.474,-0.096634,-0.128792,0.266706
+38101-009,38101,9,camera_estimate,-0.05676770336836986,-0.05519927854911754,nonfinger_payload,RELEASE,arm2_wrist_link,payload_canister,5,0.000181,10.5,-0.096745,-0.129287,0.266132
+38101-009,38101,9,camera_estimate,-0.05676770336836986,-0.05519927854911754,nonfinger_payload,WITHDRAW,arm1_wrist_link,payload_canister,6,0.001067,11.642,-0.103107,0.02095,0.3217
+38102-003,38102,3,oracle_xy,-0.04207090818545445,0.015936188337103856,nonfinger_payload,COOPERATIVE LIFT,arm0_wrist_link,payload_canister,21,0.000227,6.774,0.029255,0.016649,0.350839
+38102-003,38102,3,oracle_xy,-0.04207090818545445,0.015936188337103856,nonfinger_payload,HOLD UNDER LOAD,arm0_wrist_link,payload_canister,1,6e-06,7.53,0.033501,0.017113,0.390194
+38102-003,38102,3,oracle_xy,-0.04207090818545445,0.015936188337103856,nonfinger_payload,LOWER TO TABLE,arm0_wrist_link,payload_canister,22,0.000328,10.456,0.052088,0.016222,0.32666
+38102-003,38102,3,oracle_xy,-0.04207090818545445,0.015936188337103856,nonfinger_payload,RELEASE,arm0_wrist_link,payload_canister,248,0.000596,10.5,0.052667,0.016212,0.326198
+38102-003,38102,3,oracle_xy,-0.04207090818545445,0.015936188337103856,nonfinger_payload,WITHDRAW,arm0_wrist_link,payload_canister,35,0.020355,11.25,0.053382,0.017011,0.316444

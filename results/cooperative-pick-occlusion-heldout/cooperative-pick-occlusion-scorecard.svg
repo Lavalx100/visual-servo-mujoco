@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="620" viewBox="0 0 1120 620">
+<rect width="100%" height="100%" fill="#0b1220"/>
+<style>text{font-family:Arial,Helvetica,sans-serif}.muted{fill:#a9b6c8}.white{fill:#f3f6fb}.green{fill:#57d6a3}.red{fill:#ff7b72}.blue{fill:#58a6ff}.orange{fill:#ffb86c}</style>
+<text x="28" y="40" font-size="24" font-weight="700" class="white">Gap-tolerant fiducial detection | clean and half occlusion</text>
+<text x="28" y="68" font-size="14" class="muted">Heldout split | seed 39800 | 60 matched poses | 120 simulation replays</text>
+<rect x="28" y="104" width="520" height="394" rx="14" fill="#141e30" stroke="#2b3850"/>
+<text x="46" y="136" font-size="18" font-weight="700" class="blue">Clean side-camera RGB</text>
+<text x="46" y="167" font-size="14" class="white">V3 baseline: TP 55 | false confirm 0</text>
+<text x="46" y="192" font-size="14" class="muted">False non-confirm 1 | abstain 0 | coverage 100%</text>
+<text x="46" y="243" font-size="16" font-weight="700" class="green">V4 gap 28px: TP 55 | false confirm 0</text>
+<text x="46" y="270" font-size="14" class="muted">False non-confirm 1 | abstain 0 | coverage 100%</text>
+<text x="46" y="318" font-size="12" class="muted">Positive recall: 55/56 | negative specificity: 4/4</text>
+<text x="46" y="390" font-size="13" class="orange">Physical hold 55/60 | strict full cycle 53/60</text>
+<text x="46" y="425" font-size="12" class="muted">Each pose was replayed; image fault changed side RGB only.</text>
+<text x="46" y="452" font-size="11" class="muted">Candidate tolerances: 28 px</text>
+<rect x="576" y="104" width="520" height="394" rx="14" fill="#141e30" stroke="#2b3850"/>
+<text x="594" y="136" font-size="18" font-weight="700" class="blue">50% fiducial occlusion</text>
+<text x="594" y="167" font-size="14" class="white">V3 baseline: TP 23 | false confirm 0</text>
+<text x="594" y="192" font-size="14" class="muted">False non-confirm 33 | abstain 0 | coverage 100%</text>
+<text x="594" y="243" font-size="16" font-weight="700" class="green">V4 gap 28px: TP 55 | false confirm 0</text>
+<text x="594" y="270" font-size="14" class="muted">False non-confirm 1 | abstain 0 | coverage 100%</text>
+<text x="594" y="318" font-size="12" class="muted">Positive recall: 55/56 | negative specificity: 4/4</text>
+<text x="594" y="390" font-size="13" class="orange">Physical hold 55/60 | strict full cycle 53/60</text>
+<text x="594" y="425" font-size="12" class="muted">Each pose was replayed; image fault changed side RGB only.</text>
+<text x="594" y="452" font-size="11" class="muted">Candidate tolerances: 28 px</text>
+<text x="28" y="540" font-size="13" class="orange">Simulation-derived labels and authored image occlusion; this is not real-camera or hardware evidence.</text>
+<text x="28" y="566" font-size="12" class="muted">V3 remains the default. V4 is a post-capture image-only candidate evaluated on the exact same RGB frames.</text>
+</svg>

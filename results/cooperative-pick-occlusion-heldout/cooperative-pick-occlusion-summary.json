@@ -1,0 +1,164 @@
+{
+  "evidence_type": "paired MuJoCo simulation with authored side-camera RGB occlusion; no real-camera data",
+  "stage": "heldout",
+  "split": {
+    "base_seed": 39800,
+    "development_base_seed": 39700,
+    "seeds": 3,
+    "samples_per_seed": 20,
+    "matched_target_poses": 60,
+    "conditions_per_pose": 2,
+    "simulation_replay_count": 120,
+    "target_xy_range_m": [
+      -0.09,
+      0.09
+    ]
+  },
+  "controller": "camera_estimate using the initial overhead RGB for planning",
+  "verifier": {
+    "baseline": "V3 frozen: 50 px rise, 12 px drift, 4 degree fiducial-angle change",
+    "candidate": "V4 opt-in vertical fragment grouping; same V3 thresholds and RGB frames",
+    "candidate_gap_tolerances_px": [
+      28
+    ],
+    "occlusion": {
+      "kind": "marker_occlusion",
+      "occluded_fraction": 0.5,
+      "label": "50% fiducial occlusion"
+    }
+  },
+  "physical_outcomes_identical_across_clean_and_occluded_replays_for_every_pose": true,
+  "conditions": {
+    "clean": {
+      "v3": {
+        "trials": 60,
+        "capture_time_truth_positive": 56,
+        "capture_time_truth_negative": 4,
+        "true_positive": 55,
+        "false_confirmation": 0,
+        "true_negative": 4,
+        "false_nonconfirmation": 1,
+        "abstained": 0,
+        "coverage": 1.0,
+        "coverage_wilson_95": [
+          0.9398,
+          1.0
+        ],
+        "positive_recall_including_abstentions": 0.9821,
+        "positive_recall_wilson_95": [
+          0.9055,
+          0.9968
+        ],
+        "negative_specificity_including_abstentions": 1.0,
+        "negative_specificity_wilson_95": [
+          0.5101,
+          1.0
+        ]
+      },
+      "gap_tolerant_28px": {
+        "trials": 60,
+        "capture_time_truth_positive": 56,
+        "capture_time_truth_negative": 4,
+        "true_positive": 55,
+        "false_confirmation": 0,
+        "true_negative": 4,
+        "false_nonconfirmation": 1,
+        "abstained": 0,
+        "coverage": 1.0,
+        "coverage_wilson_95": [
+          0.9398,
+          1.0
+        ],
+        "positive_recall_including_abstentions": 0.9821,
+        "positive_recall_wilson_95": [
+          0.9055,
+          0.9968
+        ],
+        "negative_specificity_including_abstentions": 1.0,
+        "negative_specificity_wilson_95": [
+          0.5101,
+          1.0
+        ]
+      },
+      "physical_outcomes": {
+        "payload_stable_hold_successes": 55,
+        "strict_full_sequence_successes": 53,
+        "trials": 60
+      }
+    },
+    "marker_occlusion_50pct": {
+      "v3": {
+        "trials": 60,
+        "capture_time_truth_positive": 56,
+        "capture_time_truth_negative": 4,
+        "true_positive": 23,
+        "false_confirmation": 0,
+        "true_negative": 4,
+        "false_nonconfirmation": 33,
+        "abstained": 0,
+        "coverage": 1.0,
+        "coverage_wilson_95": [
+          0.9398,
+          1.0
+        ],
+        "positive_recall_including_abstentions": 0.4107,
+        "positive_recall_wilson_95": [
+          0.2917,
+          0.5412
+        ],
+        "negative_specificity_including_abstentions": 1.0,
+        "negative_specificity_wilson_95": [
+          0.5101,
+          1.0
+        ]
+      },
+      "gap_tolerant_28px": {
+        "trials": 60,
+        "capture_time_truth_positive": 56,
+        "capture_time_truth_negative": 4,
+        "true_positive": 55,
+        "false_confirmation": 0,
+        "true_negative": 4,
+        "false_nonconfirmation": 1,
+        "abstained": 0,
+        "coverage": 1.0,
+        "coverage_wilson_95": [
+          0.9398,
+          1.0
+        ],
+        "positive_recall_including_abstentions": 0.9821,
+        "positive_recall_wilson_95": [
+          0.9055,
+          0.9968
+        ],
+        "negative_specificity_including_abstentions": 1.0,
+        "negative_specificity_wilson_95": [
+          0.5101,
+          1.0
+        ]
+      },
+      "physical_outcomes": {
+        "payload_stable_hold_successes": 55,
+        "strict_full_sequence_successes": 53,
+        "trials": 60
+      }
+    }
+  },
+  "development_selection": null,
+  "selected_gap_tolerance_px": 28,
+  "heldout_provenance": {
+    "development_base_seed": 39700,
+    "candidate_gap_tolerance_px_frozen": 28
+  },
+  "outputs": {
+    "csv": "cooperative-pick-occlusion-trials.csv",
+    "svg": "cooperative-pick-occlusion-scorecard.svg",
+    "summary": "cooperative-pick-occlusion-summary.json"
+  },
+  "limitations": [
+    "Two image conditions and a small negative class do not establish broad specificity.",
+    "The marker is synthetic and the occlusion is a deterministic gray band.",
+    "Each candidate is evaluated on the same RGB observations as V3; it cannot alter motion or physics.",
+    "A positive visual confirmation remains separate from sustained physical hold and full-cycle collision safety."
+  ]
+}

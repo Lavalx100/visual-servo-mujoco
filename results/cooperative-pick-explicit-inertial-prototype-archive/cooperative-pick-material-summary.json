@@ -1,0 +1,730 @@
+{
+  "artifacts": {
+    "demo_metadata": "assets/demos/cooperative_pick_material_demos.json",
+    "scorecard_svg": "cooperative-pick-material-scorecard.svg",
+    "trials_csv": "cooperative-pick-material-trials.csv"
+  },
+  "conditions": {
+    "mass-0.45_friction-0.5": {
+      "controllers": {
+        "camera_estimate": {
+          "failure_reasons": {
+            "no_grasp_contact": 12
+          },
+          "fresh_visual_confirmation": "not measured in material sweep",
+          "full_sequence_collision_safe": {
+            "rate": 0.3333,
+            "successes": 4,
+            "wilson_95_interval": [
+              0.1381,
+              0.6094
+            ]
+          },
+          "payload_stable_lift_success": {
+            "rate": 0.0,
+            "successes": 0,
+            "wilson_95_interval": [
+              0.0,
+              0.2425
+            ]
+          },
+          "physical_stable_lift_success": {
+            "rate": 0.0,
+            "successes": 0,
+            "wilson_95_interval": [
+              0.0,
+              0.2425
+            ]
+          },
+          "trials": 12
+        },
+        "oracle_xy": {
+          "failure_reasons": {
+            "no_grasp_contact": 12
+          },
+          "fresh_visual_confirmation": "not measured in material sweep",
+          "full_sequence_collision_safe": {
+            "rate": 0.5,
+            "successes": 6,
+            "wilson_95_interval": [
+              0.2538,
+              0.7462
+            ]
+          },
+          "payload_stable_lift_success": {
+            "rate": 0.0,
+            "successes": 0,
+            "wilson_95_interval": [
+              0.0,
+              0.2425
+            ]
+          },
+          "physical_stable_lift_success": {
+            "rate": 0.0,
+            "successes": 0,
+            "wilson_95_interval": [
+              0.0,
+              0.2425
+            ]
+          },
+          "trials": 12
+        }
+      },
+      "finger_pad_and_payload_sliding_friction": 0.5,
+      "payload_body_mass_kg": 0.45,
+      "trials": 12
+    },
+    "mass-0.45_friction-1.1": {
+      "controllers": {
+        "camera_estimate": {
+          "failure_reasons": {
+            "insufficient_lift": 6,
+            "no_grasp_contact": 4,
+            "none": 2
+          },
+          "fresh_visual_confirmation": "not measured in material sweep",
+          "full_sequence_collision_safe": {
+            "rate": 0.25,
+            "successes": 3,
+            "wilson_95_interval": [
+              0.0889,
+              0.5323
+            ]
+          },
+          "payload_stable_lift_success": {
+            "rate": 0.1667,
+            "successes": 2,
+            "wilson_95_interval": [
+              0.047,
+              0.448
+            ]
+          },
+          "physical_stable_lift_success": {
+            "rate": 0.1667,
+            "successes": 2,
+            "wilson_95_interval": [
+              0.047,
+              0.448
+            ]
+          },
+          "trials": 12
+        },
+        "oracle_xy": {
+          "failure_reasons": {
+            "insufficient_lift": 5,
+            "no_grasp_contact": 3,
+            "none": 1,
+            "nonfinger_payload_contact": 1,
+            "payload_tilt": 2
+          },
+          "fresh_visual_confirmation": "not measured in material sweep",
+          "full_sequence_collision_safe": {
+            "rate": 0.25,
+            "successes": 3,
+            "wilson_95_interval": [
+              0.0889,
+              0.5323
+            ]
+          },
+          "payload_stable_lift_success": {
+            "rate": 0.1667,
+            "successes": 2,
+            "wilson_95_interval": [
+              0.047,
+              0.448
+            ]
+          },
+          "physical_stable_lift_success": {
+            "rate": 0.0833,
+            "successes": 1,
+            "wilson_95_interval": [
+              0.0149,
+              0.3539
+            ]
+          },
+          "trials": 12
+        }
+      },
+      "finger_pad_and_payload_sliding_friction": 1.1,
+      "payload_body_mass_kg": 0.45,
+      "trials": 12
+    },
+    "mass-0.45_friction-2.2": {
+      "controllers": {
+        "camera_estimate": {
+          "failure_reasons": {
+            "insufficient_lift": 1,
+            "none": 11
+          },
+          "fresh_visual_confirmation": "not measured in material sweep",
+          "full_sequence_collision_safe": {
+            "rate": 0.9167,
+            "successes": 11,
+            "wilson_95_interval": [
+              0.6461,
+              0.9851
+            ]
+          },
+          "payload_stable_lift_success": {
+            "rate": 0.9167,
+            "successes": 11,
+            "wilson_95_interval": [
+              0.6461,
+              0.9851
+            ]
+          },
+          "physical_stable_lift_success": {
+            "rate": 0.9167,
+            "successes": 11,
+            "wilson_95_interval": [
+              0.6461,
+              0.9851
+            ]
+          },
+          "trials": 12
+        },
+        "oracle_xy": {
+          "failure_reasons": {
+            "none": 12
+          },
+          "fresh_visual_confirmation": "not measured in material sweep",
+          "full_sequence_collision_safe": {
+            "rate": 1.0,
+            "successes": 12,
+            "wilson_95_interval": [
+              0.7575,
+              1.0
+            ]
+          },
+          "payload_stable_lift_success": {
+            "rate": 1.0,
+            "successes": 12,
+            "wilson_95_interval": [
+              0.7575,
+              1.0
+            ]
+          },
+          "physical_stable_lift_success": {
+            "rate": 1.0,
+            "successes": 12,
+            "wilson_95_interval": [
+              0.7575,
+              1.0
+            ]
+          },
+          "trials": 12
+        }
+      },
+      "finger_pad_and_payload_sliding_friction": 2.2,
+      "payload_body_mass_kg": 0.45,
+      "trials": 12
+    },
+    "mass-0.720117_friction-0.5": {
+      "controllers": {
+        "camera_estimate": {
+          "failure_reasons": {
+            "no_grasp_contact": 12
+          },
+          "fresh_visual_confirmation": "not measured in material sweep",
+          "full_sequence_collision_safe": {
+            "rate": 0.4167,
+            "successes": 5,
+            "wilson_95_interval": [
+              0.1933,
+              0.6805
+            ]
+          },
+          "payload_stable_lift_success": {
+            "rate": 0.0,
+            "successes": 0,
+            "wilson_95_interval": [
+              0.0,
+              0.2425
+            ]
+          },
+          "physical_stable_lift_success": {
+            "rate": 0.0,
+            "successes": 0,
+            "wilson_95_interval": [
+              0.0,
+              0.2425
+            ]
+          },
+          "trials": 12
+        },
+        "oracle_xy": {
+          "failure_reasons": {
+            "no_grasp_contact": 12
+          },
+          "fresh_visual_confirmation": "not measured in material sweep",
+          "full_sequence_collision_safe": {
+            "rate": 0.5,
+            "successes": 6,
+            "wilson_95_interval": [
+              0.2538,
+              0.7462
+            ]
+          },
+          "payload_stable_lift_success": {
+            "rate": 0.0,
+            "successes": 0,
+            "wilson_95_interval": [
+              0.0,
+              0.2425
+            ]
+          },
+          "physical_stable_lift_success": {
+            "rate": 0.0,
+            "successes": 0,
+            "wilson_95_interval": [
+              0.0,
+              0.2425
+            ]
+          },
+          "trials": 12
+        }
+      },
+      "finger_pad_and_payload_sliding_friction": 0.5,
+      "payload_body_mass_kg": 0.7201166534540158,
+      "trials": 12
+    },
+    "mass-0.720117_friction-1.1": {
+      "controllers": {
+        "camera_estimate": {
+          "failure_reasons": {
+            "no_grasp_contact": 12
+          },
+          "fresh_visual_confirmation": "not measured in material sweep",
+          "full_sequence_collision_safe": {
+            "rate": 0.1667,
+            "successes": 2,
+            "wilson_95_interval": [
+              0.047,
+              0.448
+            ]
+          },
+          "payload_stable_lift_success": {
+            "rate": 0.0,
+            "successes": 0,
+            "wilson_95_interval": [
+              0.0,
+              0.2425
+            ]
+          },
+          "physical_stable_lift_success": {
+            "rate": 0.0,
+            "successes": 0,
+            "wilson_95_interval": [
+              0.0,
+              0.2425
+            ]
+          },
+          "trials": 12
+        },
+        "oracle_xy": {
+          "failure_reasons": {
+            "no_grasp_contact": 12
+          },
+          "fresh_visual_confirmation": "not measured in material sweep",
+          "full_sequence_collision_safe": {
+            "rate": 0.1667,
+            "successes": 2,
+            "wilson_95_interval": [
+              0.047,
+              0.448
+            ]
+          },
+          "payload_stable_lift_success": {
+            "rate": 0.0,
+            "successes": 0,
+            "wilson_95_interval": [
+              0.0,
+              0.2425
+            ]
+          },
+          "physical_stable_lift_success": {
+            "rate": 0.0,
+            "successes": 0,
+            "wilson_95_interval": [
+              0.0,
+              0.2425
+            ]
+          },
+          "trials": 12
+        }
+      },
+      "finger_pad_and_payload_sliding_friction": 1.1,
+      "payload_body_mass_kg": 0.7201166534540158,
+      "trials": 12
+    },
+    "mass-0.720117_friction-2.2": {
+      "controllers": {
+        "camera_estimate": {
+          "failure_reasons": {
+            "none": 12
+          },
+          "fresh_visual_confirmation": "not measured in material sweep",
+          "full_sequence_collision_safe": {
+            "rate": 1.0,
+            "successes": 12,
+            "wilson_95_interval": [
+              0.7575,
+              1.0
+            ]
+          },
+          "payload_stable_lift_success": {
+            "rate": 1.0,
+            "successes": 12,
+            "wilson_95_interval": [
+              0.7575,
+              1.0
+            ]
+          },
+          "physical_stable_lift_success": {
+            "rate": 1.0,
+            "successes": 12,
+            "wilson_95_interval": [
+              0.7575,
+              1.0
+            ]
+          },
+          "trials": 12
+        },
+        "oracle_xy": {
+          "failure_reasons": {
+            "none": 12
+          },
+          "fresh_visual_confirmation": "not measured in material sweep",
+          "full_sequence_collision_safe": {
+            "rate": 1.0,
+            "successes": 12,
+            "wilson_95_interval": [
+              0.7575,
+              1.0
+            ]
+          },
+          "payload_stable_lift_success": {
+            "rate": 1.0,
+            "successes": 12,
+            "wilson_95_interval": [
+              0.7575,
+              1.0
+            ]
+          },
+          "physical_stable_lift_success": {
+            "rate": 1.0,
+            "successes": 12,
+            "wilson_95_interval": [
+              0.7575,
+              1.0
+            ]
+          },
+          "trials": 12
+        }
+      },
+      "finger_pad_and_payload_sliding_friction": 2.2,
+      "payload_body_mass_kg": 0.7201166534540158,
+      "trials": 12
+    },
+    "mass-0.99_friction-0.5": {
+      "controllers": {
+        "camera_estimate": {
+          "failure_reasons": {
+            "no_grasp_contact": 12
+          },
+          "fresh_visual_confirmation": "not measured in material sweep",
+          "full_sequence_collision_safe": {
+            "rate": 0.6667,
+            "successes": 8,
+            "wilson_95_interval": [
+              0.3906,
+              0.8619
+            ]
+          },
+          "payload_stable_lift_success": {
+            "rate": 0.0,
+            "successes": 0,
+            "wilson_95_interval": [
+              0.0,
+              0.2425
+            ]
+          },
+          "physical_stable_lift_success": {
+            "rate": 0.0,
+            "successes": 0,
+            "wilson_95_interval": [
+              0.0,
+              0.2425
+            ]
+          },
+          "trials": 12
+        },
+        "oracle_xy": {
+          "failure_reasons": {
+            "no_grasp_contact": 12
+          },
+          "fresh_visual_confirmation": "not measured in material sweep",
+          "full_sequence_collision_safe": {
+            "rate": 0.6667,
+            "successes": 8,
+            "wilson_95_interval": [
+              0.3906,
+              0.8619
+            ]
+          },
+          "payload_stable_lift_success": {
+            "rate": 0.0,
+            "successes": 0,
+            "wilson_95_interval": [
+              0.0,
+              0.2425
+            ]
+          },
+          "physical_stable_lift_success": {
+            "rate": 0.0,
+            "successes": 0,
+            "wilson_95_interval": [
+              0.0,
+              0.2425
+            ]
+          },
+          "trials": 12
+        }
+      },
+      "finger_pad_and_payload_sliding_friction": 0.5,
+      "payload_body_mass_kg": 0.99,
+      "trials": 12
+    },
+    "mass-0.99_friction-1.1": {
+      "controllers": {
+        "camera_estimate": {
+          "failure_reasons": {
+            "no_grasp_contact": 12
+          },
+          "fresh_visual_confirmation": "not measured in material sweep",
+          "full_sequence_collision_safe": {
+            "rate": 0.0833,
+            "successes": 1,
+            "wilson_95_interval": [
+              0.0149,
+              0.3539
+            ]
+          },
+          "payload_stable_lift_success": {
+            "rate": 0.0,
+            "successes": 0,
+            "wilson_95_interval": [
+              0.0,
+              0.2425
+            ]
+          },
+          "physical_stable_lift_success": {
+            "rate": 0.0,
+            "successes": 0,
+            "wilson_95_interval": [
+              0.0,
+              0.2425
+            ]
+          },
+          "trials": 12
+        },
+        "oracle_xy": {
+          "failure_reasons": {
+            "no_grasp_contact": 12
+          },
+          "fresh_visual_confirmation": "not measured in material sweep",
+          "full_sequence_collision_safe": {
+            "rate": 0.3333,
+            "successes": 4,
+            "wilson_95_interval": [
+              0.1381,
+              0.6094
+            ]
+          },
+          "payload_stable_lift_success": {
+            "rate": 0.0,
+            "successes": 0,
+            "wilson_95_interval": [
+              0.0,
+              0.2425
+            ]
+          },
+          "physical_stable_lift_success": {
+            "rate": 0.0,
+            "successes": 0,
+            "wilson_95_interval": [
+              0.0,
+              0.2425
+            ]
+          },
+          "trials": 12
+        }
+      },
+      "finger_pad_and_payload_sliding_friction": 1.1,
+      "payload_body_mass_kg": 0.99,
+      "trials": 12
+    },
+    "mass-0.99_friction-2.2": {
+      "controllers": {
+        "camera_estimate": {
+          "failure_reasons": {
+            "no_grasp_contact": 1,
+            "none": 11
+          },
+          "fresh_visual_confirmation": "not measured in material sweep",
+          "full_sequence_collision_safe": {
+            "rate": 1.0,
+            "successes": 12,
+            "wilson_95_interval": [
+              0.7575,
+              1.0
+            ]
+          },
+          "payload_stable_lift_success": {
+            "rate": 0.9167,
+            "successes": 11,
+            "wilson_95_interval": [
+              0.6461,
+              0.9851
+            ]
+          },
+          "physical_stable_lift_success": {
+            "rate": 0.9167,
+            "successes": 11,
+            "wilson_95_interval": [
+              0.6461,
+              0.9851
+            ]
+          },
+          "trials": 12
+        },
+        "oracle_xy": {
+          "failure_reasons": {
+            "none": 12
+          },
+          "fresh_visual_confirmation": "not measured in material sweep",
+          "full_sequence_collision_safe": {
+            "rate": 1.0,
+            "successes": 12,
+            "wilson_95_interval": [
+              0.7575,
+              1.0
+            ]
+          },
+          "payload_stable_lift_success": {
+            "rate": 1.0,
+            "successes": 12,
+            "wilson_95_interval": [
+              0.7575,
+              1.0
+            ]
+          },
+          "physical_stable_lift_success": {
+            "rate": 1.0,
+            "successes": 12,
+            "wilson_95_interval": [
+              0.7575,
+              1.0
+            ]
+          },
+          "trials": 12
+        }
+      },
+      "finger_pad_and_payload_sliding_friction": 2.2,
+      "payload_body_mass_kg": 0.99,
+      "trials": 12
+    }
+  },
+  "controller_conditions": [
+    "camera_estimate",
+    "oracle_xy"
+  ],
+  "demos": [
+    {
+      "condition": "mass-0.720117_friction-2.2",
+      "controller": "camera_estimate",
+      "counted_as_additional_trial": false,
+      "finger_pad_and_payload_sliding_friction": 2.2,
+      "fresh_visual_confirmation": "not measured",
+      "full_sequence_collision_safe": true,
+      "gif": "cooperative_pick_material_nominal_material.gif",
+      "mp4": "cooperative_pick_material_nominal_material.mp4",
+      "name": "nominal_material",
+      "payload_body_mass_kg": 0.720116653454,
+      "payload_stable_lift_success": true,
+      "physical_stable_lift_success": true,
+      "source_pair_id": "40800-000"
+    },
+    {
+      "condition": "mass-0.99_friction-0.5",
+      "controller": "camera_estimate",
+      "counted_as_additional_trial": false,
+      "finger_pad_and_payload_sliding_friction": 0.5,
+      "fresh_visual_confirmation": "not measured",
+      "full_sequence_collision_safe": false,
+      "gif": "cooperative_pick_material_heavy_low_friction_stress.gif",
+      "mp4": "cooperative_pick_material_heavy_low_friction_stress.mp4",
+      "name": "heavy_low_friction_stress",
+      "payload_body_mass_kg": 0.99,
+      "payload_stable_lift_success": false,
+      "physical_stable_lift_success": false,
+      "source_pair_id": "40800-000"
+    },
+    {
+      "comparison": "same pose; 0.720 kg and mu 2.2 versus 0.990 kg and mu 0.5",
+      "controller": "camera_estimate",
+      "counted_as_additional_trial": false,
+      "gif": "cooperative_pick_material_matched_comparison.gif",
+      "mp4": "cooperative_pick_material_matched_comparison.mp4",
+      "name": "matched_nominal_vs_heavy_low_friction",
+      "source_pair_id": "40800-000"
+    }
+  ],
+  "evidence_type": "paired MuJoCo simulation; not hardware evidence",
+  "experiment": "held-out three-arm grasp material stress test",
+  "frozen_controller_settings": {
+    "finger_pad_half_size_m": 0.016,
+    "lowest_approach_tool_height_offset_m": 0.02,
+    "release_profile": "clearance"
+  },
+  "limitations": [
+    "The mass and friction levels are deliberate synthetic stresses, not estimates of a specific real canister.",
+    "Visual bands and cap are massless; explicit payload inertia preserves the legacy nominal mass and inertia.",
+    "The cylinder geometry and all controller settings remain fixed; this study does not cover shape variation or dynamic transport.",
+    "Target perception remains the existing one-shot detector; oracle_xy is included only as an upper-bound comparator.",
+    "Fresh visual confirmation is not measured; a contact-driven stable lift is not a visual success claim.",
+    "Twelve poses per material condition provide a stress map, not a precise population reliability estimate."
+  ],
+  "paired_design": "same target pose for every material condition and both camera-estimate/oracle controllers",
+  "protocol_version": 1,
+  "target_sampling": {
+    "base_seed": 40800,
+    "distribution": "independent uniform XY samples in a square",
+    "samples_per_seed": 12,
+    "x_range_m": [
+      -0.09,
+      0.09
+    ],
+    "y_range_m": [
+      -0.09,
+      0.09
+    ]
+  },
+  "total_physics_trials": 216,
+  "unique_pose_material_pairs": 108,
+  "unique_target_poses": 12,
+  "varied_material_assumptions": {
+    "finger_pad_and_payload_sliding_friction": [
+      0.5,
+      1.1,
+      2.2
+    ],
+    "inertia_model": "nominal inertia is preserved at the default mass; principal moments scale proportionally with payload body mass",
+    "interpretation": "author-selected simulator stress values; no real object or hardware calibration",
+    "payload_body_mass_kg": [
+      0.45,
+      0.7201166534540158,
+      0.99
+    ]
+  }
+}

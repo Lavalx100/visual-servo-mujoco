@@ -1,0 +1,162 @@
+{
+  "evidence_type": "illustrative same-pose replays already counted in the 39500 held-out dataset",
+  "pair_id": "39600-000",
+  "source_table": "results/cooperative-pick-visual-fault-validation/cooperative-pick-visual-fault-trials.csv",
+  "controller": "camera_estimate with initial overhead RGB planning",
+  "verifier": "frozen V3; 50 px rise, 12 px drift, 4 degree marker rotation",
+  "faults_apply_to": "side-camera verification RGB only, after simulation capture; not MuJoCo physics or the overhead controller image",
+  "cases": [
+    {
+      "fault_condition": "clean",
+      "fault_specification": null,
+      "pair_id": "39600-000",
+      "target_xy_m": [
+        0.006301360316474429,
+        -0.011890106868090352
+      ],
+      "decision": "confirmed",
+      "decision_reason": "raised_and_stable_in_two_fresh_frames",
+      "truth_raised_stable_at_two_frames": true,
+      "payload_stable_hold_success": true,
+      "strict_full_sequence_success": true,
+      "physical_failure_reason": "none",
+      "videos": [
+        "cooperative_pick_visual_fault_clean.mp4"
+      ],
+      "previews": [
+        "cooperative_pick_visual_fault_clean.gif"
+      ]
+    },
+    {
+      "fault_condition": "dim_exposure_x0_25",
+      "fault_specification": {
+        "kind": "exposure_scale",
+        "scale": 0.25,
+        "label": "dim exposure x0.25"
+      },
+      "pair_id": "39600-000",
+      "target_xy_m": [
+        0.006301360316474429,
+        -0.011890106868090352
+      ],
+      "decision": "abstain",
+      "decision_reason": "initial_marker_not_visible",
+      "truth_raised_stable_at_two_frames": true,
+      "payload_stable_hold_success": true,
+      "strict_full_sequence_success": true,
+      "physical_failure_reason": "none",
+      "videos": [
+        "cooperative_pick_visual_fault_dim_exposure_x0_25.mp4"
+      ],
+      "previews": [
+        "cooperative_pick_visual_fault_dim_exposure_x0_25.gif"
+      ]
+    },
+    {
+      "fault_condition": "bright_exposure_x1_5",
+      "fault_specification": {
+        "kind": "exposure_scale",
+        "scale": 1.5,
+        "label": "bright exposure x1.5"
+      },
+      "pair_id": "39600-000",
+      "target_xy_m": [
+        0.006301360316474429,
+        -0.011890106868090352
+      ],
+      "decision": "confirmed",
+      "decision_reason": "raised_and_stable_in_two_fresh_frames",
+      "truth_raised_stable_at_two_frames": true,
+      "payload_stable_hold_success": true,
+      "strict_full_sequence_success": true,
+      "physical_failure_reason": "none",
+      "videos": [
+        "cooperative_pick_visual_fault_bright_exposure_x1_5.mp4"
+      ],
+      "previews": [
+        "cooperative_pick_visual_fault_bright_exposure_x1_5.gif"
+      ]
+    },
+    {
+      "fault_condition": "marker_occlusion_50pct",
+      "fault_specification": {
+        "kind": "marker_occlusion",
+        "occluded_fraction": 0.5,
+        "label": "50% fiducial occlusion"
+      },
+      "pair_id": "39600-000",
+      "target_xy_m": [
+        0.006301360316474429,
+        -0.011890106868090352
+      ],
+      "decision": "confirmed",
+      "decision_reason": "raised_and_stable_in_two_fresh_frames",
+      "truth_raised_stable_at_two_frames": true,
+      "payload_stable_hold_success": true,
+      "strict_full_sequence_success": true,
+      "physical_failure_reason": "none",
+      "videos": [
+        "cooperative_pick_visual_fault_marker_occlusion_50pct.mp4"
+      ],
+      "previews": [
+        "cooperative_pick_visual_fault_marker_occlusion_50pct.gif"
+      ]
+    },
+    {
+      "fault_condition": "horizontal_blur_9px",
+      "fault_specification": {
+        "kind": "horizontal_motion_blur",
+        "kernel_size": 9,
+        "label": "9 px horizontal blur"
+      },
+      "pair_id": "39600-000",
+      "target_xy_m": [
+        0.006301360316474429,
+        -0.011890106868090352
+      ],
+      "decision": "confirmed",
+      "decision_reason": "raised_and_stable_in_two_fresh_frames",
+      "truth_raised_stable_at_two_frames": true,
+      "payload_stable_hold_success": true,
+      "strict_full_sequence_success": true,
+      "physical_failure_reason": "none",
+      "videos": [
+        "cooperative_pick_visual_fault_horizontal_blur_9px.mp4"
+      ],
+      "previews": [
+        "cooperative_pick_visual_fault_horizontal_blur_9px.gif"
+      ]
+    },
+    {
+      "fault_condition": "camera_shift_up_25px",
+      "fault_specification": {
+        "kind": "camera_translation",
+        "dx_px": 0,
+        "dy_px": -25,
+        "label": "fresh-frame camera shift up 25 px"
+      },
+      "pair_id": "39600-000",
+      "target_xy_m": [
+        0.006301360316474429,
+        -0.011890106868090352
+      ],
+      "decision": "confirmed",
+      "decision_reason": "raised_and_stable_in_two_fresh_frames",
+      "truth_raised_stable_at_two_frames": true,
+      "payload_stable_hold_success": true,
+      "strict_full_sequence_success": true,
+      "physical_failure_reason": "none",
+      "videos": [
+        "cooperative_pick_visual_fault_camera_shift_up_25px.mp4"
+      ],
+      "previews": [
+        "cooperative_pick_visual_fault_camera_shift_up_25px.gif"
+      ]
+    }
+  ],
+  "reproduction": "uv run --locked --extra demo python scripts/generate_cooperative_pick_visual_fault_demos.py",
+  "limitations": [
+    "One selected pose is illustrative and does not replace the aggregate 60-pose results.",
+    "All image faults are authored digital transformations of synthetic MuJoCo RGB."
+  ]
+}
