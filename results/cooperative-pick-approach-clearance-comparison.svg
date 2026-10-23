@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1015" viewBox="0 0 1400 1015">
+<defs><linearGradient id="bg" x2="0" y2="1"><stop stop-color="#111b2a"/><stop offset="1" stop-color="#0a101a"/></linearGradient>
+<marker id="arrowGreen" markerWidth="7" markerHeight="7" refX="4" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7 Z" fill="#44d4a3"/></marker>
+<style>
+.title {font:700 30px Inter,Arial,sans-serif;fill:#f3f7fc} .subtitle {font:400 14px Inter,Arial,sans-serif;fill:#a9bacb}
+.paneltitle {font:700 16px Inter,Arial,sans-serif;fill:#eef4fa} .section {font:700 13px Inter,Arial,sans-serif;letter-spacing:1px;fill:#b8c9d9}
+.label {font:600 14px Inter,Arial,sans-serif;fill:#e5edf5} .value {font:700 14px Inter,Arial,sans-serif;fill:#f4f8fc}
+.small {font:400 12px Inter,Arial,sans-serif} .micro {font:400 10px Inter,Arial,sans-serif;fill:#adbdcd}
+.muted {fill:#9daec0} .pill {font:700 13px Inter,Arial,sans-serif} .body {font:400 13px Inter,Arial,sans-serif;fill:#cad6e2}
+.big {font:700 20px Inter,Arial,sans-serif;fill:#f2f6fa}
+</style></defs>
+<rect width="1400" height="1015" fill="url(#bg)"/><rect x="60" y="38" width="5" height="72" rx="2.5" fill="#44d4a3"/>
+<text x="82" y="65" class="title">A 15 mm approach lift reduces the lowest pad's table contact</text>
+<text x="82" y="94" class="subtitle">Camera-guided tri-arm pick · 30 exact paired poses from base seed 38300 · release trajectory and finger geometry held fixed · MuJoCo simulation</text>
+<rect x="60" y="134" width="620" height="444" rx="18" fill="#172333" stroke="#29394b"/><rect x="700" y="134" width="640" height="444" rx="18" fill="#172333" stroke="#29394b"/>
+<text x="88" y="173" class="section">GEOMETRY | SAME ARM, DIFFERENT OPEN-APPROACH HEIGHT</text>
+<text x="728" y="173" class="section">HELD-OUT SCORE | 30 IDENTICAL TARGET POSES PER CONDITION</text>
+<rect x="85" y="204" width="270" height="340" rx="16" fill="#111e2d" stroke="#29394b"/>
+<text x="103" y="235" class="paneltitle">BASELINE</text>
+<text x="103" y="258" class="small muted">5 mm above payload center</text>
+<rect x="143" y="283.0" width="82" height="192.0" rx="16" fill="#1f3348" stroke="#4a6d8a" stroke-width="2"/>
+<text x="161" y="383.0" class="micro">PAYLOAD</text>
+<line x1="127" y1="379.0" x2="322" y2="379.0" stroke="#91a6bd" stroke-width="1" stroke-dasharray="5 5"/>
+<rect x="264" y="425.4" width="46" height="51.2" rx="7" fill="#ced9e5" stroke="#f2f6fa" stroke-width="2"/>
+<line x1="287" y1="371.0" x2="287" y2="451.0" stroke="#83b5f3" stroke-width="4"/>
+<circle cx="287" cy="371.0" r="6" fill="#83b5f3"/>
+<line x1="113" y1="475" x2="331" y2="475" stroke="#8d9aa8" stroke-width="6"/>
+<rect x="113" y="478" width="218" height="30" fill="#253143"/>
+<text x="103" y="497" class="micro">table top | z = 0.180 m</text>
+<path d="M287 467 l16 16 m0 -16 l-16 16" stroke="#fa6578" stroke-width="4"/>
+<text x="103" y="515" class="pill" fill="#fa6578">-1 mm nominal overlap</text>
+<text x="103" y="535" class="micro">pad 16 mm half-size · Z offset −50 mm</text><rect x="390" y="204" width="270" height="340" rx="16" fill="#111e2d" stroke="#29394b"/>
+<text x="408" y="235" class="paneltitle">CLEARANCE CANDIDATE</text>
+<text x="408" y="258" class="small muted">20 mm above payload center</text>
+<rect x="448" y="283.0" width="82" height="192.0" rx="16" fill="#1f3348" stroke="#4a6d8a" stroke-width="2"/>
+<text x="466" y="383.0" class="micro">PAYLOAD</text>
+<line x1="432" y1="379.0" x2="627" y2="379.0" stroke="#91a6bd" stroke-width="1" stroke-dasharray="5 5"/>
+<rect x="569" y="401.4" width="46" height="51.2" rx="7" fill="#ced9e5" stroke="#f2f6fa" stroke-width="2"/>
+<line x1="592" y1="347.0" x2="592" y2="427.0" stroke="#83b5f3" stroke-width="4"/>
+<circle cx="592" cy="347.0" r="6" fill="#83b5f3"/>
+<line x1="418" y1="475" x2="636" y2="475" stroke="#8d9aa8" stroke-width="6"/>
+<rect x="418" y="478" width="218" height="30" fill="#253143"/>
+<text x="408" y="497" class="micro">table top | z = 0.180 m</text>
+<path d="M592 454.6 v15.399999999999977" stroke="#44d4a3" stroke-width="2" marker-end="url(#arrowGreen)"/>
+<text x="408" y="515" class="pill" fill="#44d4a3">+14 mm clearance</text>
+<text x="408" y="535" class="micro">pad 16 mm half-size · Z offset −50 mm</text>
+<text x="752" y="222" class="label">Camera estimate · strict physical score</text>
+<text x="752" y="248" class="muted small">5 mm</text>
+<rect x="934" y="234" width="322" height="15" rx="7.5" fill="#263448"/><rect x="934" y="234" width="289.8" height="15" rx="7.5" fill="#8291a5"/>
+<text x="1272" y="247" class="value">27/30</text>
+<text x="752" y="280" class="muted small">20 mm</text>
+<rect x="934" y="266" width="322" height="15" rx="7.5" fill="#263448"/><rect x="934" y="266" width="322.0" height="15" rx="7.5" fill="#44d4a3"/>
+<text x="1272" y="279" class="value">30/30</text>
+<text x="934" y="302" class="micro">95% Wilson: 74%-97% → 89%-100%</text>
+<text x="752" y="325" class="small muted">paired: <tspan fill="#44d4a3">3 candidate-only</tspan><tspan> · </tspan><tspan fill="#f36d7d">0 baseline-only</tspan></text>
+<line x1="752" y1="351" x2="1300" y2="351" stroke="#2b3b4d"/>
+<text x="752" y="379" class="label">Oracle XY diagnostic · strict physical score</text>
+<text x="752" y="405" class="muted small">5 mm</text>
+<rect x="934" y="391" width="322" height="15" rx="7.5" fill="#263448"/><rect x="934" y="391" width="300.5" height="15" rx="7.5" fill="#8291a5"/>
+<text x="1272" y="404" class="value">28/30</text>
+<text x="752" y="437" class="muted small">20 mm</text>
+<rect x="934" y="423" width="322" height="15" rx="7.5" fill="#263448"/><rect x="934" y="423" width="289.8" height="15" rx="7.5" fill="#44d4a3"/>
+<text x="1272" y="436" class="value">27/30</text>
+<text x="934" y="459" class="micro">95% Wilson: 79%-98% → 74%-97%</text>
+<text x="752" y="482" class="small muted">paired: <tspan fill="#44d4a3">2 candidate-only</tspan><tspan> · </tspan><tspan fill="#f36d7d">3 baseline-only</tspan></text>
+<rect x="728" y="500" width="584" height="54" rx="10" fill="#2c2830"/><text x="746" y="523" class="small" fill="#ffca82">Camera: 27/30 → 30/30;</text>
+<text x="746" y="542" class="small" fill="#ffca82">oracle: 28/30 → 27/30. Keep opt-in.</text>
+<rect x="60" y="598" width="1280" height="345" rx="18" fill="#172333" stroke="#29394b"/><text x="88" y="638" class="section">CONTACT TRACE, INTERPRETATION, AND LIMITS</text>
+<line x1="486" y1="662" x2="486" y2="911" stroke="#2b3b4d"/><line x1="912" y1="662" x2="912" y2="911" stroke="#2b3b4d"/>
+<text x="90" y="684" class="paneltitle">What happened in the paired run</text><text x="90" y="714" class="big">arm0 right pad → table</text>
+<text x="90" y="743" class="body">Trace: lowest pad/table contacts during</text><text x="90" y="765" class="body">LOWER TO GRASP and CLOSE SIX FINGERS.</text>
+<text x="90" y="800" class="body">Camera arm/environment: 2/30 → 0/30.</text><text x="90" y="822" class="body">Nonfinger arm/payload: 2/30 → 0/30.</text>
+<text x="90" y="862" class="small" fill="#44d4a3">Per-pose pass/fail pairs are in the linked CSV.</text>
+<text x="510" y="684" class="paneltitle">Why the pad reaches the tabletop</text><text x="510" y="714" class="body">Pad center = tool Z − 50 mm; half-height 16 mm.</text>
+<text x="510" y="736" class="body">At 5 mm offset, pad bottom is payload center −61 mm.</text><text x="510" y="758" class="body">The table is payload center −60 mm: about 1 mm</text>
+<text x="510" y="780" class="body">of nominal overlap. At 20 mm, the pad bottom is</text><text x="510" y="802" class="body">14 mm above the tabletop.</text>
+<text x="510" y="850" class="small" fill="#f4c976">Geometric calculation; MuJoCo contact scoring stays active.</text>
+<text x="936" y="684" class="paneltitle">What this does not establish</text><text x="936" y="714" class="body">Small sample; camera Wilson intervals overlap.</text>
+<text x="936" y="736" class="body">Oracle XY moved 28→27.</text>
+<text x="936" y="767" class="body">Ideal fixed camera calibration; no hardware.</text><text x="936" y="789" class="body">Target detected once for planning.</text>
+<text x="936" y="811" class="body">Fresh visual confirmation not measured.</text><text x="936" y="862" class="small" fill="#83b5f3">Default stays at 5 mm; candidate is opt-in.</text>
+<text x="60" y="982" class="small muted">Paired MuJoCo evidence · physical stable-lift/collision score ≠ visual confirmation · no hardware claims</text></svg>

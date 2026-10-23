@@ -10,9 +10,13 @@ permissions:
 
 jobs:
   test:
-    name: Tests and benchmark evidence audit
+    name: Tests and benchmark evidence audit (Python ${{ matrix.python-version }})
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.12"]
     env:
       MUJOCO_GL: osmesa
       PYOPENGL_PLATFORM: osmesa
@@ -24,7 +28,7 @@ jobs:
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
           version: 0.12.15
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
           enable-cache: true
 
       - name: Install headless rendering libraries
@@ -35,7 +39,7 @@ jobs:
       - name: Check lockfile and install locked dependencies
         run: |
           uv lock --check
-          uv sync --locked --extra dev
+          uv sync --locked --extra dev --extra demo
 
       - name: Reconcile published benchmark evidence
         run: uv run --locked python -m visual_servo_mujoco.evidence_audit

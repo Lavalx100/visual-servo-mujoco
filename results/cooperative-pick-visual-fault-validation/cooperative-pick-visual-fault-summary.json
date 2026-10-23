@@ -1,0 +1,274 @@
+{
+  "evidence_type": "held-out MuJoCo evaluation with authored image-only fault injection; no real-camera measurement",
+  "split": {
+    "base_seed": 39600,
+    "development_probe_base_seed_excluded": 39500,
+    "seeds": 3,
+    "samples_per_seed": 20,
+    "matched_target_poses": 60,
+    "fault_conditions_per_pose": 6,
+    "trial_count": 360,
+    "target_xy_range_m": [
+      -0.09,
+      0.09
+    ]
+  },
+  "controller": "camera_estimate using the one initial overhead RGB for planning",
+  "approach_offset_m": 0.005,
+  "release_profile": "clearance",
+  "verifier": {
+    "version": "V3",
+    "thresholds_frozen_before_validation": true,
+    "minimum_upward_displacement_px": 50.0,
+    "maximum_interframe_drift_px": 12.0,
+    "maximum_marker_rotation_from_start_deg": 4.0,
+    "decision_inputs": "initial side RGB and two fresh side RGB frames only",
+    "capture_times_s": [
+      8.4,
+      8.8
+    ],
+    "simulator_truth_available_to_decision": false
+  },
+  "fault_conditions": {
+    "clean": {
+      "specification": null,
+      "results": {
+        "trials": 60,
+        "capture_time_truth_positive": 58,
+        "capture_time_truth_negative": 2,
+        "true_positive": 58,
+        "false_confirmation": 0,
+        "true_negative": 2,
+        "false_nonconfirmation": 0,
+        "abstained": 0,
+        "coverage": 1.0,
+        "coverage_wilson_95": [
+          0.9398,
+          1.0
+        ],
+        "positive_recall_including_abstentions": 1.0,
+        "positive_recall_wilson_95": [
+          0.9379,
+          1.0
+        ],
+        "negative_specificity_including_abstentions": 1.0,
+        "negative_specificity_wilson_95": [
+          0.3424,
+          1.0
+        ],
+        "physical_hold_successes": 57,
+        "strict_physical_successes": 57
+      }
+    },
+    "dim_exposure_x0_25": {
+      "specification": {
+        "kind": "exposure_scale",
+        "scale": 0.25,
+        "label": "dim exposure x0.25"
+      },
+      "results": {
+        "trials": 60,
+        "capture_time_truth_positive": 58,
+        "capture_time_truth_negative": 2,
+        "true_positive": 0,
+        "false_confirmation": 0,
+        "true_negative": 0,
+        "false_nonconfirmation": 0,
+        "abstained": 60,
+        "coverage": 0.0,
+        "coverage_wilson_95": [
+          0.0,
+          0.0602
+        ],
+        "positive_recall_including_abstentions": 0.0,
+        "positive_recall_wilson_95": [
+          0.0,
+          0.0621
+        ],
+        "negative_specificity_including_abstentions": 0.0,
+        "negative_specificity_wilson_95": [
+          0.0,
+          0.6576
+        ],
+        "physical_hold_successes": 57,
+        "strict_physical_successes": 57
+      }
+    },
+    "bright_exposure_x1_5": {
+      "specification": {
+        "kind": "exposure_scale",
+        "scale": 1.5,
+        "label": "bright exposure x1.5"
+      },
+      "results": {
+        "trials": 60,
+        "capture_time_truth_positive": 58,
+        "capture_time_truth_negative": 2,
+        "true_positive": 58,
+        "false_confirmation": 0,
+        "true_negative": 2,
+        "false_nonconfirmation": 0,
+        "abstained": 0,
+        "coverage": 1.0,
+        "coverage_wilson_95": [
+          0.9398,
+          1.0
+        ],
+        "positive_recall_including_abstentions": 1.0,
+        "positive_recall_wilson_95": [
+          0.9379,
+          1.0
+        ],
+        "negative_specificity_including_abstentions": 1.0,
+        "negative_specificity_wilson_95": [
+          0.3424,
+          1.0
+        ],
+        "physical_hold_successes": 57,
+        "strict_physical_successes": 57
+      }
+    },
+    "marker_occlusion_50pct": {
+      "specification": {
+        "kind": "marker_occlusion",
+        "occluded_fraction": 0.5,
+        "label": "50% fiducial occlusion"
+      },
+      "results": {
+        "trials": 60,
+        "capture_time_truth_positive": 58,
+        "capture_time_truth_negative": 2,
+        "true_positive": 26,
+        "false_confirmation": 0,
+        "true_negative": 2,
+        "false_nonconfirmation": 32,
+        "abstained": 0,
+        "coverage": 1.0,
+        "coverage_wilson_95": [
+          0.9398,
+          1.0
+        ],
+        "positive_recall_including_abstentions": 0.4483,
+        "positive_recall_wilson_95": [
+          0.3275,
+          0.5755
+        ],
+        "negative_specificity_including_abstentions": 1.0,
+        "negative_specificity_wilson_95": [
+          0.3424,
+          1.0
+        ],
+        "physical_hold_successes": 57,
+        "strict_physical_successes": 57
+      }
+    },
+    "horizontal_blur_9px": {
+      "specification": {
+        "kind": "horizontal_motion_blur",
+        "kernel_size": 9,
+        "label": "9 px horizontal blur"
+      },
+      "results": {
+        "trials": 60,
+        "capture_time_truth_positive": 58,
+        "capture_time_truth_negative": 2,
+        "true_positive": 57,
+        "false_confirmation": 0,
+        "true_negative": 2,
+        "false_nonconfirmation": 1,
+        "abstained": 0,
+        "coverage": 1.0,
+        "coverage_wilson_95": [
+          0.9398,
+          1.0
+        ],
+        "positive_recall_including_abstentions": 0.9828,
+        "positive_recall_wilson_95": [
+          0.9086,
+          0.997
+        ],
+        "negative_specificity_including_abstentions": 1.0,
+        "negative_specificity_wilson_95": [
+          0.3424,
+          1.0
+        ],
+        "physical_hold_successes": 57,
+        "strict_physical_successes": 57
+      }
+    },
+    "camera_shift_up_25px": {
+      "specification": {
+        "kind": "camera_translation",
+        "dx_px": 0,
+        "dy_px": -25,
+        "label": "fresh-frame camera shift up 25 px"
+      },
+      "results": {
+        "trials": 60,
+        "capture_time_truth_positive": 58,
+        "capture_time_truth_negative": 2,
+        "true_positive": 58,
+        "false_confirmation": 0,
+        "true_negative": 2,
+        "false_nonconfirmation": 0,
+        "abstained": 0,
+        "coverage": 1.0,
+        "coverage_wilson_95": [
+          0.9398,
+          1.0
+        ],
+        "positive_recall_including_abstentions": 1.0,
+        "positive_recall_wilson_95": [
+          0.9379,
+          1.0
+        ],
+        "negative_specificity_including_abstentions": 1.0,
+        "negative_specificity_wilson_95": [
+          0.3424,
+          1.0
+        ],
+        "physical_hold_successes": 57,
+        "strict_physical_successes": 57
+      }
+    }
+  },
+  "decision_changes_relative_to_clean": {
+    "dim_exposure_x0_25": {
+      "confirmed_to_abstain": 58,
+      "not_confirmed_to_abstain": 2
+    },
+    "bright_exposure_x1_5": {
+      "confirmed_to_confirmed": 58,
+      "not_confirmed_to_not_confirmed": 2
+    },
+    "marker_occlusion_50pct": {
+      "confirmed_to_confirmed": 26,
+      "confirmed_to_not_confirmed": 32,
+      "not_confirmed_to_not_confirmed": 2
+    },
+    "horizontal_blur_9px": {
+      "confirmed_to_confirmed": 57,
+      "confirmed_to_not_confirmed": 1,
+      "not_confirmed_to_not_confirmed": 2
+    },
+    "camera_shift_up_25px": {
+      "confirmed_to_confirmed": 58,
+      "not_confirmed_to_not_confirmed": 2
+    }
+  },
+  "physical_outcomes_identical_across_faults_for_every_pose": true,
+  "limitations": [
+    "Image transforms are authored digital perturbations of ideal MuJoCo RGB, not camera hardware measurements.",
+    "Camera translation is a 25 px image-plane shift applied only to the two fresh side-camera frames; it approximates view motion and does not simulate a new optical pose or parallax.",
+    "The marker occlusion is placed relative to the detected fiducial bounding box and does not model a physical occluder in the scene.",
+    "A single 60-pose held-out seed block cannot establish broad camera robustness; negative-class counts remain limited.",
+    "Two capture times do not establish continuous holding, release safety, or full-cycle collision safety."
+  ],
+  "trial_data": "cooperative-pick-visual-fault-trials.csv",
+  "scorecard": "cooperative-pick-visual-fault-scorecard.svg",
+  "demo_command": "uv run --locked --extra demo python scripts/generate_cooperative_pick_visual_fault_demos.py",
+  "demonstration_pose_excluded": [
+    0.03965371929578002,
+    -0.0835736804661705
+  ]
+}

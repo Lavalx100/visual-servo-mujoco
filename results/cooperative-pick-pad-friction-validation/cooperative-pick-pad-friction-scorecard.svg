@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="700" viewBox="0 0 1160 700">
+<rect width="100%" height="100%" fill="#0b1220"/>
+<style>text{font-family:Arial,Helvetica,sans-serif}.title{fill:#f3f6fb}.muted{fill:#a9b6c8}.blue{fill:#73b7ff}.green{fill:#68dfb3}.orange{fill:#ffbd72}.cell{fill:#12243a}</style>
+<text x="36" y="48" class="title" font-size="27" font-weight="700">Held-out pad-size test under friction stress</text>
+<text x="36" y="78" class="muted" font-size="14">12 paired poses · nominal 0.720 kg payload · 20 mm approach clearance · clearance release</text>
+<text x="36" y="102" class="muted" font-size="13">Only pad half-size varies within each friction/controller pair; all trials use the same sampled target poses.</text>
+<text x="40" y="139" class="blue" font-size="19" font-weight="700">Sliding friction μ = 0.5</text>
+<text x="40" y="170" class="title" font-size="15" font-weight="700">Camera estimate</text>
+<text x="40" y="213" class="muted" font-size="13">16 mm pad</text>
+<rect x="133" y="195" width="360" height="32" rx="7" fill="#253343"/>
+<rect x="133" y="195" width="0.0" height="32" rx="7" fill="#8496a8"/>
+<text x="505" y="216" class="title" font-size="14" font-weight="700">0/12</text>
+<text x="133" y="244" class="muted" font-size="11">hold 0 · cycle-safe 6</text>
+<text x="40" y="287" class="muted" font-size="13">18 mm pad</text>
+<rect x="133" y="269" width="360" height="32" rx="7" fill="#253343"/>
+<rect x="133" y="269" width="0.0" height="32" rx="7" fill="#49c9ab"/>
+<text x="505" y="290" class="title" font-size="14" font-weight="700">0/12</text>
+<text x="133" y="318" class="muted" font-size="11">hold 0 · cycle-safe 5</text>
+<text x="40" y="418" class="title" font-size="15" font-weight="700">Oracle XY diagnostic</text>
+<text x="40" y="461" class="muted" font-size="13">16 mm pad</text>
+<rect x="133" y="443" width="360" height="32" rx="7" fill="#253343"/>
+<rect x="133" y="443" width="0.0" height="32" rx="7" fill="#8496a8"/>
+<text x="505" y="464" class="title" font-size="14" font-weight="700">0/12</text>
+<text x="133" y="492" class="muted" font-size="11">hold 0 · cycle-safe 5</text>
+<text x="40" y="535" class="muted" font-size="13">18 mm pad</text>
+<rect x="133" y="517" width="360" height="32" rx="7" fill="#253343"/>
+<rect x="133" y="517" width="0.0" height="32" rx="7" fill="#49c9ab"/>
+<text x="505" y="538" class="title" font-size="14" font-weight="700">0/12</text>
+<text x="133" y="566" class="muted" font-size="11">hold 0 · cycle-safe 3</text>
+<text x="590" y="139" class="blue" font-size="19" font-weight="700">Sliding friction μ = 2.2</text>
+<text x="590" y="170" class="title" font-size="15" font-weight="700">Camera estimate</text>
+<text x="590" y="213" class="muted" font-size="13">16 mm pad</text>
+<rect x="683" y="195" width="360" height="32" rx="7" fill="#253343"/>
+<rect x="683" y="195" width="360.0" height="32" rx="7" fill="#8496a8"/>
+<text x="1055" y="216" class="title" font-size="14" font-weight="700">12/12</text>
+<text x="683" y="244" class="muted" font-size="11">hold 12 · cycle-safe 12</text>
+<text x="590" y="287" class="muted" font-size="13">18 mm pad</text>
+<rect x="683" y="269" width="360" height="32" rx="7" fill="#253343"/>
+<rect x="683" y="269" width="360.0" height="32" rx="7" fill="#49c9ab"/>
+<text x="1055" y="290" class="title" font-size="14" font-weight="700">12/12</text>
+<text x="683" y="318" class="muted" font-size="11">hold 12 · cycle-safe 12</text>
+<text x="590" y="418" class="title" font-size="15" font-weight="700">Oracle XY diagnostic</text>
+<text x="590" y="461" class="muted" font-size="13">16 mm pad</text>
+<rect x="683" y="443" width="360" height="32" rx="7" fill="#253343"/>
+<rect x="683" y="443" width="360.0" height="32" rx="7" fill="#8496a8"/>
+<text x="1055" y="464" class="title" font-size="14" font-weight="700">12/12</text>
+<text x="683" y="492" class="muted" font-size="11">hold 12 · cycle-safe 12</text>
+<text x="590" y="535" class="muted" font-size="13">18 mm pad</text>
+<rect x="683" y="517" width="360" height="32" rx="7" fill="#253343"/>
+<rect x="683" y="517" width="360.0" height="32" rx="7" fill="#49c9ab"/>
+<text x="1055" y="538" class="title" font-size="14" font-weight="700">12/12</text>
+<text x="683" y="566" class="muted" font-size="11">hold 12 · cycle-safe 12</text>
+<text x="36" y="654" class="orange" font-size="13">Physical stable-lift success requires both hold and full-cycle collision safety. Fresh visual confirmation was not measured.</text>
+</svg>

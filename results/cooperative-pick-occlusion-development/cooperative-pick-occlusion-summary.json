@@ -1,0 +1,289 @@
+{
+  "evidence_type": "paired MuJoCo simulation with authored side-camera RGB occlusion; no real-camera data",
+  "stage": "development",
+  "split": {
+    "base_seed": 39700,
+    "development_base_seed": 39700,
+    "seeds": 3,
+    "samples_per_seed": 10,
+    "matched_target_poses": 30,
+    "conditions_per_pose": 2,
+    "simulation_replay_count": 60,
+    "target_xy_range_m": [
+      -0.09,
+      0.09
+    ]
+  },
+  "controller": "camera_estimate using the initial overhead RGB for planning",
+  "verifier": {
+    "baseline": "V3 frozen: 50 px rise, 12 px drift, 4 degree fiducial-angle change",
+    "candidate": "V4 opt-in vertical fragment grouping; same V3 thresholds and RGB frames",
+    "candidate_gap_tolerances_px": [
+      12,
+      20,
+      28
+    ],
+    "occlusion": {
+      "kind": "marker_occlusion",
+      "occluded_fraction": 0.5,
+      "label": "50% fiducial occlusion"
+    }
+  },
+  "physical_outcomes_identical_across_clean_and_occluded_replays_for_every_pose": true,
+  "conditions": {
+    "clean": {
+      "v3": {
+        "trials": 30,
+        "capture_time_truth_positive": 29,
+        "capture_time_truth_negative": 1,
+        "true_positive": 28,
+        "false_confirmation": 0,
+        "true_negative": 1,
+        "false_nonconfirmation": 1,
+        "abstained": 0,
+        "coverage": 1.0,
+        "coverage_wilson_95": [
+          0.8865,
+          1.0
+        ],
+        "positive_recall_including_abstentions": 0.9655,
+        "positive_recall_wilson_95": [
+          0.8282,
+          0.9939
+        ],
+        "negative_specificity_including_abstentions": 1.0,
+        "negative_specificity_wilson_95": [
+          0.2065,
+          1.0
+        ]
+      },
+      "gap_tolerant_12px": {
+        "trials": 30,
+        "capture_time_truth_positive": 29,
+        "capture_time_truth_negative": 1,
+        "true_positive": 28,
+        "false_confirmation": 0,
+        "true_negative": 1,
+        "false_nonconfirmation": 1,
+        "abstained": 0,
+        "coverage": 1.0,
+        "coverage_wilson_95": [
+          0.8865,
+          1.0
+        ],
+        "positive_recall_including_abstentions": 0.9655,
+        "positive_recall_wilson_95": [
+          0.8282,
+          0.9939
+        ],
+        "negative_specificity_including_abstentions": 1.0,
+        "negative_specificity_wilson_95": [
+          0.2065,
+          1.0
+        ]
+      },
+      "gap_tolerant_20px": {
+        "trials": 30,
+        "capture_time_truth_positive": 29,
+        "capture_time_truth_negative": 1,
+        "true_positive": 28,
+        "false_confirmation": 0,
+        "true_negative": 1,
+        "false_nonconfirmation": 1,
+        "abstained": 0,
+        "coverage": 1.0,
+        "coverage_wilson_95": [
+          0.8865,
+          1.0
+        ],
+        "positive_recall_including_abstentions": 0.9655,
+        "positive_recall_wilson_95": [
+          0.8282,
+          0.9939
+        ],
+        "negative_specificity_including_abstentions": 1.0,
+        "negative_specificity_wilson_95": [
+          0.2065,
+          1.0
+        ]
+      },
+      "gap_tolerant_28px": {
+        "trials": 30,
+        "capture_time_truth_positive": 29,
+        "capture_time_truth_negative": 1,
+        "true_positive": 28,
+        "false_confirmation": 0,
+        "true_negative": 1,
+        "false_nonconfirmation": 1,
+        "abstained": 0,
+        "coverage": 1.0,
+        "coverage_wilson_95": [
+          0.8865,
+          1.0
+        ],
+        "positive_recall_including_abstentions": 0.9655,
+        "positive_recall_wilson_95": [
+          0.8282,
+          0.9939
+        ],
+        "negative_specificity_including_abstentions": 1.0,
+        "negative_specificity_wilson_95": [
+          0.2065,
+          1.0
+        ]
+      },
+      "physical_outcomes": {
+        "payload_stable_hold_successes": 29,
+        "strict_full_sequence_successes": 29,
+        "trials": 30
+      }
+    },
+    "marker_occlusion_50pct": {
+      "v3": {
+        "trials": 30,
+        "capture_time_truth_positive": 29,
+        "capture_time_truth_negative": 1,
+        "true_positive": 15,
+        "false_confirmation": 0,
+        "true_negative": 1,
+        "false_nonconfirmation": 14,
+        "abstained": 0,
+        "coverage": 1.0,
+        "coverage_wilson_95": [
+          0.8865,
+          1.0
+        ],
+        "positive_recall_including_abstentions": 0.5172,
+        "positive_recall_wilson_95": [
+          0.3443,
+          0.6861
+        ],
+        "negative_specificity_including_abstentions": 1.0,
+        "negative_specificity_wilson_95": [
+          0.2065,
+          1.0
+        ]
+      },
+      "gap_tolerant_12px": {
+        "trials": 30,
+        "capture_time_truth_positive": 29,
+        "capture_time_truth_negative": 1,
+        "true_positive": 15,
+        "false_confirmation": 0,
+        "true_negative": 1,
+        "false_nonconfirmation": 14,
+        "abstained": 0,
+        "coverage": 1.0,
+        "coverage_wilson_95": [
+          0.8865,
+          1.0
+        ],
+        "positive_recall_including_abstentions": 0.5172,
+        "positive_recall_wilson_95": [
+          0.3443,
+          0.6861
+        ],
+        "negative_specificity_including_abstentions": 1.0,
+        "negative_specificity_wilson_95": [
+          0.2065,
+          1.0
+        ]
+      },
+      "gap_tolerant_20px": {
+        "trials": 30,
+        "capture_time_truth_positive": 29,
+        "capture_time_truth_negative": 1,
+        "true_positive": 14,
+        "false_confirmation": 0,
+        "true_negative": 1,
+        "false_nonconfirmation": 15,
+        "abstained": 0,
+        "coverage": 1.0,
+        "coverage_wilson_95": [
+          0.8865,
+          1.0
+        ],
+        "positive_recall_including_abstentions": 0.4828,
+        "positive_recall_wilson_95": [
+          0.3139,
+          0.6557
+        ],
+        "negative_specificity_including_abstentions": 1.0,
+        "negative_specificity_wilson_95": [
+          0.2065,
+          1.0
+        ]
+      },
+      "gap_tolerant_28px": {
+        "trials": 30,
+        "capture_time_truth_positive": 29,
+        "capture_time_truth_negative": 1,
+        "true_positive": 29,
+        "false_confirmation": 0,
+        "true_negative": 1,
+        "false_nonconfirmation": 0,
+        "abstained": 0,
+        "coverage": 1.0,
+        "coverage_wilson_95": [
+          0.8865,
+          1.0
+        ],
+        "positive_recall_including_abstentions": 1.0,
+        "positive_recall_wilson_95": [
+          0.883,
+          1.0
+        ],
+        "negative_specificity_including_abstentions": 1.0,
+        "negative_specificity_wilson_95": [
+          0.2065,
+          1.0
+        ]
+      },
+      "physical_outcomes": {
+        "payload_stable_hold_successes": 29,
+        "strict_full_sequence_successes": 29,
+        "trials": 30
+      }
+    }
+  },
+  "development_selection": {
+    "selected_gap_tolerance_px": 28,
+    "rule": "Among candidates with exact clean-decision parity to V3 and zero false confirmations on clean and occluded development images, maximize occlusion true positives; break ties with the smallest gap tolerance.",
+    "candidate_assessments": {
+      "12": {
+        "clean_decisions_matching_v3": 30,
+        "clean_trials": 30,
+        "occlusion_true_positives": 15,
+        "occlusion_false_confirmations": 0,
+        "eligible": true
+      },
+      "20": {
+        "clean_decisions_matching_v3": 30,
+        "clean_trials": 30,
+        "occlusion_true_positives": 14,
+        "occlusion_false_confirmations": 0,
+        "eligible": true
+      },
+      "28": {
+        "clean_decisions_matching_v3": 30,
+        "clean_trials": 30,
+        "occlusion_true_positives": 29,
+        "occlusion_false_confirmations": 0,
+        "eligible": true
+      }
+    }
+  },
+  "selected_gap_tolerance_px": 28,
+  "heldout_provenance": null,
+  "outputs": {
+    "csv": "cooperative-pick-occlusion-trials.csv",
+    "svg": "cooperative-pick-occlusion-scorecard.svg",
+    "summary": "cooperative-pick-occlusion-summary.json"
+  },
+  "limitations": [
+    "Two image conditions and a small negative class do not establish broad specificity.",
+    "The marker is synthetic and the occlusion is a deterministic gray band.",
+    "Each candidate is evaluated on the same RGB observations as V3; it cannot alter motion or physics.",
+    "A positive visual confirmation remains separate from sustained physical hold and full-cycle collision safety."
+  ]
+}

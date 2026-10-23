@@ -1,0 +1,79 @@
+{
+  "evidence_type": "illustrative replays of counted held-out challenge poses; no additional benchmark trials",
+  "decision_inputs": "initial and two fresh RGB frames from each of two perpendicular side cameras",
+  "thresholds": {
+    "upward_displacement_px": 50,
+    "interframe_drift_px": 12,
+    "marker_rotation_deg": 4.0,
+    "marker_gap_tolerance_px": 28
+  },
+  "simulator_truth": "read after image decisions; never supplied to either verifier",
+  "demonstrations": [
+    {
+      "case": "nominal_positive_occlusion_recovery",
+      "selection_note": "V3 side-only rule rejects; frozen V4 measurement plus orthogonal view confirms",
+      "source_split": "held-out orthogonal verification challenge",
+      "source_pair_id": "40500-000",
+      "stratum": "nominal_pad_16mm",
+      "target_xy_m": [
+        -0.013549651868858604,
+        0.04639806388157016
+      ],
+      "occluder": "actual static MuJoCo rail in original side-camera view; collision disabled",
+      "v3_side_decision": "not_confirmed",
+      "v4_side_decision": "confirmed",
+      "v4_two_view_decision": "confirmed",
+      "capture_truth_raised_stable_at_both_frames": true,
+      "payload_stable_hold_success": true,
+      "strict_full_cycle_success": true,
+      "failure_reason": "none",
+      "video": "cooperative_pick_orthogonal_occlusion_recovery.mp4",
+      "preview": "cooperative_pick_orthogonal_occlusion_recovery.gif",
+      "additional_benchmark_trials": false
+    },
+    {
+      "case": "tilted_false_confirmation_rejected",
+      "selection_note": "V3 side-only rule confirms; the orthogonal view reveals changed marker orientation",
+      "source_split": "held-out orthogonal verification challenge",
+      "source_pair_id": "40600-001",
+      "stratum": "small_pad_14mm_negative_control",
+      "target_xy_m": [
+        0.08433670402216567,
+        0.017733682161875392
+      ],
+      "occluder": "actual static MuJoCo rail in original side-camera view; collision disabled",
+      "v3_side_decision": "confirmed",
+      "v4_side_decision": "confirmed",
+      "v4_two_view_decision": "not_confirmed",
+      "capture_truth_raised_stable_at_both_frames": false,
+      "payload_stable_hold_success": false,
+      "strict_full_cycle_success": false,
+      "failure_reason": "payload_tilt",
+      "video": "cooperative_pick_orthogonal_false_confirmation_rejected.mp4",
+      "preview": "cooperative_pick_orthogonal_false_confirmation_rejected.gif",
+      "additional_benchmark_trials": false
+    },
+    {
+      "case": "true_lift_not_confirmed",
+      "selection_note": "candidate conservatively rejects a simulator-labeled raised, stable lift",
+      "source_split": "held-out orthogonal verification challenge",
+      "source_pair_id": "40500-003",
+      "stratum": "nominal_pad_16mm",
+      "target_xy_m": [
+        0.04949143247420735,
+        -0.0676484650123174
+      ],
+      "occluder": "actual static MuJoCo rail in original side-camera view; collision disabled",
+      "v3_side_decision": "not_confirmed",
+      "v4_side_decision": "not_confirmed",
+      "v4_two_view_decision": "not_confirmed",
+      "capture_truth_raised_stable_at_both_frames": true,
+      "payload_stable_hold_success": true,
+      "strict_full_cycle_success": true,
+      "failure_reason": "none",
+      "video": "cooperative_pick_orthogonal_true_lift_not_confirmed.mp4",
+      "preview": "cooperative_pick_orthogonal_true_lift_not_confirmed.gif",
+      "additional_benchmark_trials": false
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "purpose": "illustrative replays of one held-out target pose at nominal and stress material settings",
+  "heldout_pair_id": "40800-000",
+  "video_runs_are_benchmark_trials": false,
+  "demos": [
+    {
+      "name": "nominal_material",
+      "source_pair_id": "40800-000",
+      "condition": "mass-0.720117_friction-2.2",
+      "controller": "camera_estimate",
+      "payload_body_mass_kg": 0.7201166534540158,
+      "finger_pad_and_payload_sliding_friction": 2.2,
+      "physical_stable_lift_success": true,
+      "payload_stable_lift_success": true,
+      "full_sequence_collision_safe": true,
+      "fresh_visual_confirmation": "not measured",
+      "mp4": "cooperative_pick_material_nominal_material.mp4",
+      "gif": "cooperative_pick_material_nominal_material.gif",
+      "counted_as_additional_trial": false
+    },
+    {
+      "name": "heavy_low_friction_stress",
+      "source_pair_id": "40800-000",
+      "condition": "mass-0.99_friction-0.5",
+      "controller": "camera_estimate",
+      "payload_body_mass_kg": 0.99,
+      "finger_pad_and_payload_sliding_friction": 0.5,
+      "physical_stable_lift_success": false,
+      "payload_stable_lift_success": false,
+      "full_sequence_collision_safe": false,
+      "fresh_visual_confirmation": "not measured",
+      "mp4": "cooperative_pick_material_heavy_low_friction_stress.mp4",
+      "gif": "cooperative_pick_material_heavy_low_friction_stress.gif",
+      "counted_as_additional_trial": false
+    },
+    {
+      "name": "matched_nominal_vs_heavy_low_friction",
+      "source_pair_id": "40800-000",
+      "controller": "camera_estimate",
+      "comparison": "same pose; 0.720 kg and mu 2.2 versus 0.990 kg and mu 0.5",
+      "counted_as_additional_trial": false,
+      "mp4": "cooperative_pick_material_matched_comparison.mp4",
+      "gif": "cooperative_pick_material_matched_comparison.gif"
+    }
+  ]
+}

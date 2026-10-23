@@ -1,0 +1,640 @@
+{
+  "experiment": "same-pose cooperative-pick geometry comparison",
+  "evidence_type": "paired MuJoCo simulation; not hardware evidence",
+  "changed_parameter": "wrist_center_radial_standoff_m",
+  "baseline_parameter_value": 0.0,
+  "candidate_parameter_value": 0.003,
+  "unique_target_positions": 30,
+  "target_split": {
+    "distribution": "independent uniform XY samples in a square",
+    "x_range_m": [
+      -0.09,
+      0.09
+    ],
+    "y_range_m": [
+      -0.09,
+      0.09
+    ],
+    "seeds": 3,
+    "samples_per_seed": 10,
+    "base_seed": 38100,
+    "unique_target_positions": 30
+  },
+  "baseline": {
+    "wrist_center_radial_standoff_m": 0.0,
+    "lowest_approach_tool_height_offset_m": 0.005,
+    "finger_pad_inward_offset_m": 0.022,
+    "results_directory": "results/cooperative-pick-release-clearance-diagnostic"
+  },
+  "candidate": {
+    "wrist_center_radial_standoff_m": 0.003,
+    "lowest_approach_tool_height_offset_m": 0.005,
+    "finger_pad_inward_offset_m": 0.024999999999999998,
+    "results_directory": "results/cooperative-pick-wrist-standoff-development-003"
+  },
+  "outcomes_by_condition": {
+    "camera_estimate": {
+      "baseline": {
+        "payload_stable_lift_success": {
+          "successes": 29,
+          "trials": 30,
+          "rate": 0.9667,
+          "wilson_95_interval": [
+            0.8333,
+            0.9941
+          ]
+        },
+        "full_sequence_collision_safe": {
+          "successes": 26,
+          "trials": 30,
+          "rate": 0.8667,
+          "wilson_95_interval": [
+            0.7032,
+            0.9469
+          ]
+        },
+        "physical_stable_lift_success": {
+          "successes": 26,
+          "trials": 30,
+          "rate": 0.8667,
+          "wilson_95_interval": [
+            0.7032,
+            0.9469
+          ]
+        }
+      },
+      "candidate": {
+        "payload_stable_lift_success": {
+          "successes": 25,
+          "trials": 30,
+          "rate": 0.8333,
+          "wilson_95_interval": [
+            0.6644,
+            0.9266
+          ]
+        },
+        "full_sequence_collision_safe": {
+          "successes": 27,
+          "trials": 30,
+          "rate": 0.9,
+          "wilson_95_interval": [
+            0.7438,
+            0.9654
+          ]
+        },
+        "physical_stable_lift_success": {
+          "successes": 25,
+          "trials": 30,
+          "rate": 0.8333,
+          "wilson_95_interval": [
+            0.6644,
+            0.9266
+          ]
+        }
+      }
+    },
+    "oracle_xy": {
+      "baseline": {
+        "payload_stable_lift_success": {
+          "successes": 23,
+          "trials": 30,
+          "rate": 0.7667,
+          "wilson_95_interval": [
+            0.5907,
+            0.8821
+          ]
+        },
+        "full_sequence_collision_safe": {
+          "successes": 23,
+          "trials": 30,
+          "rate": 0.7667,
+          "wilson_95_interval": [
+            0.5907,
+            0.8821
+          ]
+        },
+        "physical_stable_lift_success": {
+          "successes": 22,
+          "trials": 30,
+          "rate": 0.7333,
+          "wilson_95_interval": [
+            0.5555,
+            0.8582
+          ]
+        }
+      },
+      "candidate": {
+        "payload_stable_lift_success": {
+          "successes": 28,
+          "trials": 30,
+          "rate": 0.9333,
+          "wilson_95_interval": [
+            0.7868,
+            0.9815
+          ]
+        },
+        "full_sequence_collision_safe": {
+          "successes": 29,
+          "trials": 30,
+          "rate": 0.9667,
+          "wilson_95_interval": [
+            0.8333,
+            0.9941
+          ]
+        },
+        "physical_stable_lift_success": {
+          "successes": 28,
+          "trials": 30,
+          "rate": 0.9333,
+          "wilson_95_interval": [
+            0.7868,
+            0.9815
+          ]
+        }
+      }
+    }
+  },
+  "paired_outcomes": {
+    "camera_estimate": {
+      "payload_stable_lift_success": {
+        "both_success": 24,
+        "candidate_only_success": 1,
+        "baseline_only_success": 5,
+        "both_failure": 0
+      },
+      "full_sequence_collision_safe": {
+        "both_success": 26,
+        "candidate_only_success": 1,
+        "baseline_only_success": 0,
+        "both_failure": 3
+      },
+      "physical_stable_lift_success": {
+        "both_success": 24,
+        "candidate_only_success": 1,
+        "baseline_only_success": 2,
+        "both_failure": 3
+      }
+    },
+    "oracle_xy": {
+      "payload_stable_lift_success": {
+        "both_success": 21,
+        "candidate_only_success": 7,
+        "baseline_only_success": 2,
+        "both_failure": 0
+      },
+      "full_sequence_collision_safe": {
+        "both_success": 22,
+        "candidate_only_success": 7,
+        "baseline_only_success": 1,
+        "both_failure": 0
+      },
+      "physical_stable_lift_success": {
+        "both_success": 20,
+        "candidate_only_success": 8,
+        "baseline_only_success": 2,
+        "both_failure": 0
+      }
+    }
+  },
+  "contact_attribution": {
+    "baseline": {
+      "camera_estimate": {
+        "arm_environment": {
+          "trials_with_contact": 3,
+          "phase_counts": [
+            {
+              "phase": "CLOSE SIX FINGERS",
+              "trials_with_contact": 3,
+              "contact_steps": 56
+            },
+            {
+              "phase": "LOWER TO GRASP",
+              "trials_with_contact": 3,
+              "contact_steps": 9
+            }
+          ],
+          "geometry_pairs": [
+            {
+              "phase": "CLOSE SIX FINGERS",
+              "arm_geom": "arm0_left_pad",
+              "other_geom": "table",
+              "trials_with_contact": 2,
+              "contact_steps": 35,
+              "maximum_penetration_m": 0.000195
+            },
+            {
+              "phase": "LOWER TO GRASP",
+              "arm_geom": "arm0_left_pad",
+              "other_geom": "table",
+              "trials_with_contact": 2,
+              "contact_steps": 7,
+              "maximum_penetration_m": 0.000195
+            },
+            {
+              "phase": "CLOSE SIX FINGERS",
+              "arm_geom": "arm0_right_pad",
+              "other_geom": "table",
+              "trials_with_contact": 1,
+              "contact_steps": 21,
+              "maximum_penetration_m": 0.00023
+            },
+            {
+              "phase": "LOWER TO GRASP",
+              "arm_geom": "arm0_right_pad",
+              "other_geom": "table",
+              "trials_with_contact": 1,
+              "contact_steps": 2,
+              "maximum_penetration_m": 2.5e-05
+            }
+          ],
+          "first_contact_pairs": [
+            {
+              "phase": "LOWER TO GRASP",
+              "arm_geom": "arm0_left_pad",
+              "other_geom": "table",
+              "trials": 2
+            },
+            {
+              "phase": "LOWER TO GRASP",
+              "arm_geom": "arm0_right_pad",
+              "other_geom": "table",
+              "trials": 1
+            }
+          ]
+        },
+        "nonfinger_payload": {
+          "trials_with_contact": 1,
+          "phase_counts": [
+            {
+              "phase": "COOPERATIVE LIFT",
+              "trials_with_contact": 1,
+              "contact_steps": 13
+            },
+            {
+              "phase": "LOWER TO TABLE",
+              "trials_with_contact": 1,
+              "contact_steps": 154
+            },
+            {
+              "phase": "RELEASE",
+              "trials_with_contact": 1,
+              "contact_steps": 265
+            },
+            {
+              "phase": "WITHDRAW",
+              "trials_with_contact": 1,
+              "contact_steps": 223
+            }
+          ],
+          "geometry_pairs": [
+            {
+              "phase": "RELEASE",
+              "arm_geom": "arm0_wrist_link",
+              "other_geom": "payload_canister",
+              "trials_with_contact": 1,
+              "contact_steps": 265,
+              "maximum_penetration_m": 0.00046
+            },
+            {
+              "phase": "WITHDRAW",
+              "arm_geom": "arm0_wrist_link",
+              "other_geom": "payload_canister",
+              "trials_with_contact": 1,
+              "contact_steps": 223,
+              "maximum_penetration_m": 0.017227
+            },
+            {
+              "phase": "LOWER TO TABLE",
+              "arm_geom": "arm0_wrist_link",
+              "other_geom": "payload_canister",
+              "trials_with_contact": 1,
+              "contact_steps": 154,
+              "maximum_penetration_m": 0.001309
+            },
+            {
+              "phase": "COOPERATIVE LIFT",
+              "arm_geom": "arm0_wrist_link",
+              "other_geom": "payload_canister",
+              "trials_with_contact": 1,
+              "contact_steps": 13,
+              "maximum_penetration_m": 0.000114
+            }
+          ],
+          "first_contact_pairs": [
+            {
+              "phase": "COOPERATIVE LIFT",
+              "arm_geom": "arm0_wrist_link",
+              "other_geom": "payload_canister",
+              "trials": 1
+            }
+          ]
+        }
+      },
+      "oracle_xy": {
+        "arm_environment": {
+          "trials_with_contact": 1,
+          "phase_counts": [
+            {
+              "phase": "CLOSE SIX FINGERS",
+              "trials_with_contact": 1,
+              "contact_steps": 18
+            },
+            {
+              "phase": "LOWER TO GRASP",
+              "trials_with_contact": 1,
+              "contact_steps": 3
+            }
+          ],
+          "geometry_pairs": [
+            {
+              "phase": "CLOSE SIX FINGERS",
+              "arm_geom": "arm0_left_pad",
+              "other_geom": "table",
+              "trials_with_contact": 1,
+              "contact_steps": 18,
+              "maximum_penetration_m": 0.000197
+            },
+            {
+              "phase": "LOWER TO GRASP",
+              "arm_geom": "arm0_left_pad",
+              "other_geom": "table",
+              "trials_with_contact": 1,
+              "contact_steps": 3,
+              "maximum_penetration_m": 6.3e-05
+            }
+          ],
+          "first_contact_pairs": [
+            {
+              "phase": "LOWER TO GRASP",
+              "arm_geom": "arm0_left_pad",
+              "other_geom": "table",
+              "trials": 1
+            }
+          ]
+        },
+        "nonfinger_payload": {
+          "trials_with_contact": 5,
+          "phase_counts": [
+            {
+              "phase": "COOPERATIVE LIFT",
+              "trials_with_contact": 4,
+              "contact_steps": 192
+            },
+            {
+              "phase": "HOLD UNDER LOAD",
+              "trials_with_contact": 1,
+              "contact_steps": 313
+            },
+            {
+              "phase": "WITHDRAW",
+              "trials_with_contact": 1,
+              "contact_steps": 73
+            }
+          ],
+          "geometry_pairs": [
+            {
+              "phase": "COOPERATIVE LIFT",
+              "arm_geom": "arm0_wrist_link",
+              "other_geom": "payload_canister",
+              "trials_with_contact": 4,
+              "contact_steps": 192,
+              "maximum_penetration_m": 0.019193
+            },
+            {
+              "phase": "HOLD UNDER LOAD",
+              "arm_geom": "arm0_wrist_link",
+              "other_geom": "payload_canister",
+              "trials_with_contact": 1,
+              "contact_steps": 313,
+              "maximum_penetration_m": 0.007528
+            },
+            {
+              "phase": "WITHDRAW",
+              "arm_geom": "arm0_wrist_link",
+              "other_geom": "payload_canister",
+              "trials_with_contact": 1,
+              "contact_steps": 73,
+              "maximum_penetration_m": 0.020081
+            }
+          ],
+          "first_contact_pairs": [
+            {
+              "phase": "COOPERATIVE LIFT",
+              "arm_geom": "arm0_wrist_link",
+              "other_geom": "payload_canister",
+              "trials": 4
+            },
+            {
+              "phase": "WITHDRAW",
+              "arm_geom": "arm0_wrist_link",
+              "other_geom": "payload_canister",
+              "trials": 1
+            }
+          ]
+        }
+      }
+    },
+    "candidate": {
+      "camera_estimate": {
+        "arm_environment": {
+          "trials_with_contact": 0,
+          "phase_counts": [],
+          "geometry_pairs": [],
+          "first_contact_pairs": []
+        },
+        "nonfinger_payload": {
+          "trials_with_contact": 3,
+          "phase_counts": [
+            {
+              "phase": "LOWER TO TABLE",
+              "trials_with_contact": 2,
+              "contact_steps": 52
+            },
+            {
+              "phase": "RELEASE",
+              "trials_with_contact": 3,
+              "contact_steps": 425
+            },
+            {
+              "phase": "WITHDRAW",
+              "trials_with_contact": 2,
+              "contact_steps": 117
+            }
+          ],
+          "geometry_pairs": [
+            {
+              "phase": "RELEASE",
+              "arm_geom": "arm0_wrist_link",
+              "other_geom": "payload_canister",
+              "trials_with_contact": 2,
+              "contact_steps": 420,
+              "maximum_penetration_m": 0.000534
+            },
+            {
+              "phase": "WITHDRAW",
+              "arm_geom": "arm0_wrist_link",
+              "other_geom": "payload_canister",
+              "trials_with_contact": 1,
+              "contact_steps": 111,
+              "maximum_penetration_m": 0.019026
+            },
+            {
+              "phase": "LOWER TO TABLE",
+              "arm_geom": "arm0_wrist_link",
+              "other_geom": "payload_canister",
+              "trials_with_contact": 1,
+              "contact_steps": 44,
+              "maximum_penetration_m": 0.000197
+            },
+            {
+              "phase": "WITHDRAW",
+              "arm_geom": "arm1_wrist_link",
+              "other_geom": "payload_canister",
+              "trials_with_contact": 1,
+              "contact_steps": 6,
+              "maximum_penetration_m": 0.001067
+            },
+            {
+              "phase": "LOWER TO TABLE",
+              "arm_geom": "arm2_wrist_link",
+              "other_geom": "payload_canister",
+              "trials_with_contact": 1,
+              "contact_steps": 5,
+              "maximum_penetration_m": 0.000225
+            },
+            {
+              "phase": "RELEASE",
+              "arm_geom": "arm2_wrist_link",
+              "other_geom": "payload_canister",
+              "trials_with_contact": 1,
+              "contact_steps": 5,
+              "maximum_penetration_m": 0.000181
+            },
+            {
+              "phase": "LOWER TO TABLE",
+              "arm_geom": "arm1_wrist_link",
+              "other_geom": "payload_canister",
+              "trials_with_contact": 1,
+              "contact_steps": 3,
+              "maximum_penetration_m": 0.00205
+            }
+          ],
+          "first_contact_pairs": [
+            {
+              "phase": "LOWER TO TABLE",
+              "arm_geom": "arm1_wrist_link",
+              "other_geom": "payload_canister",
+              "trials": 1
+            },
+            {
+              "phase": "LOWER TO TABLE",
+              "arm_geom": "arm2_wrist_link",
+              "other_geom": "payload_canister",
+              "trials": 1
+            },
+            {
+              "phase": "RELEASE",
+              "arm_geom": "arm0_wrist_link",
+              "other_geom": "payload_canister",
+              "trials": 1
+            }
+          ]
+        }
+      },
+      "oracle_xy": {
+        "arm_environment": {
+          "trials_with_contact": 0,
+          "phase_counts": [],
+          "geometry_pairs": [],
+          "first_contact_pairs": []
+        },
+        "nonfinger_payload": {
+          "trials_with_contact": 1,
+          "phase_counts": [
+            {
+              "phase": "COOPERATIVE LIFT",
+              "trials_with_contact": 1,
+              "contact_steps": 21
+            },
+            {
+              "phase": "HOLD UNDER LOAD",
+              "trials_with_contact": 1,
+              "contact_steps": 1
+            },
+            {
+              "phase": "LOWER TO TABLE",
+              "trials_with_contact": 1,
+              "contact_steps": 22
+            },
+            {
+              "phase": "RELEASE",
+              "trials_with_contact": 1,
+              "contact_steps": 248
+            },
+            {
+              "phase": "WITHDRAW",
+              "trials_with_contact": 1,
+              "contact_steps": 35
+            }
+          ],
+          "geometry_pairs": [
+            {
+              "phase": "RELEASE",
+              "arm_geom": "arm0_wrist_link",
+              "other_geom": "payload_canister",
+              "trials_with_contact": 1,
+              "contact_steps": 248,
+              "maximum_penetration_m": 0.000596
+            },
+            {
+              "phase": "WITHDRAW",
+              "arm_geom": "arm0_wrist_link",
+              "other_geom": "payload_canister",
+              "trials_with_contact": 1,
+              "contact_steps": 35,
+              "maximum_penetration_m": 0.020355
+            },
+            {
+              "phase": "LOWER TO TABLE",
+              "arm_geom": "arm0_wrist_link",
+              "other_geom": "payload_canister",
+              "trials_with_contact": 1,
+              "contact_steps": 22,
+              "maximum_penetration_m": 0.000328
+            },
+            {
+              "phase": "COOPERATIVE LIFT",
+              "arm_geom": "arm0_wrist_link",
+              "other_geom": "payload_canister",
+              "trials_with_contact": 1,
+              "contact_steps": 21,
+              "maximum_penetration_m": 0.000227
+            },
+            {
+              "phase": "HOLD UNDER LOAD",
+              "arm_geom": "arm0_wrist_link",
+              "other_geom": "payload_canister",
+              "trials_with_contact": 1,
+              "contact_steps": 1,
+              "maximum_penetration_m": 6e-06
+            }
+          ],
+          "first_contact_pairs": [
+            {
+              "phase": "COOPERATIVE LIFT",
+              "arm_geom": "arm0_wrist_link",
+              "other_geom": "payload_canister",
+              "trials": 1
+            }
+          ]
+        }
+      }
+    }
+  },
+  "fresh_visual_confirmation": "not measured",
+  "interpretation_limits": [
+    "The candidate moves the wrist center outward and extends the finger shanks and collidable pads inward by the same distance, preserving nominal pad-center placement.",
+    "Thirty poses provide a small simulator sample; Wilson intervals show substantial uncertainty.",
+    "A physically stable lift does not mean the camera visually confirmed the pick."
+  ]
+}

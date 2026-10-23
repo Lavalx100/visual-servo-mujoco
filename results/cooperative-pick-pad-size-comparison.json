@@ -1,0 +1,100 @@
+{
+  "experiment": "same-pose finger-pad-size comparison",
+  "evidence_type": "paired MuJoCo simulator comparison; not hardware evidence",
+  "unique_target_positions": 30,
+  "target_split": {
+    "distribution": "independent uniform XY samples in a square",
+    "x_range_m": [
+      -0.09,
+      0.09
+    ],
+    "y_range_m": [
+      -0.09,
+      0.09
+    ],
+    "seeds": 3,
+    "samples_per_seed": 10,
+    "base_seed": 38100,
+    "unique_target_positions": 30
+  },
+  "baseline": {
+    "pad_half_size_m": 0.014,
+    "results_directory": "results/cooperative-pick-pad-014-heldout-control",
+    "conditions": [
+      {
+        "controller": "camera_estimate",
+        "pad_half_size_m": 0.014,
+        "trials": 30,
+        "physical_stable_lift_successes": 4,
+        "physical_stable_lift_success_rate": 0.1333,
+        "wilson_95_interval": [
+          0.0531,
+          0.2968
+        ],
+        "median_initial_target_projection_error_cm": 0.048
+      },
+      {
+        "controller": "oracle_xy",
+        "pad_half_size_m": 0.014,
+        "trials": 30,
+        "physical_stable_lift_successes": 4,
+        "physical_stable_lift_success_rate": 0.1333,
+        "wilson_95_interval": [
+          0.0531,
+          0.2968
+        ],
+        "median_initial_target_projection_error_cm": 0.048
+      }
+    ]
+  },
+  "candidate": {
+    "pad_half_size_m": 0.016,
+    "results_directory": "results",
+    "conditions": [
+      {
+        "controller": "camera_estimate",
+        "pad_half_size_m": 0.016,
+        "trials": 30,
+        "physical_stable_lift_successes": 12,
+        "physical_stable_lift_success_rate": 0.4,
+        "wilson_95_interval": [
+          0.2459,
+          0.5768
+        ],
+        "median_initial_target_projection_error_cm": 0.048
+      },
+      {
+        "controller": "oracle_xy",
+        "pad_half_size_m": 0.016,
+        "trials": 30,
+        "physical_stable_lift_successes": 9,
+        "physical_stable_lift_success_rate": 0.3,
+        "wilson_95_interval": [
+          0.1666,
+          0.4788
+        ],
+        "median_initial_target_projection_error_cm": 0.048
+      }
+    ]
+  },
+  "paired_success_outcomes": {
+    "camera_estimate": {
+      "both_success": 1,
+      "candidate_only_success": 11,
+      "baseline_only_success": 3,
+      "both_failure": 15
+    },
+    "oracle_xy": {
+      "both_success": 2,
+      "candidate_only_success": 7,
+      "baseline_only_success": 2,
+      "both_failure": 19
+    }
+  },
+  "fresh_visual_confirmation": "not measured",
+  "interpretation_limits": [
+    "The candidate pad size was selected after a development sweep; this same-seed comparison estimates its effect on this held-out pose set.",
+    "Thirty poses are a small simulator sample; Wilson intervals show substantial uncertainty.",
+    "Success is a physical stable lift under the stated thresholds, not fresh visual confirmation."
+  ]
+}

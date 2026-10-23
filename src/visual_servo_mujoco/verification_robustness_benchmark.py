@@ -86,8 +86,9 @@ def _summarize(records: list[dict]) -> dict:
             if distance_errors
             else None
         ),
-        "controller_outcomes_matching_nominal_trials": sum(
-            record["controller_outcome_matches_nominal"] for record in records
+        "controller_outcomes_shared_across_stress_conditions": sum(
+            record["controller_outcome_shared_across_stress_conditions"]
+            for record in records
         ),
     }
 
@@ -136,45 +137,42 @@ def run_verification_robustness_benchmark(
         raise ValueError("pixel_noise_std_px must be finite and non-negative")
 
     records_by_condition = {name: [] for name in VERIFIER_STRESS_CONDITIONS}
-    nominal_by_key: dict[tuple[int, int], dict] = {}
     with tempfile.TemporaryDirectory(prefix="visual-servo-verification-robustness-") as temp_dir:
-        for condition_name, stress_settings in VERIFIER_STRESS_CONDITIONS.items():
-            for seed in range(base_seed, base_seed + seeds):
-                report = run_trials(
-                    episodes_per_seed,
-                    seed,
-                    Path(temp_dir) / condition_name / str(seed),
-                    controller="image_feedback",
-                    pixel_noise_std_px=pixel_noise_std_px,
-                    verify_terminal=True,
-                    save_media=False,
-                    **stress_settings,
-                )
-                for trial in report["results"]:
-                    key = (seed, int(trial["episode"]))
-                    if condition_name == "nominal":
-                        nominal_by_key[key] = trial
-                    nominal = nominal_by_key.get(key)
-                    if nominal is None:
-                        raise RuntimeError(f"nominal trial missing for paired condition {key}")
-                    evidence = trial["terminal_visual_verification"]
+        for seed in range(base_seed, base_seed + seeds):
+            report = run_trials(
+                episodes_per_seed,
+                seed,
+                Path(temp_dir) / str(seed),
+                controller="image_feedback",
+                pixel_noise_std_px=pixel_noise_std_px,
+                verify_terminal=True,
+                terminal_verification_stress_candidates={
+                    name: settings
+                    for name, settings in VERIFIER_STRESS_CONDITIONS.items()
+                    if name != "nominal"
+                },
+                save_media=False,
+            )
+            for trial in report["results"]:
+                episode = int(trial["episode"])
+                candidates = trial["terminal_verification_stress_candidates"]
+                for condition_name in VERIFIER_STRESS_CONDITIONS:
+                    evidence = (
+                        trial["terminal_visual_verification"]
+                        if condition_name == "nominal"
+                        else candidates[condition_name]
+                    )
                     estimate_m = evidence["estimated_distance_m"]
                     records_by_condition[condition_name].append(
                         {
                             "seed": seed,
-                            "episode": int(trial["episode"]),
+                            "episode": episode,
+                            "shared_control_trial_id": f"{seed}:{episode}",
                             "physical_error_m": trial["reaching_error_m"],
                             "physical_success": bool(trial["success"]),
                             "controller_stop_reason": trial["controller_stop_reason"],
                             "controller_iterations": trial["controller_iterations"],
-                            "controller_outcome_matches_nominal": (
-                                trial["success"] == nominal["success"]
-                                and trial["reaching_error_m"] == nominal["reaching_error_m"]
-                                and trial["controller_stop_reason"]
-                                == nominal["controller_stop_reason"]
-                                and trial["controller_iterations"]
-                                == nominal["controller_iterations"]
-                            ),
+                            "controller_outcome_shared_across_stress_conditions": True,
                             "target_visible": evidence["target_visible"],
                             "end_effector_visible": evidence["end_effector_visible"],
                             "both_markers_visible": evidence["both_markers_visible"],
@@ -233,18 +231,18 @@ def run_verification_robustness_benchmark(
             }
         )
 
-    controller_matches_nominal = all(
-        record["controller_outcome_matches_nominal"]
-        for records in records_by_condition.values()
-        for record in records
-    )
     result = {
-        "schema_version": 2,
+        "schema_version": 3,
         "benchmark": "terminal_verifier_quality_coverage_and_image_stress",
         "control_controller": "image_feedback",
         "control_pixel_noise_std_px": pixel_noise_std_px,
-        "control_policy_changed": not controller_matches_nominal,
-        "control_matches_nominal_by_condition": controller_matches_nominal,
+        "control_policy_changed": False,
+        "control_trajectory_shared_across_conditions": True,
+        "control_trajectories_per_seed_episode": 1,
+        "pairing_protocol": (
+            "Render the post-control verification view once per seed/episode, then score all "
+            "image and estimator stress conditions from that same frame and final physics state."
+        ),
         "physical_success_definition": "MuJoCo final distance <= 4.5 cm",
         "visual_success_definition": "calibrated verifier distance estimate <= 4.5 cm",
         "camera_image_age_s": 0.0,

@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="690" viewBox="0 0 1320 690" role="img" aria-labelledby="title desc">
+  <title id="title">Camera-guided cooperative pick with fresh visual verification</title>
+  <desc id="desc">The existing overhead perception pipeline plans a three-arm MuJoCo pick. After lifting, a fixed side camera provides an initial image and two fresh images to an image-only marker-motion and orientation decision. MuJoCo state is evaluated separately after that decision for capture-time physical truth, full-hold stability, and full-sequence collision safety. The two evidence paths are compared offline; physics truth never enters the image decision.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#7790a8"/>
+    </marker>
+    <marker id="dash-arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#e7bd68"/>
+    </marker>
+    <style>
+      .bg { fill:#111923; }
+      .card { fill:#1a2735; stroke:#385069; stroke-width:2; rx:14; }
+      .cam { fill:#183b43; stroke:#49c9ab; stroke-width:2; rx:14; }
+      .vision { fill:#223b34; stroke:#57d6a3; stroke-width:2; rx:14; }
+      .phys { fill:#21384c; stroke:#63a9f5; stroke-width:2; rx:14; }
+      .eval { fill:#392f1c; stroke:#e7bd68; stroke-width:2; rx:14; }
+      .title { fill:#f1f5f9; font:700 26px sans-serif; }
+      .sub { fill:#a8b7c7; font:14px sans-serif; }
+      .head { fill:#edf3f7; font:700 17px sans-serif; }
+      .body { fill:#c1ceda; font:14px sans-serif; }
+      .small { fill:#91a3b5; font:12px sans-serif; }
+      .arrow { stroke:#7790a8; stroke-width:3; fill:none; marker-end:url(#arrow); }
+      .dashed { stroke:#e7bd68; stroke-width:2.5; stroke-dasharray:8 7; fill:none; marker-end:url(#dash-arrow); }
+    </style>
+  </defs>
+  <rect class="bg" width="1320" height="690"/>
+  <text class="title" x="42" y="48">One pick, two separate evidence paths</text>
+  <text class="sub" x="42" y="76">The original camera estimate plans the motion; fresh side-camera images assess the lift afterward.</text>
+
+  <rect class="cam" x="42" y="118" width="250" height="142"/>
+  <text class="head" x="62" y="152">Initial overhead RGB</text>
+  <text class="body" x="62" y="181">MuJoCo target image</text>
+  <text class="body" x="62" y="205">red marker → pixel center</text>
+  <text class="small" x="62" y="233">single planning observation</text>
+
+  <path class="arrow" d="M292 189 H326"/>
+  <rect class="card" x="336" y="118" width="260" height="142"/>
+  <text class="head" x="356" y="152">Existing perception</text>
+  <text class="body" x="356" y="181">run.detect_red_target</text>
+  <text class="body" x="356" y="205">pixel_to_table_xy</text>
+  <text class="small" x="356" y="233">fixed pinhole projection</text>
+
+  <path class="arrow" d="M596 189 H630"/>
+  <rect class="card" x="640" y="118" width="270" height="142"/>
+  <text class="head" x="660" y="152">Three-arm planner</text>
+  <text class="body" x="660" y="181">base yaw + 3R inverse kinematics</text>
+  <text class="body" x="660" y="205">gripper yaw + grasp trajectory</text>
+  <text class="small" x="660" y="233">same contact-based pick scene</text>
+
+  <path class="arrow" d="M910 189 H944"/>
+  <rect class="phys" x="954" y="118" width="324" height="142"/>
+  <text class="head" x="974" y="152">MuJoCo physical system</text>
+  <text class="body" x="974" y="181">three collidable arms · six pads</text>
+  <text class="body" x="974" y="205">free payload · gravity · friction</text>
+  <text class="small" x="974" y="233">physical lift and collision outcomes</text>
+
+  <path class="arrow" d="M1090 260 V315 H255 V352"/>
+  <text class="small" x="652" y="307">fixed side camera renders fresh post-lift observations</text>
+  <rect class="cam" x="42" y="352" width="430" height="150"/>
+  <text class="head" x="64" y="389">Fresh side-camera RGB</text>
+  <text class="body" x="64" y="420">initial frame at 0.0 s</text>
+  <text class="body" x="64" y="445">new frames at 8.4 s and 8.8 s</text>
+  <text class="small" x="64" y="476">visual-only magenta fiducial; no contact or mass</text>
+
+  <path class="arrow" d="M472 427 H510"/>
+  <rect class="vision" x="520" y="352" width="340" height="150"/>
+  <text class="head" x="542" y="389">Image-only decision</text>
+  <text class="body" x="542" y="420">≥50 px upward in both frames</text>
+  <text class="body" x="542" y="445">≤12 px drift · ≤4 deg rotation</text>
+  <text class="small" x="542" y="476">confirmed · not confirmed · abstain</text>
+
+  <path class="arrow" d="M1116 260 V352"/>
+  <rect class="phys" x="914" y="352" width="364" height="150"/>
+  <text class="head" x="936" y="389">Post-hoc physics evaluation</text>
+  <text class="body" x="936" y="420">capture-time height, stability, and tilt</text>
+  <text class="body" x="936" y="445">full hold and full-cycle collision safety</text>
+  <text class="small" x="936" y="476">never supplied to the image classifier</text>
+
+  <path class="dashed" d="M690 502 V552 H830"/>
+  <path class="dashed" d="M1096 502 V552 H830"/>
+  <rect class="eval" x="362" y="552" width="916" height="94"/>
+  <text class="head" x="386" y="586">Offline validation and audit</text>
+  <text class="body" x="386" y="614">Compare the image verdict with the two-frame label; report physical hold and collision results separately.</text>
+  <text class="small" x="386" y="635">Two samples do not prove continuous holding, safe release, real-camera robustness, or hardware performance.</text>
+  <text class="small" x="42" y="590">Dashed paths are an offline comparison only; no simulator state feeds back into vision.</text>
+</svg>

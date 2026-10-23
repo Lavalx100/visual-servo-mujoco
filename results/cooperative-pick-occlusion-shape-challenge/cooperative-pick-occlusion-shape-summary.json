@@ -1,0 +1,1240 @@
+{
+  "experiment": "Frozen opt-in V4 occlusion geometry and negative-control challenge",
+  "evidence_type": "MuJoCo physical outcomes with post-render RGB mask transforms; no real-camera evidence",
+  "evaluation_stage": "held-out challenge; V4 tolerance and mask matrix were frozen before these seed blocks",
+  "protocol": {
+    "controller": "camera_estimate using initial overhead RGB for planning",
+    "visual_decision_inputs": "initial side-camera RGB and two fresh side-camera RGB frames at 8.4 s and 8.8 s",
+    "candidate": "V4 vertical fragment grouping at the previously frozen 28 px tolerance",
+    "baseline": "V3 frozen 50 px rise, 12 px drift, and 4 degree marker rotation gates",
+    "image_fault_scope": "post-render side-camera RGB only; same transform on initial and both fresh frames",
+    "paired_design": "one physical trajectory per target pose; all nine image conditions are replayed from its same captured frames",
+    "truth_source": "simulator payload height, inter-frame height drift, and tilt read after RGB decisions",
+    "physical_metrics_are_not_visual_confirmation": true
+  },
+  "frozen_candidate_provenance": {
+    "development_base_seed": 39700,
+    "prior_heldout_base_seed": 39800,
+    "gap_tolerance_px": 28,
+    "no_threshold_search_in_this_challenge": true
+  },
+  "seed_blocks": [
+    {
+      "name": "nominal_pad_16mm",
+      "description": "project's nominal 16 mm pad half-size",
+      "finger_pad_half_size_m": 0.016,
+      "base_seed": 40100,
+      "seeds": 5,
+      "samples_per_seed": 20,
+      "unique_physical_pose_runs": 100
+    },
+    {
+      "name": "small_pad_14mm_hard_negative",
+      "description": "previously measured 14 mm pad configuration with frequent physical lift failures",
+      "finger_pad_half_size_m": 0.014,
+      "base_seed": 40200,
+      "seeds": 5,
+      "samples_per_seed": 20,
+      "unique_physical_pose_runs": 100
+    }
+  ],
+  "unique_physical_pose_runs": 200,
+  "image_condition_evaluation_rows": 1800,
+  "image_conditions": {
+    "clean": {
+      "label": "no image transform",
+      "fault": null
+    },
+    "horizontal_25_center": {
+      "label": "horizontal band, 25% height, centered",
+      "fault": {
+        "kind": "marker_occlusion",
+        "shape": "horizontal_band",
+        "occluded_fraction": 0.25,
+        "label": "horizontal band, 25% height, centered"
+      }
+    },
+    "horizontal_50_upper": {
+      "label": "horizontal band, 50% height, upper offset",
+      "fault": {
+        "kind": "marker_occlusion",
+        "shape": "horizontal_band",
+        "occluded_fraction": 0.5,
+        "offset_y_fraction": -0.2,
+        "label": "horizontal band, 50% height, upper offset"
+      }
+    },
+    "horizontal_50_lower": {
+      "label": "horizontal band, 50% height, lower offset",
+      "fault": {
+        "kind": "marker_occlusion",
+        "shape": "horizontal_band",
+        "occluded_fraction": 0.5,
+        "offset_y_fraction": 0.2,
+        "label": "horizontal band, 50% height, lower offset"
+      }
+    },
+    "horizontal_75_center": {
+      "label": "horizontal band, 75% height, centered",
+      "fault": {
+        "kind": "marker_occlusion",
+        "shape": "horizontal_band",
+        "occluded_fraction": 0.75,
+        "label": "horizontal band, 75% height, centered"
+      }
+    },
+    "vertical_30_center": {
+      "label": "vertical band, 30% width, centered",
+      "fault": {
+        "kind": "marker_occlusion",
+        "shape": "vertical_band",
+        "occluded_fraction": 0.3,
+        "label": "vertical band, 30% width, centered"
+      }
+    },
+    "diagonal_25_plus45": {
+      "label": "diagonal band, 25% thickness, +45 degrees",
+      "fault": {
+        "kind": "marker_occlusion",
+        "shape": "diagonal_band",
+        "occluded_fraction": 0.25,
+        "angle_deg": 45,
+        "label": "diagonal band, 25% thickness, +45 degrees"
+      }
+    },
+    "diagonal_25_minus45": {
+      "label": "diagonal band, 25% thickness, -45 degrees",
+      "fault": {
+        "kind": "marker_occlusion",
+        "shape": "diagonal_band",
+        "occluded_fraction": 0.25,
+        "angle_deg": -45,
+        "label": "diagonal band, 25% thickness, -45 degrees"
+      }
+    },
+    "patch_45_upper_left": {
+      "label": "upper-left patch, 45% bbox width and height",
+      "fault": {
+        "kind": "marker_occlusion",
+        "shape": "corner_patch",
+        "occluded_fraction": 0.45,
+        "offset_x_fraction": -0.2,
+        "offset_y_fraction": -0.2,
+        "label": "upper-left patch, 45% bbox width and height"
+      }
+    }
+  },
+  "strata": {
+    "nominal_pad_16mm": {
+      "physical_outcomes": {
+        "unique_physical_pose_runs": 100,
+        "capture_time_truth_positive": 94,
+        "capture_time_truth_negative": 6,
+        "payload_stable_hold_successes": 94,
+        "strict_full_sequence_successes": 92,
+        "failure_reasons": {
+          "arm_environment_contact": 2,
+          "insufficient_lift": 1,
+          "no_grasp_contact": 5,
+          "none": 92
+        }
+      },
+      "image_conditions": {
+        "clean": {
+          "v3": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 94,
+            "capture_time_truth_negative": 6,
+            "true_positive": 94,
+            "false_confirmation": 0,
+            "true_negative": 5,
+            "false_nonconfirmation": 0,
+            "abstained": 1,
+            "positive_recall": 1.0,
+            "positive_recall_wilson_95": [
+              0.9607,
+              1.0
+            ],
+            "negative_specificity": 0.8333,
+            "negative_specificity_wilson_95": [
+              0.4365,
+              0.9699
+            ],
+            "coverage": 0.99,
+            "coverage_wilson_95": [
+              0.9455,
+              0.9982
+            ]
+          },
+          "v4_frozen_28px": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 94,
+            "capture_time_truth_negative": 6,
+            "true_positive": 94,
+            "false_confirmation": 0,
+            "true_negative": 5,
+            "false_nonconfirmation": 0,
+            "abstained": 1,
+            "positive_recall": 1.0,
+            "positive_recall_wilson_95": [
+              0.9607,
+              1.0
+            ],
+            "negative_specificity": 0.8333,
+            "negative_specificity_wilson_95": [
+              0.4365,
+              0.9699
+            ],
+            "coverage": 0.99,
+            "coverage_wilson_95": [
+              0.9455,
+              0.9982
+            ]
+          },
+          "v4_decision_changes_from_v3": 0,
+          "fault": null
+        },
+        "horizontal_25_center": {
+          "v3": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 94,
+            "capture_time_truth_negative": 6,
+            "true_positive": 1,
+            "false_confirmation": 0,
+            "true_negative": 5,
+            "false_nonconfirmation": 93,
+            "abstained": 1,
+            "positive_recall": 0.0106,
+            "positive_recall_wilson_95": [
+              0.0019,
+              0.0578
+            ],
+            "negative_specificity": 0.8333,
+            "negative_specificity_wilson_95": [
+              0.4365,
+              0.9699
+            ],
+            "coverage": 0.99,
+            "coverage_wilson_95": [
+              0.9455,
+              0.9982
+            ]
+          },
+          "v4_frozen_28px": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 94,
+            "capture_time_truth_negative": 6,
+            "true_positive": 94,
+            "false_confirmation": 0,
+            "true_negative": 5,
+            "false_nonconfirmation": 0,
+            "abstained": 1,
+            "positive_recall": 1.0,
+            "positive_recall_wilson_95": [
+              0.9607,
+              1.0
+            ],
+            "negative_specificity": 0.8333,
+            "negative_specificity_wilson_95": [
+              0.4365,
+              0.9699
+            ],
+            "coverage": 0.99,
+            "coverage_wilson_95": [
+              0.9455,
+              0.9982
+            ]
+          },
+          "v4_decision_changes_from_v3": 93,
+          "fault": {
+            "kind": "marker_occlusion",
+            "label": "horizontal band, 25% height, centered",
+            "occluded_fraction": 0.25,
+            "shape": "horizontal_band"
+          }
+        },
+        "horizontal_50_upper": {
+          "v3": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 94,
+            "capture_time_truth_negative": 6,
+            "true_positive": 15,
+            "false_confirmation": 0,
+            "true_negative": 5,
+            "false_nonconfirmation": 79,
+            "abstained": 1,
+            "positive_recall": 0.1596,
+            "positive_recall_wilson_95": [
+              0.0992,
+              0.2467
+            ],
+            "negative_specificity": 0.8333,
+            "negative_specificity_wilson_95": [
+              0.4365,
+              0.9699
+            ],
+            "coverage": 0.99,
+            "coverage_wilson_95": [
+              0.9455,
+              0.9982
+            ]
+          },
+          "v4_frozen_28px": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 94,
+            "capture_time_truth_negative": 6,
+            "true_positive": 43,
+            "false_confirmation": 0,
+            "true_negative": 5,
+            "false_nonconfirmation": 51,
+            "abstained": 1,
+            "positive_recall": 0.4574,
+            "positive_recall_wilson_95": [
+              0.3604,
+              0.5578
+            ],
+            "negative_specificity": 0.8333,
+            "negative_specificity_wilson_95": [
+              0.4365,
+              0.9699
+            ],
+            "coverage": 0.99,
+            "coverage_wilson_95": [
+              0.9455,
+              0.9982
+            ]
+          },
+          "v4_decision_changes_from_v3": 30,
+          "fault": {
+            "kind": "marker_occlusion",
+            "label": "horizontal band, 50% height, upper offset",
+            "occluded_fraction": 0.5,
+            "offset_y_fraction": -0.2,
+            "shape": "horizontal_band"
+          }
+        },
+        "horizontal_50_lower": {
+          "v3": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 94,
+            "capture_time_truth_negative": 6,
+            "true_positive": 27,
+            "false_confirmation": 0,
+            "true_negative": 5,
+            "false_nonconfirmation": 67,
+            "abstained": 1,
+            "positive_recall": 0.2872,
+            "positive_recall_wilson_95": [
+              0.2055,
+              0.3856
+            ],
+            "negative_specificity": 0.8333,
+            "negative_specificity_wilson_95": [
+              0.4365,
+              0.9699
+            ],
+            "coverage": 0.99,
+            "coverage_wilson_95": [
+              0.9455,
+              0.9982
+            ]
+          },
+          "v4_frozen_28px": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 94,
+            "capture_time_truth_negative": 6,
+            "true_positive": 62,
+            "false_confirmation": 0,
+            "true_negative": 5,
+            "false_nonconfirmation": 32,
+            "abstained": 1,
+            "positive_recall": 0.6596,
+            "positive_recall_wilson_95": [
+              0.5592,
+              0.7474
+            ],
+            "negative_specificity": 0.8333,
+            "negative_specificity_wilson_95": [
+              0.4365,
+              0.9699
+            ],
+            "coverage": 0.99,
+            "coverage_wilson_95": [
+              0.9455,
+              0.9982
+            ]
+          },
+          "v4_decision_changes_from_v3": 37,
+          "fault": {
+            "kind": "marker_occlusion",
+            "label": "horizontal band, 50% height, lower offset",
+            "occluded_fraction": 0.5,
+            "offset_y_fraction": 0.2,
+            "shape": "horizontal_band"
+          }
+        },
+        "horizontal_75_center": {
+          "v3": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 94,
+            "capture_time_truth_negative": 6,
+            "true_positive": 37,
+            "false_confirmation": 0,
+            "true_negative": 5,
+            "false_nonconfirmation": 57,
+            "abstained": 1,
+            "positive_recall": 0.3936,
+            "positive_recall_wilson_95": [
+              0.3009,
+              0.4947
+            ],
+            "negative_specificity": 0.8333,
+            "negative_specificity_wilson_95": [
+              0.4365,
+              0.9699
+            ],
+            "coverage": 0.99,
+            "coverage_wilson_95": [
+              0.9455,
+              0.9982
+            ]
+          },
+          "v4_frozen_28px": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 94,
+            "capture_time_truth_negative": 6,
+            "true_positive": 6,
+            "false_confirmation": 0,
+            "true_negative": 5,
+            "false_nonconfirmation": 88,
+            "abstained": 1,
+            "positive_recall": 0.0638,
+            "positive_recall_wilson_95": [
+              0.0296,
+              0.1323
+            ],
+            "negative_specificity": 0.8333,
+            "negative_specificity_wilson_95": [
+              0.4365,
+              0.9699
+            ],
+            "coverage": 0.99,
+            "coverage_wilson_95": [
+              0.9455,
+              0.9982
+            ]
+          },
+          "v4_decision_changes_from_v3": 31,
+          "fault": {
+            "kind": "marker_occlusion",
+            "label": "horizontal band, 75% height, centered",
+            "occluded_fraction": 0.75,
+            "shape": "horizontal_band"
+          }
+        },
+        "vertical_30_center": {
+          "v3": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 94,
+            "capture_time_truth_negative": 6,
+            "true_positive": 94,
+            "false_confirmation": 0,
+            "true_negative": 5,
+            "false_nonconfirmation": 0,
+            "abstained": 1,
+            "positive_recall": 1.0,
+            "positive_recall_wilson_95": [
+              0.9607,
+              1.0
+            ],
+            "negative_specificity": 0.8333,
+            "negative_specificity_wilson_95": [
+              0.4365,
+              0.9699
+            ],
+            "coverage": 0.99,
+            "coverage_wilson_95": [
+              0.9455,
+              0.9982
+            ]
+          },
+          "v4_frozen_28px": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 94,
+            "capture_time_truth_negative": 6,
+            "true_positive": 94,
+            "false_confirmation": 0,
+            "true_negative": 5,
+            "false_nonconfirmation": 0,
+            "abstained": 1,
+            "positive_recall": 1.0,
+            "positive_recall_wilson_95": [
+              0.9607,
+              1.0
+            ],
+            "negative_specificity": 0.8333,
+            "negative_specificity_wilson_95": [
+              0.4365,
+              0.9699
+            ],
+            "coverage": 0.99,
+            "coverage_wilson_95": [
+              0.9455,
+              0.9982
+            ]
+          },
+          "v4_decision_changes_from_v3": 0,
+          "fault": {
+            "kind": "marker_occlusion",
+            "label": "vertical band, 30% width, centered",
+            "occluded_fraction": 0.3,
+            "shape": "vertical_band"
+          }
+        },
+        "diagonal_25_plus45": {
+          "v3": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 94,
+            "capture_time_truth_negative": 6,
+            "true_positive": 8,
+            "false_confirmation": 0,
+            "true_negative": 5,
+            "false_nonconfirmation": 86,
+            "abstained": 1,
+            "positive_recall": 0.0851,
+            "positive_recall_wilson_95": [
+              0.0438,
+              0.159
+            ],
+            "negative_specificity": 0.8333,
+            "negative_specificity_wilson_95": [
+              0.4365,
+              0.9699
+            ],
+            "coverage": 0.99,
+            "coverage_wilson_95": [
+              0.9455,
+              0.9982
+            ]
+          },
+          "v4_frozen_28px": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 94,
+            "capture_time_truth_negative": 6,
+            "true_positive": 8,
+            "false_confirmation": 0,
+            "true_negative": 5,
+            "false_nonconfirmation": 86,
+            "abstained": 1,
+            "positive_recall": 0.0851,
+            "positive_recall_wilson_95": [
+              0.0438,
+              0.159
+            ],
+            "negative_specificity": 0.8333,
+            "negative_specificity_wilson_95": [
+              0.4365,
+              0.9699
+            ],
+            "coverage": 0.99,
+            "coverage_wilson_95": [
+              0.9455,
+              0.9982
+            ]
+          },
+          "v4_decision_changes_from_v3": 0,
+          "fault": {
+            "angle_deg": 45,
+            "kind": "marker_occlusion",
+            "label": "diagonal band, 25% thickness, +45 degrees",
+            "occluded_fraction": 0.25,
+            "shape": "diagonal_band"
+          }
+        },
+        "diagonal_25_minus45": {
+          "v3": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 94,
+            "capture_time_truth_negative": 6,
+            "true_positive": 18,
+            "false_confirmation": 0,
+            "true_negative": 5,
+            "false_nonconfirmation": 76,
+            "abstained": 1,
+            "positive_recall": 0.1915,
+            "positive_recall_wilson_95": [
+              0.1247,
+              0.2825
+            ],
+            "negative_specificity": 0.8333,
+            "negative_specificity_wilson_95": [
+              0.4365,
+              0.9699
+            ],
+            "coverage": 0.99,
+            "coverage_wilson_95": [
+              0.9455,
+              0.9982
+            ]
+          },
+          "v4_frozen_28px": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 94,
+            "capture_time_truth_negative": 6,
+            "true_positive": 18,
+            "false_confirmation": 0,
+            "true_negative": 5,
+            "false_nonconfirmation": 76,
+            "abstained": 1,
+            "positive_recall": 0.1915,
+            "positive_recall_wilson_95": [
+              0.1247,
+              0.2825
+            ],
+            "negative_specificity": 0.8333,
+            "negative_specificity_wilson_95": [
+              0.4365,
+              0.9699
+            ],
+            "coverage": 0.99,
+            "coverage_wilson_95": [
+              0.9455,
+              0.9982
+            ]
+          },
+          "v4_decision_changes_from_v3": 0,
+          "fault": {
+            "angle_deg": -45,
+            "kind": "marker_occlusion",
+            "label": "diagonal band, 25% thickness, -45 degrees",
+            "occluded_fraction": 0.25,
+            "shape": "diagonal_band"
+          }
+        },
+        "patch_45_upper_left": {
+          "v3": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 94,
+            "capture_time_truth_negative": 6,
+            "true_positive": 93,
+            "false_confirmation": 0,
+            "true_negative": 5,
+            "false_nonconfirmation": 1,
+            "abstained": 1,
+            "positive_recall": 0.9894,
+            "positive_recall_wilson_95": [
+              0.9422,
+              0.9981
+            ],
+            "negative_specificity": 0.8333,
+            "negative_specificity_wilson_95": [
+              0.4365,
+              0.9699
+            ],
+            "coverage": 0.99,
+            "coverage_wilson_95": [
+              0.9455,
+              0.9982
+            ]
+          },
+          "v4_frozen_28px": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 94,
+            "capture_time_truth_negative": 6,
+            "true_positive": 93,
+            "false_confirmation": 0,
+            "true_negative": 5,
+            "false_nonconfirmation": 1,
+            "abstained": 1,
+            "positive_recall": 0.9894,
+            "positive_recall_wilson_95": [
+              0.9422,
+              0.9981
+            ],
+            "negative_specificity": 0.8333,
+            "negative_specificity_wilson_95": [
+              0.4365,
+              0.9699
+            ],
+            "coverage": 0.99,
+            "coverage_wilson_95": [
+              0.9455,
+              0.9982
+            ]
+          },
+          "v4_decision_changes_from_v3": 0,
+          "fault": {
+            "kind": "marker_occlusion",
+            "label": "upper-left patch, 45% bbox width and height",
+            "occluded_fraction": 0.45,
+            "offset_x_fraction": -0.2,
+            "offset_y_fraction": -0.2,
+            "shape": "corner_patch"
+          }
+        }
+      }
+    },
+    "small_pad_14mm_hard_negative": {
+      "physical_outcomes": {
+        "unique_physical_pose_runs": 100,
+        "capture_time_truth_positive": 18,
+        "capture_time_truth_negative": 82,
+        "payload_stable_hold_successes": 16,
+        "strict_full_sequence_successes": 16,
+        "failure_reasons": {
+          "insufficient_lift": 8,
+          "no_grasp_contact": 27,
+          "none": 16,
+          "payload_tilt": 49
+        }
+      },
+      "image_conditions": {
+        "clean": {
+          "v3": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 18,
+            "capture_time_truth_negative": 82,
+            "true_positive": 16,
+            "false_confirmation": 1,
+            "true_negative": 71,
+            "false_nonconfirmation": 2,
+            "abstained": 10,
+            "positive_recall": 0.8889,
+            "positive_recall_wilson_95": [
+              0.672,
+              0.969
+            ],
+            "negative_specificity": 0.8659,
+            "negative_specificity_wilson_95": [
+              0.7755,
+              0.9234
+            ],
+            "coverage": 0.9,
+            "coverage_wilson_95": [
+              0.8256,
+              0.9448
+            ]
+          },
+          "v4_frozen_28px": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 18,
+            "capture_time_truth_negative": 82,
+            "true_positive": 16,
+            "false_confirmation": 1,
+            "true_negative": 71,
+            "false_nonconfirmation": 2,
+            "abstained": 10,
+            "positive_recall": 0.8889,
+            "positive_recall_wilson_95": [
+              0.672,
+              0.969
+            ],
+            "negative_specificity": 0.8659,
+            "negative_specificity_wilson_95": [
+              0.7755,
+              0.9234
+            ],
+            "coverage": 0.9,
+            "coverage_wilson_95": [
+              0.8256,
+              0.9448
+            ]
+          },
+          "v4_decision_changes_from_v3": 0,
+          "fault": null
+        },
+        "horizontal_25_center": {
+          "v3": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 18,
+            "capture_time_truth_negative": 82,
+            "true_positive": 1,
+            "false_confirmation": 0,
+            "true_negative": 69,
+            "false_nonconfirmation": 17,
+            "abstained": 13,
+            "positive_recall": 0.0556,
+            "positive_recall_wilson_95": [
+              0.0099,
+              0.2576
+            ],
+            "negative_specificity": 0.8415,
+            "negative_specificity_wilson_95": [
+              0.7474,
+              0.9049
+            ],
+            "coverage": 0.87,
+            "coverage_wilson_95": [
+              0.7902,
+              0.9224
+            ]
+          },
+          "v4_frozen_28px": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 18,
+            "capture_time_truth_negative": 82,
+            "true_positive": 16,
+            "false_confirmation": 1,
+            "true_negative": 68,
+            "false_nonconfirmation": 2,
+            "abstained": 13,
+            "positive_recall": 0.8889,
+            "positive_recall_wilson_95": [
+              0.672,
+              0.969
+            ],
+            "negative_specificity": 0.8293,
+            "negative_specificity_wilson_95": [
+              0.7336,
+              0.8955
+            ],
+            "coverage": 0.87,
+            "coverage_wilson_95": [
+              0.7902,
+              0.9224
+            ]
+          },
+          "v4_decision_changes_from_v3": 16,
+          "fault": {
+            "kind": "marker_occlusion",
+            "label": "horizontal band, 25% height, centered",
+            "occluded_fraction": 0.25,
+            "shape": "horizontal_band"
+          }
+        },
+        "horizontal_50_upper": {
+          "v3": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 18,
+            "capture_time_truth_negative": 82,
+            "true_positive": 5,
+            "false_confirmation": 1,
+            "true_negative": 69,
+            "false_nonconfirmation": 13,
+            "abstained": 12,
+            "positive_recall": 0.2778,
+            "positive_recall_wilson_95": [
+              0.125,
+              0.5087
+            ],
+            "negative_specificity": 0.8415,
+            "negative_specificity_wilson_95": [
+              0.7474,
+              0.9049
+            ],
+            "coverage": 0.88,
+            "coverage_wilson_95": [
+              0.8019,
+              0.93
+            ]
+          },
+          "v4_frozen_28px": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 18,
+            "capture_time_truth_negative": 82,
+            "true_positive": 11,
+            "false_confirmation": 1,
+            "true_negative": 69,
+            "false_nonconfirmation": 7,
+            "abstained": 12,
+            "positive_recall": 0.6111,
+            "positive_recall_wilson_95": [
+              0.3862,
+              0.797
+            ],
+            "negative_specificity": 0.8415,
+            "negative_specificity_wilson_95": [
+              0.7474,
+              0.9049
+            ],
+            "coverage": 0.88,
+            "coverage_wilson_95": [
+              0.8019,
+              0.93
+            ]
+          },
+          "v4_decision_changes_from_v3": 8,
+          "fault": {
+            "kind": "marker_occlusion",
+            "label": "horizontal band, 50% height, upper offset",
+            "occluded_fraction": 0.5,
+            "offset_y_fraction": -0.2,
+            "shape": "horizontal_band"
+          }
+        },
+        "horizontal_50_lower": {
+          "v3": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 18,
+            "capture_time_truth_negative": 82,
+            "true_positive": 3,
+            "false_confirmation": 0,
+            "true_negative": 68,
+            "false_nonconfirmation": 15,
+            "abstained": 14,
+            "positive_recall": 0.1667,
+            "positive_recall_wilson_95": [
+              0.0584,
+              0.3922
+            ],
+            "negative_specificity": 0.8293,
+            "negative_specificity_wilson_95": [
+              0.7336,
+              0.8955
+            ],
+            "coverage": 0.86,
+            "coverage_wilson_95": [
+              0.7786,
+              0.9147
+            ]
+          },
+          "v4_frozen_28px": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 18,
+            "capture_time_truth_negative": 82,
+            "true_positive": 13,
+            "false_confirmation": 0,
+            "true_negative": 68,
+            "false_nonconfirmation": 5,
+            "abstained": 14,
+            "positive_recall": 0.7222,
+            "positive_recall_wilson_95": [
+              0.4913,
+              0.875
+            ],
+            "negative_specificity": 0.8293,
+            "negative_specificity_wilson_95": [
+              0.7336,
+              0.8955
+            ],
+            "coverage": 0.86,
+            "coverage_wilson_95": [
+              0.7786,
+              0.9147
+            ]
+          },
+          "v4_decision_changes_from_v3": 10,
+          "fault": {
+            "kind": "marker_occlusion",
+            "label": "horizontal band, 50% height, lower offset",
+            "occluded_fraction": 0.5,
+            "offset_y_fraction": 0.2,
+            "shape": "horizontal_band"
+          }
+        },
+        "horizontal_75_center": {
+          "v3": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 18,
+            "capture_time_truth_negative": 82,
+            "true_positive": 6,
+            "false_confirmation": 6,
+            "true_negative": 57,
+            "false_nonconfirmation": 12,
+            "abstained": 19,
+            "positive_recall": 0.3333,
+            "positive_recall_wilson_95": [
+              0.1628,
+              0.5625
+            ],
+            "negative_specificity": 0.6951,
+            "negative_specificity_wilson_95": [
+              0.5886,
+              0.7842
+            ],
+            "coverage": 0.81,
+            "coverage_wilson_95": [
+              0.7222,
+              0.8749
+            ]
+          },
+          "v4_frozen_28px": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 18,
+            "capture_time_truth_negative": 82,
+            "true_positive": 4,
+            "false_confirmation": 5,
+            "true_negative": 58,
+            "false_nonconfirmation": 14,
+            "abstained": 19,
+            "positive_recall": 0.2222,
+            "positive_recall_wilson_95": [
+              0.09,
+              0.4522
+            ],
+            "negative_specificity": 0.7073,
+            "negative_specificity_wilson_95": [
+              0.6013,
+              0.7947
+            ],
+            "coverage": 0.81,
+            "coverage_wilson_95": [
+              0.7222,
+              0.8749
+            ]
+          },
+          "v4_decision_changes_from_v3": 3,
+          "fault": {
+            "kind": "marker_occlusion",
+            "label": "horizontal band, 75% height, centered",
+            "occluded_fraction": 0.75,
+            "shape": "horizontal_band"
+          }
+        },
+        "vertical_30_center": {
+          "v3": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 18,
+            "capture_time_truth_negative": 82,
+            "true_positive": 18,
+            "false_confirmation": 1,
+            "true_negative": 68,
+            "false_nonconfirmation": 0,
+            "abstained": 13,
+            "positive_recall": 1.0,
+            "positive_recall_wilson_95": [
+              0.8241,
+              1.0
+            ],
+            "negative_specificity": 0.8293,
+            "negative_specificity_wilson_95": [
+              0.7336,
+              0.8955
+            ],
+            "coverage": 0.87,
+            "coverage_wilson_95": [
+              0.7902,
+              0.9224
+            ]
+          },
+          "v4_frozen_28px": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 18,
+            "capture_time_truth_negative": 82,
+            "true_positive": 18,
+            "false_confirmation": 1,
+            "true_negative": 68,
+            "false_nonconfirmation": 0,
+            "abstained": 13,
+            "positive_recall": 1.0,
+            "positive_recall_wilson_95": [
+              0.8241,
+              1.0
+            ],
+            "negative_specificity": 0.8293,
+            "negative_specificity_wilson_95": [
+              0.7336,
+              0.8955
+            ],
+            "coverage": 0.87,
+            "coverage_wilson_95": [
+              0.7902,
+              0.9224
+            ]
+          },
+          "v4_decision_changes_from_v3": 0,
+          "fault": {
+            "kind": "marker_occlusion",
+            "label": "vertical band, 30% width, centered",
+            "occluded_fraction": 0.3,
+            "shape": "vertical_band"
+          }
+        },
+        "diagonal_25_plus45": {
+          "v3": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 18,
+            "capture_time_truth_negative": 82,
+            "true_positive": 6,
+            "false_confirmation": 2,
+            "true_negative": 67,
+            "false_nonconfirmation": 12,
+            "abstained": 13,
+            "positive_recall": 0.3333,
+            "positive_recall_wilson_95": [
+              0.1628,
+              0.5625
+            ],
+            "negative_specificity": 0.8171,
+            "negative_specificity_wilson_95": [
+              0.7199,
+              0.8859
+            ],
+            "coverage": 0.87,
+            "coverage_wilson_95": [
+              0.7902,
+              0.9224
+            ]
+          },
+          "v4_frozen_28px": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 18,
+            "capture_time_truth_negative": 82,
+            "true_positive": 6,
+            "false_confirmation": 2,
+            "true_negative": 67,
+            "false_nonconfirmation": 12,
+            "abstained": 13,
+            "positive_recall": 0.3333,
+            "positive_recall_wilson_95": [
+              0.1628,
+              0.5625
+            ],
+            "negative_specificity": 0.8171,
+            "negative_specificity_wilson_95": [
+              0.7199,
+              0.8859
+            ],
+            "coverage": 0.87,
+            "coverage_wilson_95": [
+              0.7902,
+              0.9224
+            ]
+          },
+          "v4_decision_changes_from_v3": 0,
+          "fault": {
+            "angle_deg": 45,
+            "kind": "marker_occlusion",
+            "label": "diagonal band, 25% thickness, +45 degrees",
+            "occluded_fraction": 0.25,
+            "shape": "diagonal_band"
+          }
+        },
+        "diagonal_25_minus45": {
+          "v3": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 18,
+            "capture_time_truth_negative": 82,
+            "true_positive": 4,
+            "false_confirmation": 1,
+            "true_negative": 69,
+            "false_nonconfirmation": 14,
+            "abstained": 12,
+            "positive_recall": 0.2222,
+            "positive_recall_wilson_95": [
+              0.09,
+              0.4522
+            ],
+            "negative_specificity": 0.8415,
+            "negative_specificity_wilson_95": [
+              0.7474,
+              0.9049
+            ],
+            "coverage": 0.88,
+            "coverage_wilson_95": [
+              0.8019,
+              0.93
+            ]
+          },
+          "v4_frozen_28px": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 18,
+            "capture_time_truth_negative": 82,
+            "true_positive": 4,
+            "false_confirmation": 1,
+            "true_negative": 69,
+            "false_nonconfirmation": 14,
+            "abstained": 12,
+            "positive_recall": 0.2222,
+            "positive_recall_wilson_95": [
+              0.09,
+              0.4522
+            ],
+            "negative_specificity": 0.8415,
+            "negative_specificity_wilson_95": [
+              0.7474,
+              0.9049
+            ],
+            "coverage": 0.88,
+            "coverage_wilson_95": [
+              0.8019,
+              0.93
+            ]
+          },
+          "v4_decision_changes_from_v3": 0,
+          "fault": {
+            "angle_deg": -45,
+            "kind": "marker_occlusion",
+            "label": "diagonal band, 25% thickness, -45 degrees",
+            "occluded_fraction": 0.25,
+            "shape": "diagonal_band"
+          }
+        },
+        "patch_45_upper_left": {
+          "v3": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 18,
+            "capture_time_truth_negative": 82,
+            "true_positive": 18,
+            "false_confirmation": 1,
+            "true_negative": 69,
+            "false_nonconfirmation": 0,
+            "abstained": 12,
+            "positive_recall": 1.0,
+            "positive_recall_wilson_95": [
+              0.8241,
+              1.0
+            ],
+            "negative_specificity": 0.8415,
+            "negative_specificity_wilson_95": [
+              0.7474,
+              0.9049
+            ],
+            "coverage": 0.88,
+            "coverage_wilson_95": [
+              0.8019,
+              0.93
+            ]
+          },
+          "v4_frozen_28px": {
+            "evaluations": 100,
+            "capture_time_truth_positive": 18,
+            "capture_time_truth_negative": 82,
+            "true_positive": 18,
+            "false_confirmation": 1,
+            "true_negative": 69,
+            "false_nonconfirmation": 0,
+            "abstained": 12,
+            "positive_recall": 1.0,
+            "positive_recall_wilson_95": [
+              0.8241,
+              1.0
+            ],
+            "negative_specificity": 0.8415,
+            "negative_specificity_wilson_95": [
+              0.7474,
+              0.9049
+            ],
+            "coverage": 0.88,
+            "coverage_wilson_95": [
+              0.8019,
+              0.93
+            ]
+          },
+          "v4_decision_changes_from_v3": 0,
+          "fault": {
+            "kind": "marker_occlusion",
+            "label": "upper-left patch, 45% bbox width and height",
+            "occluded_fraction": 0.45,
+            "offset_x_fraction": -0.2,
+            "offset_y_fraction": -0.2,
+            "shape": "corner_patch"
+          }
+        }
+      }
+    }
+  },
+  "physical_outcomes_identical_for_all_image_conditions": true,
+  "outputs": {
+    "csv": "cooperative-pick-occlusion-shape-trials.csv",
+    "json": "cooperative-pick-occlusion-shape-summary.json",
+    "scorecard_svg": "cooperative-pick-occlusion-shape-scorecard.svg"
+  },
+  "limitations": [
+    "Image masks are synthetic, gray, and aligned to the detected marker bounding box; they are not rendered physical occluders.",
+    "The 14 mm pad stratum is an intentionally failure-prone negative-control geometry; stratum prevalence does not estimate deployment prevalence.",
+    "The ideal magenta fiducial, fixed camera, lighting, and renderer do not model real sensor noise, object clutter, or moving occluders.",
+    "Positive and negative labels describe raised-and-stable state at two capture instants, not continuous hold or safe release.",
+    "V4 remains opt-in; this challenge does not change the default V3 decision path."
+  ]
+}

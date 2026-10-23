@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1480" height="820" viewBox="0 0 1480 820">
+<rect width="100%" height="100%" fill="#0b1220"/>
+<style>text{font-family:Arial,Helvetica,sans-serif}.muted{fill:#a9b6c8}.white{fill:#f3f6fb}.green{fill:#57d6a3}.red{fill:#ff7b72}.blue{fill:#58a6ff}.orange{fill:#ffb86c}</style>
+<text x="28" y="40" font-size="25" font-weight="700" class="white">Frozen V4 occlusion geometry challenge</text>
+<text x="28" y="68" font-size="14" class="muted">28 px candidate | 100 physical pose runs per pad geometry | 9 image masks evaluated from each same capture</text>
+<text x="28" y="115" font-size="17" font-weight="700" class="blue">Nominal 16 mm pads | capture positives 94 | negatives 6 | strict cycles 92/100</text>
+<text x="28" y="146" font-size="12" class="muted">image condition</text>
+<text x="408" y="146" font-size="12" class="muted">V3 TP / positives · FC</text>
+<text x="588" y="146" font-size="12" class="muted">V4 TP / positives · FC</text>
+<rect x="28" y="152" width="690" height="48" rx="6" fill="#141e30"/>
+<text x="38" y="173" font-size="12" class="white">clean</text>
+<text x="418" y="173" font-size="12" class="muted">94/94 · 0</text>
+<text x="598" y="173" font-size="12" class="green">94/94 · 0</text>
+<rect x="28" y="207" width="690" height="48" rx="6" fill="#101929"/>
+<text x="38" y="228" font-size="12" class="white">horizontal_25_center</text>
+<text x="418" y="228" font-size="12" class="muted">1/94 · 0</text>
+<text x="598" y="228" font-size="12" class="green">94/94 · 0</text>
+<rect x="28" y="262" width="690" height="48" rx="6" fill="#141e30"/>
+<text x="38" y="283" font-size="12" class="white">horizontal_50_upper</text>
+<text x="418" y="283" font-size="12" class="muted">15/94 · 0</text>
+<text x="598" y="283" font-size="12" class="green">43/94 · 0</text>
+<rect x="28" y="317" width="690" height="48" rx="6" fill="#101929"/>
+<text x="38" y="338" font-size="12" class="white">horizontal_50_lower</text>
+<text x="418" y="338" font-size="12" class="muted">27/94 · 0</text>
+<text x="598" y="338" font-size="12" class="green">62/94 · 0</text>
+<rect x="28" y="372" width="690" height="48" rx="6" fill="#141e30"/>
+<text x="38" y="393" font-size="12" class="white">horizontal_75_center</text>
+<text x="418" y="393" font-size="12" class="muted">37/94 · 0</text>
+<text x="598" y="393" font-size="12" class="green">6/94 · 0</text>
+<rect x="28" y="427" width="690" height="48" rx="6" fill="#101929"/>
+<text x="38" y="448" font-size="12" class="white">vertical_30_center</text>
+<text x="418" y="448" font-size="12" class="muted">94/94 · 0</text>
+<text x="598" y="448" font-size="12" class="green">94/94 · 0</text>
+<rect x="28" y="482" width="690" height="48" rx="6" fill="#141e30"/>
+<text x="38" y="503" font-size="12" class="white">diagonal_25_plus45</text>
+<text x="418" y="503" font-size="12" class="muted">8/94 · 0</text>
+<text x="598" y="503" font-size="12" class="green">8/94 · 0</text>
+<rect x="28" y="537" width="690" height="48" rx="6" fill="#101929"/>
+<text x="38" y="558" font-size="12" class="white">diagonal_25_minus45</text>
+<text x="418" y="558" font-size="12" class="muted">18/94 · 0</text>
+<text x="598" y="558" font-size="12" class="green">18/94 · 0</text>
+<rect x="28" y="592" width="690" height="48" rx="6" fill="#141e30"/>
+<text x="38" y="613" font-size="12" class="white">patch_45_upper_left</text>
+<text x="418" y="613" font-size="12" class="muted">93/94 · 0</text>
+<text x="598" y="613" font-size="12" class="green">93/94 · 0</text>
+<text x="746" y="115" font-size="17" font-weight="700" class="blue">14 mm hard-negative stratum | capture positives 18 | negatives 82 | strict cycles 16/100</text>
+<text x="746" y="146" font-size="12" class="muted">image condition</text>
+<text x="1126" y="146" font-size="12" class="muted">V3 TP / positives · FC</text>
+<text x="1306" y="146" font-size="12" class="muted">V4 TP / positives · FC</text>
+<rect x="746" y="152" width="690" height="48" rx="6" fill="#141e30"/>
+<text x="756" y="173" font-size="12" class="white">clean</text>
+<text x="1136" y="173" font-size="12" class="muted">16/18 · 1</text>
+<text x="1316" y="173" font-size="12" class="green">16/18 · 1</text>
+<rect x="746" y="207" width="690" height="48" rx="6" fill="#101929"/>
+<text x="756" y="228" font-size="12" class="white">horizontal_25_center</text>
+<text x="1136" y="228" font-size="12" class="muted">1/18 · 0</text>
+<text x="1316" y="228" font-size="12" class="green">16/18 · 1</text>
+<rect x="746" y="262" width="690" height="48" rx="6" fill="#141e30"/>
+<text x="756" y="283" font-size="12" class="white">horizontal_50_upper</text>
+<text x="1136" y="283" font-size="12" class="muted">5/18 · 1</text>
+<text x="1316" y="283" font-size="12" class="green">11/18 · 1</text>
+<rect x="746" y="317" width="690" height="48" rx="6" fill="#101929"/>
+<text x="756" y="338" font-size="12" class="white">horizontal_50_lower</text>
+<text x="1136" y="338" font-size="12" class="muted">3/18 · 0</text>
+<text x="1316" y="338" font-size="12" class="green">13/18 · 0</text>
+<rect x="746" y="372" width="690" height="48" rx="6" fill="#141e30"/>
+<text x="756" y="393" font-size="12" class="white">horizontal_75_center</text>
+<text x="1136" y="393" font-size="12" class="muted">6/18 · 6</text>
+<text x="1316" y="393" font-size="12" class="green">4/18 · 5</text>
+<rect x="746" y="427" width="690" height="48" rx="6" fill="#101929"/>
+<text x="756" y="448" font-size="12" class="white">vertical_30_center</text>
+<text x="1136" y="448" font-size="12" class="muted">18/18 · 1</text>
+<text x="1316" y="448" font-size="12" class="green">18/18 · 1</text>
+<rect x="746" y="482" width="690" height="48" rx="6" fill="#141e30"/>
+<text x="756" y="503" font-size="12" class="white">diagonal_25_plus45</text>
+<text x="1136" y="503" font-size="12" class="muted">6/18 · 2</text>
+<text x="1316" y="503" font-size="12" class="green">6/18 · 2</text>
+<rect x="746" y="537" width="690" height="48" rx="6" fill="#101929"/>
+<text x="756" y="558" font-size="12" class="white">diagonal_25_minus45</text>
+<text x="1136" y="558" font-size="12" class="muted">4/18 · 1</text>
+<text x="1316" y="558" font-size="12" class="green">4/18 · 1</text>
+<rect x="746" y="592" width="690" height="48" rx="6" fill="#141e30"/>
+<text x="756" y="613" font-size="12" class="white">patch_45_upper_left</text>
+<text x="1136" y="613" font-size="12" class="muted">18/18 · 1</text>
+<text x="1316" y="613" font-size="12" class="green">18/18 · 1</text>
+<text x="28" y="720" font-size="13" class="orange">FC = false confirmation against capture-time simulator truth. Each stratum is reported separately; the pad mix is not a field-prevalence estimate.</text>
+<text x="28" y="748" font-size="12" class="muted">Occlusion is post-render RGB editing. Nine image variants share each physical run and cannot alter motion or the simulator outcome.</text>
+<text x="28" y="776" font-size="12" class="muted">The 14 mm pad is an intentionally difficult negative-control geometry; actual frame labels still come from measured MuJoCo state.</text>
+</svg>

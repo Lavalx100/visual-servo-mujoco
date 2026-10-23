@@ -1,0 +1,559 @@
+{
+  "artifacts": {
+    "demo_metadata": "cooperative_pick_contact_demos.json",
+    "demo_preview": "cooperative_pick_contact_friction_pair.gif",
+    "demo_video": "cooperative_pick_contact_friction_pair.mp4",
+    "finger_detail_csv": "cooperative-pick-contact-by-finger.csv",
+    "scorecard_svg": "cooperative-pick-contact-scorecard.svg",
+    "trials_csv": "cooperative-pick-contact-trials.csv"
+  },
+  "conditions": {
+    "friction-0.5": {
+      "camera_estimate": {
+        "contact_retention_outcomes": {
+          "contact_not_retained_to_hold": 12
+        },
+        "failure_reasons": {
+          "no_grasp_contact": 12
+        },
+        "force_interpretation": "MuJoCo contact-solver normal force; a simulation diagnostic, not a calibrated sensor value",
+        "fresh_visual_confirmation": "not measured",
+        "full_sequence_collision_safe_trials": 5,
+        "median_max_slide_tracking_error_during_close_m": 0.00599666,
+        "median_peak_simulated_pad_normal_force_by_phase_n": {
+          "CLOSE SIX FINGERS": 194.879903,
+          "COOPERATIVE LIFT": 196.111922,
+          "LOWER TO TABLE": 243.537664,
+          "RELEASE": 78.375795,
+          "SECURE CONTACT": 210.365472,
+          "WITHDRAW": 37.65673
+        },
+        "pad_trials_with_contact_by_phase": {
+          "CLOSE SIX FINGERS": 68,
+          "COOPERATIVE LIFT": 63,
+          "LOWER TO TABLE": 63,
+          "RELEASE": 49,
+          "SECURE CONTACT": 58,
+          "WITHDRAW": 5
+        },
+        "pad_trials_with_contact_during_approach_close_or_secure": 68,
+        "pad_trials_with_contact_during_cooperative_lift": 63,
+        "pad_trials_with_contact_during_hold_under_load": 0,
+        "payload_stable_lift_successes": 0,
+        "physical_stable_lift_success": {
+          "rate": 0.0,
+          "successes": 0,
+          "wilson_95_interval": [
+            0.0,
+            0.2425
+          ]
+        },
+        "trials": 12,
+        "trials_with_any_pad_contact_during_approach_close_or_secure": 12
+      },
+      "oracle_xy": {
+        "contact_retention_outcomes": {
+          "contact_not_retained_to_hold": 12
+        },
+        "failure_reasons": {
+          "no_grasp_contact": 12
+        },
+        "force_interpretation": "MuJoCo contact-solver normal force; a simulation diagnostic, not a calibrated sensor value",
+        "fresh_visual_confirmation": "not measured",
+        "full_sequence_collision_safe_trials": 5,
+        "median_max_slide_tracking_error_during_close_m": 0.00599615,
+        "median_peak_simulated_pad_normal_force_by_phase_n": {
+          "CLOSE SIX FINGERS": 193.820082,
+          "COOPERATIVE LIFT": 197.76789,
+          "LOWER TO TABLE": 238.690033,
+          "RELEASE": 90.871344,
+          "SECURE CONTACT": 214.584252,
+          "WITHDRAW": 22.289124
+        },
+        "pad_trials_with_contact_by_phase": {
+          "CLOSE SIX FINGERS": 66,
+          "COOPERATIVE LIFT": 63,
+          "LOWER TO TABLE": 59,
+          "RELEASE": 48,
+          "SECURE CONTACT": 59,
+          "WITHDRAW": 1
+        },
+        "pad_trials_with_contact_during_approach_close_or_secure": 66,
+        "pad_trials_with_contact_during_cooperative_lift": 63,
+        "pad_trials_with_contact_during_hold_under_load": 0,
+        "payload_stable_lift_successes": 0,
+        "physical_stable_lift_success": {
+          "rate": 0.0,
+          "successes": 0,
+          "wilson_95_interval": [
+            0.0,
+            0.2425
+          ]
+        },
+        "trials": 12,
+        "trials_with_any_pad_contact_during_approach_close_or_secure": 12
+      }
+    },
+    "friction-2.2": {
+      "camera_estimate": {
+        "contact_retention_outcomes": {
+          "stable_lift": 12
+        },
+        "failure_reasons": {
+          "none": 12
+        },
+        "force_interpretation": "MuJoCo contact-solver normal force; a simulation diagnostic, not a calibrated sensor value",
+        "fresh_visual_confirmation": "not measured",
+        "full_sequence_collision_safe_trials": 12,
+        "median_max_slide_tracking_error_during_close_m": 0.01258789,
+        "median_peak_simulated_pad_normal_force_by_phase_n": {
+          "CLOSE SIX FINGERS": 153.577935,
+          "COOPERATIVE LIFT": 181.771711,
+          "HOLD UNDER LOAD": 184.48005,
+          "LOWER TO TABLE": 238.27963,
+          "RELEASE": 149.03565,
+          "SECURE CONTACT": 163.300548
+        },
+        "pad_trials_with_contact_by_phase": {
+          "CLOSE SIX FINGERS": 72,
+          "COOPERATIVE LIFT": 70,
+          "HOLD UNDER LOAD": 59,
+          "LOWER TO TABLE": 58,
+          "RELEASE": 53,
+          "SECURE CONTACT": 72
+        },
+        "pad_trials_with_contact_during_approach_close_or_secure": 72,
+        "pad_trials_with_contact_during_cooperative_lift": 70,
+        "pad_trials_with_contact_during_hold_under_load": 59,
+        "payload_stable_lift_successes": 12,
+        "physical_stable_lift_success": {
+          "rate": 1.0,
+          "successes": 12,
+          "wilson_95_interval": [
+            0.7575,
+            1.0
+          ]
+        },
+        "trials": 12,
+        "trials_with_any_pad_contact_during_approach_close_or_secure": 12
+      },
+      "oracle_xy": {
+        "contact_retention_outcomes": {
+          "contact_reached_hold_but_stable_lift_failed": 1,
+          "stable_lift": 11
+        },
+        "failure_reasons": {
+          "no_grasp_contact": 1,
+          "none": 11
+        },
+        "force_interpretation": "MuJoCo contact-solver normal force; a simulation diagnostic, not a calibrated sensor value",
+        "fresh_visual_confirmation": "not measured",
+        "full_sequence_collision_safe_trials": 11,
+        "median_max_slide_tracking_error_during_close_m": 0.0123296,
+        "median_peak_simulated_pad_normal_force_by_phase_n": {
+          "CLOSE SIX FINGERS": 153.217408,
+          "COOPERATIVE LIFT": 171.213352,
+          "HOLD UNDER LOAD": 177.624478,
+          "LOWER TO TABLE": 246.923072,
+          "RELEASE": 145.622314,
+          "SECURE CONTACT": 172.341976
+        },
+        "pad_trials_with_contact_by_phase": {
+          "CLOSE SIX FINGERS": 72,
+          "COOPERATIVE LIFT": 72,
+          "HOLD UNDER LOAD": 60,
+          "LOWER TO TABLE": 56,
+          "RELEASE": 51,
+          "SECURE CONTACT": 72
+        },
+        "pad_trials_with_contact_during_approach_close_or_secure": 72,
+        "pad_trials_with_contact_during_cooperative_lift": 72,
+        "pad_trials_with_contact_during_hold_under_load": 60,
+        "payload_stable_lift_successes": 11,
+        "physical_stable_lift_success": {
+          "rate": 0.9167,
+          "successes": 11,
+          "wilson_95_interval": [
+            0.6461,
+            0.9851
+          ]
+        },
+        "trials": 12,
+        "trials_with_any_pad_contact_during_approach_close_or_secure": 12
+      }
+    }
+  },
+  "controllers": [
+    "camera_estimate",
+    "oracle_xy"
+  ],
+  "demos": {
+    "fresh_visual_confirmation": "not measured",
+    "paired_video": "cooperative_pick_contact_friction_pair.mp4",
+    "preview": "cooperative_pick_contact_friction_pair.gif",
+    "purpose": "same-pose camera-estimate replay comparing low and high friction with baseline 16 mm pads",
+    "replays": [
+      {
+        "controller": "camera_estimate",
+        "counted_as_additional_benchmark_trial": false,
+        "finger_pad_half_size_m": 0.016,
+        "finger_pad_sliding_friction": 0.5,
+        "fresh_visual_confirmation": "not measured",
+        "physical_stable_lift_success": false,
+        "source_pair_id": "41000-000",
+        "video": "cooperative_pick_contact_low_friction.mp4"
+      },
+      {
+        "controller": "camera_estimate",
+        "counted_as_additional_benchmark_trial": false,
+        "finger_pad_half_size_m": 0.016,
+        "finger_pad_sliding_friction": 2.2,
+        "fresh_visual_confirmation": "not measured",
+        "physical_stable_lift_success": true,
+        "source_pair_id": "41000-000",
+        "video": "cooperative_pick_contact_high_friction.mp4"
+      }
+    ],
+    "replays_are_additional_trials": false,
+    "source_pair_id": "41000-000"
+  },
+  "evidence_type": "paired MuJoCo simulation; not hardware evidence",
+  "experiment": "per-finger contact onset and gripper slide tracking under friction stress",
+  "failure_reason_interpretation": "The legacy no_grasp_contact label means the score had zero pad contacts during the hold window; the per-phase traces may still show transient contact during closing or early lift.",
+  "fresh_visual_confirmation": "not measured; physical stable-lift outcomes and contact traces do not imply visual confirmation",
+  "frozen_settings": {
+    "finger_pad_half_size_m": 0.016,
+    "friction_levels": [
+      0.5,
+      2.2
+    ],
+    "lowest_approach_tool_height_offset_m": 0.02,
+    "payload_body_mass_kg": 0.7201166534540158,
+    "release_profile": "clearance"
+  },
+  "limitations": [
+    "Contact force values come from MuJoCo's solver and are not calibrated force-sensor measurements.",
+    "The study repeats the fixed cylinder, gripper, actuators, and ideal camera; the friction levels are author-selected stresses.",
+    "Twelve poses per friction/controller condition provide diagnostic evidence, not reliability estimates.",
+    "Oracle XY shares the same arm motion and only removes target-position estimation error.",
+    "Fresh visual confirmation and real-hardware behavior are not measured."
+  ],
+  "paired_design": "same pose, baseline 16 mm pad, nominal mass, clearance approach and release; compare low/high friction under camera-estimate and oracle controllers",
+  "paired_friction_outcomes": {
+    "camera_estimate": {
+      "41000-000": {
+        "high_friction_contact_retention_outcome": "stable_lift",
+        "high_friction_pads_contact_during_close": 6,
+        "high_friction_pads_contact_during_cooperative_lift": 6,
+        "high_friction_pads_contact_during_hold_under_load": 5,
+        "high_friction_physical_stable_lift_success": true,
+        "low_friction_contact_retention_outcome": "contact_not_retained_to_hold",
+        "low_friction_pads_contact_during_close": 6,
+        "low_friction_pads_contact_during_cooperative_lift": 6,
+        "low_friction_pads_contact_during_hold_under_load": 0,
+        "low_friction_physical_stable_lift_success": false
+      },
+      "41000-001": {
+        "high_friction_contact_retention_outcome": "stable_lift",
+        "high_friction_pads_contact_during_close": 6,
+        "high_friction_pads_contact_during_cooperative_lift": 5,
+        "high_friction_pads_contact_during_hold_under_load": 4,
+        "high_friction_physical_stable_lift_success": true,
+        "low_friction_contact_retention_outcome": "contact_not_retained_to_hold",
+        "low_friction_pads_contact_during_close": 6,
+        "low_friction_pads_contact_during_cooperative_lift": 6,
+        "low_friction_pads_contact_during_hold_under_load": 0,
+        "low_friction_physical_stable_lift_success": false
+      },
+      "41000-002": {
+        "high_friction_contact_retention_outcome": "stable_lift",
+        "high_friction_pads_contact_during_close": 6,
+        "high_friction_pads_contact_during_cooperative_lift": 6,
+        "high_friction_pads_contact_during_hold_under_load": 5,
+        "high_friction_physical_stable_lift_success": true,
+        "low_friction_contact_retention_outcome": "contact_not_retained_to_hold",
+        "low_friction_pads_contact_during_close": 6,
+        "low_friction_pads_contact_during_cooperative_lift": 5,
+        "low_friction_pads_contact_during_hold_under_load": 0,
+        "low_friction_physical_stable_lift_success": false
+      },
+      "41000-003": {
+        "high_friction_contact_retention_outcome": "stable_lift",
+        "high_friction_pads_contact_during_close": 6,
+        "high_friction_pads_contact_during_cooperative_lift": 6,
+        "high_friction_pads_contact_during_hold_under_load": 5,
+        "high_friction_physical_stable_lift_success": true,
+        "low_friction_contact_retention_outcome": "contact_not_retained_to_hold",
+        "low_friction_pads_contact_during_close": 6,
+        "low_friction_pads_contact_during_cooperative_lift": 4,
+        "low_friction_pads_contact_during_hold_under_load": 0,
+        "low_friction_physical_stable_lift_success": false
+      },
+      "41000-004": {
+        "high_friction_contact_retention_outcome": "stable_lift",
+        "high_friction_pads_contact_during_close": 6,
+        "high_friction_pads_contact_during_cooperative_lift": 6,
+        "high_friction_pads_contact_during_hold_under_load": 5,
+        "high_friction_physical_stable_lift_success": true,
+        "low_friction_contact_retention_outcome": "contact_not_retained_to_hold",
+        "low_friction_pads_contact_during_close": 6,
+        "low_friction_pads_contact_during_cooperative_lift": 6,
+        "low_friction_pads_contact_during_hold_under_load": 0,
+        "low_friction_physical_stable_lift_success": false
+      },
+      "41000-005": {
+        "high_friction_contact_retention_outcome": "stable_lift",
+        "high_friction_pads_contact_during_close": 6,
+        "high_friction_pads_contact_during_cooperative_lift": 6,
+        "high_friction_pads_contact_during_hold_under_load": 4,
+        "high_friction_physical_stable_lift_success": true,
+        "low_friction_contact_retention_outcome": "contact_not_retained_to_hold",
+        "low_friction_pads_contact_during_close": 5,
+        "low_friction_pads_contact_during_cooperative_lift": 6,
+        "low_friction_pads_contact_during_hold_under_load": 0,
+        "low_friction_physical_stable_lift_success": false
+      },
+      "41000-006": {
+        "high_friction_contact_retention_outcome": "stable_lift",
+        "high_friction_pads_contact_during_close": 6,
+        "high_friction_pads_contact_during_cooperative_lift": 6,
+        "high_friction_pads_contact_during_hold_under_load": 6,
+        "high_friction_physical_stable_lift_success": true,
+        "low_friction_contact_retention_outcome": "contact_not_retained_to_hold",
+        "low_friction_pads_contact_during_close": 6,
+        "low_friction_pads_contact_during_cooperative_lift": 4,
+        "low_friction_pads_contact_during_hold_under_load": 0,
+        "low_friction_physical_stable_lift_success": false
+      },
+      "41000-007": {
+        "high_friction_contact_retention_outcome": "stable_lift",
+        "high_friction_pads_contact_during_close": 6,
+        "high_friction_pads_contact_during_cooperative_lift": 6,
+        "high_friction_pads_contact_during_hold_under_load": 5,
+        "high_friction_physical_stable_lift_success": true,
+        "low_friction_contact_retention_outcome": "contact_not_retained_to_hold",
+        "low_friction_pads_contact_during_close": 6,
+        "low_friction_pads_contact_during_cooperative_lift": 5,
+        "low_friction_pads_contact_during_hold_under_load": 0,
+        "low_friction_physical_stable_lift_success": false
+      },
+      "41000-008": {
+        "high_friction_contact_retention_outcome": "stable_lift",
+        "high_friction_pads_contact_during_close": 6,
+        "high_friction_pads_contact_during_cooperative_lift": 6,
+        "high_friction_pads_contact_during_hold_under_load": 5,
+        "high_friction_physical_stable_lift_success": true,
+        "low_friction_contact_retention_outcome": "contact_not_retained_to_hold",
+        "low_friction_pads_contact_during_close": 6,
+        "low_friction_pads_contact_during_cooperative_lift": 5,
+        "low_friction_pads_contact_during_hold_under_load": 0,
+        "low_friction_physical_stable_lift_success": false
+      },
+      "41000-009": {
+        "high_friction_contact_retention_outcome": "stable_lift",
+        "high_friction_pads_contact_during_close": 6,
+        "high_friction_pads_contact_during_cooperative_lift": 5,
+        "high_friction_pads_contact_during_hold_under_load": 5,
+        "high_friction_physical_stable_lift_success": true,
+        "low_friction_contact_retention_outcome": "contact_not_retained_to_hold",
+        "low_friction_pads_contact_during_close": 5,
+        "low_friction_pads_contact_during_cooperative_lift": 6,
+        "low_friction_pads_contact_during_hold_under_load": 0,
+        "low_friction_physical_stable_lift_success": false
+      },
+      "41000-010": {
+        "high_friction_contact_retention_outcome": "stable_lift",
+        "high_friction_pads_contact_during_close": 6,
+        "high_friction_pads_contact_during_cooperative_lift": 6,
+        "high_friction_pads_contact_during_hold_under_load": 5,
+        "high_friction_physical_stable_lift_success": true,
+        "low_friction_contact_retention_outcome": "contact_not_retained_to_hold",
+        "low_friction_pads_contact_during_close": 4,
+        "low_friction_pads_contact_during_cooperative_lift": 5,
+        "low_friction_pads_contact_during_hold_under_load": 0,
+        "low_friction_physical_stable_lift_success": false
+      },
+      "41000-011": {
+        "high_friction_contact_retention_outcome": "stable_lift",
+        "high_friction_pads_contact_during_close": 6,
+        "high_friction_pads_contact_during_cooperative_lift": 6,
+        "high_friction_pads_contact_during_hold_under_load": 5,
+        "high_friction_physical_stable_lift_success": true,
+        "low_friction_contact_retention_outcome": "contact_not_retained_to_hold",
+        "low_friction_pads_contact_during_close": 6,
+        "low_friction_pads_contact_during_cooperative_lift": 5,
+        "low_friction_pads_contact_during_hold_under_load": 0,
+        "low_friction_physical_stable_lift_success": false
+      }
+    },
+    "oracle_xy": {
+      "41000-000": {
+        "high_friction_contact_retention_outcome": "stable_lift",
+        "high_friction_pads_contact_during_close": 6,
+        "high_friction_pads_contact_during_cooperative_lift": 6,
+        "high_friction_pads_contact_during_hold_under_load": 5,
+        "high_friction_physical_stable_lift_success": true,
+        "low_friction_contact_retention_outcome": "contact_not_retained_to_hold",
+        "low_friction_pads_contact_during_close": 6,
+        "low_friction_pads_contact_during_cooperative_lift": 4,
+        "low_friction_pads_contact_during_hold_under_load": 0,
+        "low_friction_physical_stable_lift_success": false
+      },
+      "41000-001": {
+        "high_friction_contact_retention_outcome": "stable_lift",
+        "high_friction_pads_contact_during_close": 6,
+        "high_friction_pads_contact_during_cooperative_lift": 6,
+        "high_friction_pads_contact_during_hold_under_load": 5,
+        "high_friction_physical_stable_lift_success": true,
+        "low_friction_contact_retention_outcome": "contact_not_retained_to_hold",
+        "low_friction_pads_contact_during_close": 6,
+        "low_friction_pads_contact_during_cooperative_lift": 6,
+        "low_friction_pads_contact_during_hold_under_load": 0,
+        "low_friction_physical_stable_lift_success": false
+      },
+      "41000-002": {
+        "high_friction_contact_retention_outcome": "stable_lift",
+        "high_friction_pads_contact_during_close": 6,
+        "high_friction_pads_contact_during_cooperative_lift": 6,
+        "high_friction_pads_contact_during_hold_under_load": 5,
+        "high_friction_physical_stable_lift_success": true,
+        "low_friction_contact_retention_outcome": "contact_not_retained_to_hold",
+        "low_friction_pads_contact_during_close": 6,
+        "low_friction_pads_contact_during_cooperative_lift": 6,
+        "low_friction_pads_contact_during_hold_under_load": 0,
+        "low_friction_physical_stable_lift_success": false
+      },
+      "41000-003": {
+        "high_friction_contact_retention_outcome": "stable_lift",
+        "high_friction_pads_contact_during_close": 6,
+        "high_friction_pads_contact_during_cooperative_lift": 6,
+        "high_friction_pads_contact_during_hold_under_load": 5,
+        "high_friction_physical_stable_lift_success": true,
+        "low_friction_contact_retention_outcome": "contact_not_retained_to_hold",
+        "low_friction_pads_contact_during_close": 5,
+        "low_friction_pads_contact_during_cooperative_lift": 6,
+        "low_friction_pads_contact_during_hold_under_load": 0,
+        "low_friction_physical_stable_lift_success": false
+      },
+      "41000-004": {
+        "high_friction_contact_retention_outcome": "stable_lift",
+        "high_friction_pads_contact_during_close": 6,
+        "high_friction_pads_contact_during_cooperative_lift": 6,
+        "high_friction_pads_contact_during_hold_under_load": 5,
+        "high_friction_physical_stable_lift_success": true,
+        "low_friction_contact_retention_outcome": "contact_not_retained_to_hold",
+        "low_friction_pads_contact_during_close": 6,
+        "low_friction_pads_contact_during_cooperative_lift": 4,
+        "low_friction_pads_contact_during_hold_under_load": 0,
+        "low_friction_physical_stable_lift_success": false
+      },
+      "41000-005": {
+        "high_friction_contact_retention_outcome": "stable_lift",
+        "high_friction_pads_contact_during_close": 6,
+        "high_friction_pads_contact_during_cooperative_lift": 6,
+        "high_friction_pads_contact_during_hold_under_load": 5,
+        "high_friction_physical_stable_lift_success": true,
+        "low_friction_contact_retention_outcome": "contact_not_retained_to_hold",
+        "low_friction_pads_contact_during_close": 6,
+        "low_friction_pads_contact_during_cooperative_lift": 6,
+        "low_friction_pads_contact_during_hold_under_load": 0,
+        "low_friction_physical_stable_lift_success": false
+      },
+      "41000-006": {
+        "high_friction_contact_retention_outcome": "stable_lift",
+        "high_friction_pads_contact_during_close": 6,
+        "high_friction_pads_contact_during_cooperative_lift": 6,
+        "high_friction_pads_contact_during_hold_under_load": 6,
+        "high_friction_physical_stable_lift_success": true,
+        "low_friction_contact_retention_outcome": "contact_not_retained_to_hold",
+        "low_friction_pads_contact_during_close": 5,
+        "low_friction_pads_contact_during_cooperative_lift": 5,
+        "low_friction_pads_contact_during_hold_under_load": 0,
+        "low_friction_physical_stable_lift_success": false
+      },
+      "41000-007": {
+        "high_friction_contact_retention_outcome": "stable_lift",
+        "high_friction_pads_contact_during_close": 6,
+        "high_friction_pads_contact_during_cooperative_lift": 6,
+        "high_friction_pads_contact_during_hold_under_load": 5,
+        "high_friction_physical_stable_lift_success": true,
+        "low_friction_contact_retention_outcome": "contact_not_retained_to_hold",
+        "low_friction_pads_contact_during_close": 6,
+        "low_friction_pads_contact_during_cooperative_lift": 4,
+        "low_friction_pads_contact_during_hold_under_load": 0,
+        "low_friction_physical_stable_lift_success": false
+      },
+      "41000-008": {
+        "high_friction_contact_retention_outcome": "stable_lift",
+        "high_friction_pads_contact_during_close": 6,
+        "high_friction_pads_contact_during_cooperative_lift": 6,
+        "high_friction_pads_contact_during_hold_under_load": 6,
+        "high_friction_physical_stable_lift_success": true,
+        "low_friction_contact_retention_outcome": "contact_not_retained_to_hold",
+        "low_friction_pads_contact_during_close": 5,
+        "low_friction_pads_contact_during_cooperative_lift": 6,
+        "low_friction_pads_contact_during_hold_under_load": 0,
+        "low_friction_physical_stable_lift_success": false
+      },
+      "41000-009": {
+        "high_friction_contact_retention_outcome": "stable_lift",
+        "high_friction_pads_contact_during_close": 6,
+        "high_friction_pads_contact_during_cooperative_lift": 6,
+        "high_friction_pads_contact_during_hold_under_load": 6,
+        "high_friction_physical_stable_lift_success": true,
+        "low_friction_contact_retention_outcome": "contact_not_retained_to_hold",
+        "low_friction_pads_contact_during_close": 5,
+        "low_friction_pads_contact_during_cooperative_lift": 6,
+        "low_friction_pads_contact_during_hold_under_load": 0,
+        "low_friction_physical_stable_lift_success": false
+      },
+      "41000-010": {
+        "high_friction_contact_retention_outcome": "contact_reached_hold_but_stable_lift_failed",
+        "high_friction_pads_contact_during_close": 6,
+        "high_friction_pads_contact_during_cooperative_lift": 6,
+        "high_friction_pads_contact_during_hold_under_load": 2,
+        "high_friction_physical_stable_lift_success": false,
+        "low_friction_contact_retention_outcome": "contact_not_retained_to_hold",
+        "low_friction_pads_contact_during_close": 4,
+        "low_friction_pads_contact_during_cooperative_lift": 4,
+        "low_friction_pads_contact_during_hold_under_load": 0,
+        "low_friction_physical_stable_lift_success": false
+      },
+      "41000-011": {
+        "high_friction_contact_retention_outcome": "stable_lift",
+        "high_friction_pads_contact_during_close": 6,
+        "high_friction_pads_contact_during_cooperative_lift": 6,
+        "high_friction_pads_contact_during_hold_under_load": 5,
+        "high_friction_physical_stable_lift_success": true,
+        "low_friction_contact_retention_outcome": "contact_not_retained_to_hold",
+        "low_friction_pads_contact_during_close": 6,
+        "low_friction_pads_contact_during_cooperative_lift": 6,
+        "low_friction_pads_contact_during_hold_under_load": 0,
+        "low_friction_physical_stable_lift_success": false
+      }
+    }
+  },
+  "physics_sampling": {
+    "normal_force": "mujoco.mj_contactForce contact-frame normal component magnitude, summed across pad/payload contact points per step",
+    "pad_contact": "payload-pad contacts sampled after every MuJoCo physics step, attributed to each of six named pad geoms and desired-pick phase",
+    "slide_tracking": "position-actuator control target compared with measured finger slide joint position on every physics step during CLOSE SIX FINGERS",
+    "timestep_s": 0.002
+  },
+  "protocol_version": 1,
+  "target_sampling": {
+    "base_seed": 41000,
+    "distribution": "independent uniform XY samples in a square",
+    "samples_per_seed": 12,
+    "unique_target_poses": 12,
+    "x_range_m": [
+      -0.09,
+      0.09
+    ],
+    "y_range_m": [
+      -0.09,
+      0.09
+    ]
+  },
+  "total_finger_trial_rows": 288,
+  "total_physics_trials": 48
+}

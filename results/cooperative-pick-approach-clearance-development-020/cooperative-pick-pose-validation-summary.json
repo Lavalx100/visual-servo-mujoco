@@ -1,0 +1,224 @@
+{
+  "experiment": "camera-guided cooperative pick pose validation",
+  "evidence_type": "paired randomized MuJoCo simulation; not hardware evidence",
+  "target_sampling": {
+    "distribution": "independent uniform XY samples in a square",
+    "x_range_m": [
+      -0.09,
+      0.09
+    ],
+    "y_range_m": [
+      -0.09,
+      0.09
+    ],
+    "seeds": 3,
+    "samples_per_seed": 10,
+    "base_seed": 38100,
+    "unique_target_positions": 30
+  },
+  "camera_pipeline": {
+    "detector": "unchanged default red HSV contour detector from run.py",
+    "projection": "shared pixel_to_table_xy pinhole helper from controller.py",
+    "camera_height_m": 2.0,
+    "target_marker_height_m": 0.307,
+    "vertical_fov_deg": 40.0,
+    "image_size_px": [
+      640,
+      480
+    ],
+    "recalibration_or_distortion": "none; ideal fixed top-down calibration"
+  },
+  "gripper_pad_half_size_m": 0.016,
+  "release_profile": "clearance",
+  "wrist_center_radial_standoff_m": 0.0,
+  "lowest_approach_tool_height_offset_m": 0.02,
+  "finger_pad_inward_offset_m": 0.022,
+  "yaw_actuators": {
+    "base_yaw": {
+      "kp": 300.0,
+      "kv": 40.0,
+      "absolute_force_limit_nm": 150.0
+    },
+    "gripper_yaw": {
+      "kp": 500.0,
+      "kv": 50.0,
+      "absolute_force_limit_nm": 500.0
+    }
+  },
+  "task_success_definition": {
+    "physical_stable_lift_success": "payload_stable_lift_success plus full_sequence_collision_safe; retained for direct comparison with the original strict score",
+    "payload_stable_lift_success": "during the 1.6 s hold, payload stays at least 7 cm above start, has at least three finger-pad contacts, stays within 5 degrees tilt, respects the 1 mm inter-arm penetration limit, and has no unexpected arm contacts",
+    "full_sequence_collision_safe": "throughout the complete pick, lower, release, and withdraw sequence, there is no arm-table/ground or nonfinger arm-payload contact and inter-arm penetration remains within 1 mm",
+    "fresh_visual_confirmation": "not measured by this experiment"
+  },
+  "conditions": [
+    {
+      "controller": "camera_estimate",
+      "trials": 30,
+      "physical_stable_lift_successes": 29,
+      "physical_stable_lift_success_rate": 0.9667,
+      "payload_stable_lift_successes": 29,
+      "payload_stable_lift_success_rate": 0.9667,
+      "full_sequence_collision_safe_trials": 30,
+      "full_sequence_collision_safe_rate": 1.0,
+      "target_detection_rate": 1.0,
+      "median_initial_target_projection_error_cm": 0.047,
+      "failure_reasons": {
+        "payload_tilt": 1
+      }
+    },
+    {
+      "controller": "oracle_xy",
+      "trials": 30,
+      "physical_stable_lift_successes": 28,
+      "physical_stable_lift_success_rate": 0.9333,
+      "payload_stable_lift_successes": 28,
+      "payload_stable_lift_success_rate": 0.9333,
+      "full_sequence_collision_safe_trials": 29,
+      "full_sequence_collision_safe_rate": 0.9667,
+      "target_detection_rate": 1.0,
+      "median_initial_target_projection_error_cm": 0.047,
+      "failure_reasons": {
+        "no_grasp_contact": 1,
+        "payload_tilt": 1
+      }
+    }
+  ],
+  "paired_physical_success_outcomes": {
+    "camera_success_oracle_failure": 2,
+    "camera_failure_oracle_success": 1,
+    "both_success": 27,
+    "both_failure": 0
+  },
+  "contact_attribution": {
+    "camera_estimate": {
+      "arm_environment": {
+        "trials_with_contact": 0,
+        "phase_counts": [],
+        "geometry_pairs": [],
+        "first_contact_pairs": []
+      },
+      "nonfinger_payload": {
+        "trials_with_contact": 0,
+        "phase_counts": [],
+        "geometry_pairs": [],
+        "first_contact_pairs": []
+      }
+    },
+    "oracle_xy": {
+      "arm_environment": {
+        "trials_with_contact": 1,
+        "phase_counts": [
+          {
+            "phase": "CLOSE SIX FINGERS",
+            "trials_with_contact": 1,
+            "contact_steps": 2
+          }
+        ],
+        "geometry_pairs": [
+          {
+            "phase": "CLOSE SIX FINGERS",
+            "arm_geom": "arm0_left_pad",
+            "other_geom": "table",
+            "trials_with_contact": 1,
+            "contact_steps": 2,
+            "maximum_penetration_m": 1.1e-05
+          }
+        ],
+        "first_contact_pairs": [
+          {
+            "phase": "CLOSE SIX FINGERS",
+            "arm_geom": "arm0_left_pad",
+            "other_geom": "table",
+            "trials": 1
+          }
+        ]
+      },
+      "nonfinger_payload": {
+        "trials_with_contact": 1,
+        "phase_counts": [
+          {
+            "phase": "COOPERATIVE LIFT",
+            "trials_with_contact": 1,
+            "contact_steps": 202
+          },
+          {
+            "phase": "HOLD UNDER LOAD",
+            "trials_with_contact": 1,
+            "contact_steps": 267
+          },
+          {
+            "phase": "LOWER TO TABLE",
+            "trials_with_contact": 1,
+            "contact_steps": 369
+          },
+          {
+            "phase": "RELEASE",
+            "trials_with_contact": 1,
+            "contact_steps": 6
+          }
+        ],
+        "geometry_pairs": [
+          {
+            "phase": "LOWER TO TABLE",
+            "arm_geom": "arm0_wrist_link",
+            "other_geom": "payload_canister",
+            "trials_with_contact": 1,
+            "contact_steps": 369,
+            "maximum_penetration_m": 0.000301
+          },
+          {
+            "phase": "HOLD UNDER LOAD",
+            "arm_geom": "arm0_wrist_link",
+            "other_geom": "payload_canister",
+            "trials_with_contact": 1,
+            "contact_steps": 267,
+            "maximum_penetration_m": 0.000109
+          },
+          {
+            "phase": "COOPERATIVE LIFT",
+            "arm_geom": "arm0_wrist_link",
+            "other_geom": "payload_canister",
+            "trials_with_contact": 1,
+            "contact_steps": 202,
+            "maximum_penetration_m": 0.020338
+          },
+          {
+            "phase": "RELEASE",
+            "arm_geom": "arm0_wrist_link",
+            "other_geom": "payload_canister",
+            "trials_with_contact": 1,
+            "contact_steps": 6,
+            "maximum_penetration_m": 0.000289
+          }
+        ],
+        "first_contact_pairs": [
+          {
+            "phase": "COOPERATIVE LIFT",
+            "arm_geom": "arm0_wrist_link",
+            "other_geom": "payload_canister",
+            "trials": 1
+          }
+        ]
+      }
+    }
+  },
+  "illustrative_demo_target_xy_m": null,
+  "illustrative_demo_selection": null,
+  "demo_metrics": null,
+  "demo_oracle_diagnostic_metrics": null,
+  "limitations": [
+    "The controller estimates a static target pose once at planning time; it does not servo on later images.",
+    "The camera uses ideal intrinsics and no lens distortion, noise, lighting shift, clutter, or occlusion.",
+    "The default detector is used; the opt-in circle-prior detector remains experimental and is not promoted.",
+    "The oracle condition isolates position-estimation effects and is not a deployable controller.",
+    "Physical stable-lift success is not fresh visual confirmation or real-robot performance.",
+    "Same-arm self-collision remains suppressed by the shared scene masks."
+  ],
+  "trial_data": "cooperative-pick-pose-validation-trials.csv",
+  "contact_events": "cooperative-pick-contact-events.csv",
+  "scorecard": "cooperative-pick-pose-validation.svg",
+  "phase_outcomes_chart": "cooperative-pick-phase-outcomes.svg",
+  "video": null,
+  "preview": null
+}

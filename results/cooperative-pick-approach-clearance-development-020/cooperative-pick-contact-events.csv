@@ -1,0 +1,6 @@
+pair_id,seed,sample_index,controller,target_x_m,target_y_m,category,phase,arm_geom,other_geom,contact_steps,maximum_penetration_m,first_contact_time_s,first_contact_x_m,first_contact_y_m,first_contact_z_m
+38100-009,38100,9,oracle_xy,-0.08109603307889762,-0.02821719067990195,arm_environment,CLOSE SIX FINGERS,arm0_left_pad,table,2,1.1e-05,4.382,-0.028773,-0.119545,0.179996
+38100-009,38100,9,oracle_xy,-0.08109603307889762,-0.02821719067990195,nonfinger_payload,COOPERATIVE LIFT,arm0_wrist_link,payload_canister,202,0.020338,6.344,-0.01337,-0.027718,0.308557
+38100-009,38100,9,oracle_xy,-0.08109603307889762,-0.02821719067990195,nonfinger_payload,HOLD UNDER LOAD,arm0_wrist_link,payload_canister,267,0.000109,7.402,-0.011504,-0.027942,0.390417
+38100-009,38100,9,oracle_xy,-0.08109603307889762,-0.02821719067990195,nonfinger_payload,LOWER TO TABLE,arm0_wrist_link,payload_canister,369,0.000301,9.024,0.02605,-0.026871,0.396003
+38100-009,38100,9,oracle_xy,-0.08109603307889762,-0.02821719067990195,nonfinger_payload,RELEASE,arm0_wrist_link,payload_canister,6,0.000289,10.5,0.027335,-0.026591,0.301939

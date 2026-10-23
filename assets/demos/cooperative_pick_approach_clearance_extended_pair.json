@@ -1,0 +1,1037 @@
+{
+  "evidence_type": "deterministic paired held-out MuJoCo replay; illustrative demo is already counted in the benchmark",
+  "pair_id": "38401-017",
+  "target_xy_m": [
+    -0.06922730604497648,
+    -0.0012882126923916438
+  ],
+  "controller": "camera_estimate",
+  "shared_settings": {
+    "release_profile": "clearance",
+    "wrist_center_radial_standoff_m": 0.0,
+    "finger_pad_half_size_m": 0.016
+  },
+  "baseline": {
+    "lowest_approach_tool_height_offset_m": 0.005,
+    "recorded_failure_reason": "no_grasp_contact",
+    "recorded_physical_stable_lift_success": false,
+    "replay_metrics": {
+      "controller": "camera_estimate",
+      "release_profile": "clearance",
+      "wrist_center_radial_standoff_m": 0.0,
+      "lowest_approach_tool_height_offset_m": 0.005,
+      "finger_pad_inward_offset_m": 0.022,
+      "control_target_source": "detected_image_position",
+      "target_true_xy_m": [
+        -0.06922730604497648,
+        -0.0012882126923916438
+      ],
+      "target_detected": true,
+      "detected_target_pixel_xy": [
+        292.4186096191406,
+        239.94186401367188
+      ],
+      "camera_estimated_target_xy_m": [
+        -0.06953165109162814,
+        -0.0011344888130373008
+      ],
+      "initial_target_projection_error_m": 0.0003409647173904435,
+      "physical_stable_lift_success": false,
+      "payload_stable_lift_success": false,
+      "full_sequence_collision_safe": false,
+      "fresh_visual_confirmation": "not_confirmed",
+      "visual_verification": {
+        "decision": "not_confirmed",
+        "reason": "insufficient_upward_displacement",
+        "runtime_inputs": "initial and two fresh side-camera RGB frames only",
+        "capture_times_s": [
+          8.4,
+          8.8
+        ],
+        "initial_marker": {
+          "center_px": [
+            268.997,
+            320.136
+          ],
+          "bbox_xywh_px": [
+            262,
+            300,
+            15,
+            42
+          ],
+          "area_px": 619,
+          "major_axis_angle_deg": -89.969
+        },
+        "post_lift_markers": [
+          {
+            "center_px": [
+              294.957,
+              311.851
+            ],
+            "bbox_xywh_px": [
+              284,
+              290,
+              23,
+              44
+            ],
+            "area_px": 632,
+            "major_axis_angle_deg": 78.988
+          },
+          {
+            "center_px": [
+              305.902,
+              317.295
+            ],
+            "bbox_xywh_px": [
+              297,
+              296,
+              19,
+              43
+            ],
+            "area_px": 634,
+            "major_axis_angle_deg": -86.095
+          }
+        ],
+        "upward_displacement_px": [
+          8.285,
+          2.841
+        ],
+        "interframe_drift_px": 12.224,
+        "marker_rotation_from_start_deg": [
+          11.043,
+          3.874
+        ],
+        "thresholds_px": {
+          "minimum_upward_displacement": 50.0,
+          "maximum_interframe_drift": 12.0
+        },
+        "thresholds_deg": {
+          "maximum_marker_rotation_from_start": 4.0
+        },
+        "evaluation_only_physics": {
+          "payload_center_z_m_at_capture": [
+            0.249366,
+            0.243965
+          ],
+          "payload_lift_m_at_capture": [
+            0.009366,
+            0.003965
+          ],
+          "payload_tilt_deg_at_capture": [
+            10.781,
+            4.348
+          ],
+          "raised_at_both_frames_7cm": false,
+          "stable_between_frames_15mm": true,
+          "raised_and_stable_at_both_frames": false,
+          "full_hold_payload_stable_lift_success": false,
+          "full_sequence_collision_safe": false,
+          "strict_physical_stable_lift_success": false,
+          "available_to_visual_decision": false
+        }
+      },
+      "failure_reason": "no_grasp_contact",
+      "payload_initial_z_m": 0.24,
+      "finger_pad_half_size_m": 0.016,
+      "payload_peak_z_m": 0.3057,
+      "payload_final_z_m": 0.24,
+      "peak_lift_m": 0.0657,
+      "minimum_payload_z_during_hold_m": 0.2423,
+      "minimum_finger_payload_contact_points_during_hold": 0,
+      "maximum_finger_payload_contact_points": 11,
+      "maximum_payload_tilt_during_hold_deg": 24.34,
+      "physics_steps_with_inter_arm_contact": 566,
+      "maximum_inter_arm_penetration_m": 0.000432,
+      "maximum_inter_arm_penetration_during_hold_m": 0.0,
+      "inter_arm_penetration_limit_m": 0.001,
+      "inter_arm_contact_steps_by_phase": {
+        "POSITION AROUND PAYLOAD": 28,
+        "LOWER TO GRASP": 420,
+        "CLOSE SIX FINGERS": 118
+      },
+      "physics_steps_with_arm_table_or_ground_contact": 25,
+      "physics_steps_with_arm_table_or_ground_contact_during_hold": 0,
+      "physics_steps_with_nonfinger_arm_payload_contact": 242,
+      "physics_steps_with_nonfinger_arm_payload_contact_during_hold": 0,
+      "unexpected_contact_steps_by_phase": {
+        "arm_environment": {
+          "LOWER TO GRASP": 7,
+          "CLOSE SIX FINGERS": 18
+        },
+        "nonfinger_payload": {
+          "COOPERATIVE LIFT": 7,
+          "LOWER TO TABLE": 54,
+          "RELEASE": 154,
+          "WITHDRAW": 27
+        }
+      },
+      "unexpected_contact_pairs": {
+        "arm_environment": [
+          {
+            "phase": "CLOSE SIX FINGERS",
+            "arm_geom": "arm0_left_pad",
+            "other_geom": "table",
+            "contact_steps": 18,
+            "maximum_penetration_m": 0.00024,
+            "first_contact_time_s": 4.202,
+            "first_contact_position_m": [
+              -0.019147,
+              -0.097264,
+              0.179947
+            ]
+          },
+          {
+            "phase": "CLOSE SIX FINGERS",
+            "arm_geom": "arm0_right_pad",
+            "other_geom": "table",
+            "contact_steps": 18,
+            "maximum_penetration_m": 0.000225,
+            "first_contact_time_s": 4.202,
+            "first_contact_position_m": [
+              -0.019222,
+              0.062704,
+              0.179956
+            ]
+          },
+          {
+            "phase": "LOWER TO GRASP",
+            "arm_geom": "arm0_left_pad",
+            "other_geom": "table",
+            "contact_steps": 7,
+            "maximum_penetration_m": 0.000192,
+            "first_contact_time_s": 4.146,
+            "first_contact_position_m": [
+              -0.017324,
+              -0.097121,
+              0.179956
+            ]
+          },
+          {
+            "phase": "LOWER TO GRASP",
+            "arm_geom": "arm0_right_pad",
+            "other_geom": "table",
+            "contact_steps": 7,
+            "maximum_penetration_m": 0.000173,
+            "first_contact_time_s": 4.146,
+            "first_contact_position_m": [
+              -0.017324,
+              0.062879,
+              0.179969
+            ]
+          }
+        ],
+        "nonfinger_payload": [
+          {
+            "phase": "COOPERATIVE LIFT",
+            "arm_geom": "arm0_wrist_link",
+            "other_geom": "payload_canister",
+            "contact_steps": 7,
+            "maximum_penetration_m": 0.000194,
+            "first_contact_time_s": 6.486,
+            "first_contact_position_m": [
+              -0.000366,
+              -0.000216,
+              0.316703
+            ]
+          },
+          {
+            "phase": "LOWER TO TABLE",
+            "arm_geom": "arm0_wrist_link",
+            "other_geom": "payload_canister",
+            "contact_steps": 54,
+            "maximum_penetration_m": 0.005136,
+            "first_contact_time_s": 10.39,
+            "first_contact_position_m": [
+              0.02201,
+              0.002283,
+              0.31072
+            ]
+          },
+          {
+            "phase": "RELEASE",
+            "arm_geom": "arm0_wrist_link",
+            "other_geom": "payload_canister",
+            "contact_steps": 154,
+            "maximum_penetration_m": 0.004108,
+            "first_contact_time_s": 10.5,
+            "first_contact_position_m": [
+              0.025551,
+              0.000449,
+              0.309669
+            ]
+          },
+          {
+            "phase": "WITHDRAW",
+            "arm_geom": "arm0_wrist_link",
+            "other_geom": "payload_canister",
+            "contact_steps": 27,
+            "maximum_penetration_m": 0.012563,
+            "first_contact_time_s": 11.33,
+            "first_contact_position_m": [
+              0.016557,
+              -0.00276,
+              0.291312
+            ]
+          }
+        ]
+      },
+      "first_unexpected_contact": {
+        "arm_environment": {
+          "time_s": 4.146,
+          "phase": "LOWER TO GRASP",
+          "category": "arm_environment",
+          "arm_index": 0,
+          "arm_geom": "arm0_left_pad",
+          "other_geom": "table",
+          "penetration_m": 8.8e-05,
+          "position_m": [
+            -0.017324,
+            -0.097121,
+            0.179956
+          ]
+        },
+        "nonfinger_payload": {
+          "time_s": 6.486,
+          "phase": "COOPERATIVE LIFT",
+          "category": "nonfinger_payload",
+          "arm_index": 0,
+          "arm_geom": "arm0_wrist_link",
+          "other_geom": "payload_canister",
+          "penetration_m": 0.000128,
+          "position_m": [
+            -0.000366,
+            -0.000216,
+            0.316703
+          ]
+        }
+      },
+      "stable_lift_hold_duration_s": 1.6,
+      "videos": [
+        "cooperative_pick_approach_clearance_extended_5mm.mp4"
+      ],
+      "visual_verification_translation_only_baseline": {
+        "decision": "not_confirmed",
+        "reason": "insufficient_upward_displacement",
+        "runtime_inputs": "initial and two fresh side-camera RGB frames only",
+        "capture_times_s": [
+          8.4,
+          8.8
+        ],
+        "initial_marker": {
+          "center_px": [
+            268.997,
+            320.136
+          ],
+          "bbox_xywh_px": [
+            262,
+            300,
+            15,
+            42
+          ],
+          "area_px": 619,
+          "major_axis_angle_deg": -89.969
+        },
+        "post_lift_markers": [
+          {
+            "center_px": [
+              294.957,
+              311.851
+            ],
+            "bbox_xywh_px": [
+              284,
+              290,
+              23,
+              44
+            ],
+            "area_px": 632,
+            "major_axis_angle_deg": 78.988
+          },
+          {
+            "center_px": [
+              305.902,
+              317.295
+            ],
+            "bbox_xywh_px": [
+              297,
+              296,
+              19,
+              43
+            ],
+            "area_px": 634,
+            "major_axis_angle_deg": -86.095
+          }
+        ],
+        "upward_displacement_px": [
+          8.285,
+          2.841
+        ],
+        "interframe_drift_px": 12.224,
+        "marker_rotation_from_start_deg": [
+          11.043,
+          3.874
+        ],
+        "thresholds_px": {
+          "minimum_upward_displacement": 35.0,
+          "maximum_interframe_drift": 12.0
+        },
+        "thresholds_deg": {
+          "maximum_marker_rotation_from_start": null
+        },
+        "evaluation_only_physics": {
+          "payload_center_z_m_at_capture": [
+            0.249366,
+            0.243965
+          ],
+          "payload_lift_m_at_capture": [
+            0.009366,
+            0.003965
+          ],
+          "payload_tilt_deg_at_capture": [
+            10.781,
+            4.348
+          ],
+          "raised_at_both_frames_7cm": false,
+          "stable_between_frames_15mm": true,
+          "raised_and_stable_at_both_frames": false,
+          "full_hold_payload_stable_lift_success": false,
+          "full_sequence_collision_safe": false,
+          "strict_physical_stable_lift_success": false,
+          "available_to_visual_decision": false
+        }
+      },
+      "visual_verification_orientation_only_baseline": {
+        "decision": "not_confirmed",
+        "reason": "insufficient_upward_displacement",
+        "runtime_inputs": "initial and two fresh side-camera RGB frames only",
+        "capture_times_s": [
+          8.4,
+          8.8
+        ],
+        "initial_marker": {
+          "center_px": [
+            268.997,
+            320.136
+          ],
+          "bbox_xywh_px": [
+            262,
+            300,
+            15,
+            42
+          ],
+          "area_px": 619,
+          "major_axis_angle_deg": -89.969
+        },
+        "post_lift_markers": [
+          {
+            "center_px": [
+              294.957,
+              311.851
+            ],
+            "bbox_xywh_px": [
+              284,
+              290,
+              23,
+              44
+            ],
+            "area_px": 632,
+            "major_axis_angle_deg": 78.988
+          },
+          {
+            "center_px": [
+              305.902,
+              317.295
+            ],
+            "bbox_xywh_px": [
+              297,
+              296,
+              19,
+              43
+            ],
+            "area_px": 634,
+            "major_axis_angle_deg": -86.095
+          }
+        ],
+        "upward_displacement_px": [
+          8.285,
+          2.841
+        ],
+        "interframe_drift_px": 12.224,
+        "marker_rotation_from_start_deg": [
+          11.043,
+          3.874
+        ],
+        "thresholds_px": {
+          "minimum_upward_displacement": 35.0,
+          "maximum_interframe_drift": 12.0
+        },
+        "thresholds_deg": {
+          "maximum_marker_rotation_from_start": 12.0
+        },
+        "evaluation_only_physics": {
+          "payload_center_z_m_at_capture": [
+            0.249366,
+            0.243965
+          ],
+          "payload_lift_m_at_capture": [
+            0.009366,
+            0.003965
+          ],
+          "payload_tilt_deg_at_capture": [
+            10.781,
+            4.348
+          ],
+          "raised_at_both_frames_7cm": false,
+          "stable_between_frames_15mm": true,
+          "raised_and_stable_at_both_frames": false,
+          "full_hold_payload_stable_lift_success": false,
+          "full_sequence_collision_safe": false,
+          "strict_physical_stable_lift_success": false,
+          "available_to_visual_decision": false
+        }
+      },
+      "visual_verification_rise_orientation_baseline": {
+        "decision": "not_confirmed",
+        "reason": "insufficient_upward_displacement",
+        "runtime_inputs": "initial and two fresh side-camera RGB frames only",
+        "capture_times_s": [
+          8.4,
+          8.8
+        ],
+        "initial_marker": {
+          "center_px": [
+            268.997,
+            320.136
+          ],
+          "bbox_xywh_px": [
+            262,
+            300,
+            15,
+            42
+          ],
+          "area_px": 619,
+          "major_axis_angle_deg": -89.969
+        },
+        "post_lift_markers": [
+          {
+            "center_px": [
+              294.957,
+              311.851
+            ],
+            "bbox_xywh_px": [
+              284,
+              290,
+              23,
+              44
+            ],
+            "area_px": 632,
+            "major_axis_angle_deg": 78.988
+          },
+          {
+            "center_px": [
+              305.902,
+              317.295
+            ],
+            "bbox_xywh_px": [
+              297,
+              296,
+              19,
+              43
+            ],
+            "area_px": 634,
+            "major_axis_angle_deg": -86.095
+          }
+        ],
+        "upward_displacement_px": [
+          8.285,
+          2.841
+        ],
+        "interframe_drift_px": 12.224,
+        "marker_rotation_from_start_deg": [
+          11.043,
+          3.874
+        ],
+        "thresholds_px": {
+          "minimum_upward_displacement": 50.0,
+          "maximum_interframe_drift": 12.0
+        },
+        "thresholds_deg": {
+          "maximum_marker_rotation_from_start": 12.0
+        },
+        "evaluation_only_physics": {
+          "payload_center_z_m_at_capture": [
+            0.249366,
+            0.243965
+          ],
+          "payload_lift_m_at_capture": [
+            0.009366,
+            0.003965
+          ],
+          "payload_tilt_deg_at_capture": [
+            10.781,
+            4.348
+          ],
+          "raised_at_both_frames_7cm": false,
+          "stable_between_frames_15mm": true,
+          "raised_and_stable_at_both_frames": false,
+          "full_hold_payload_stable_lift_success": false,
+          "full_sequence_collision_safe": false,
+          "strict_physical_stable_lift_success": false,
+          "available_to_visual_decision": false
+        }
+      }
+    }
+  },
+  "candidate": {
+    "lowest_approach_tool_height_offset_m": 0.02,
+    "recorded_failure_reason": "none",
+    "recorded_physical_stable_lift_success": true,
+    "replay_metrics": {
+      "controller": "camera_estimate",
+      "release_profile": "clearance",
+      "wrist_center_radial_standoff_m": 0.0,
+      "lowest_approach_tool_height_offset_m": 0.02,
+      "finger_pad_inward_offset_m": 0.022,
+      "control_target_source": "detected_image_position",
+      "target_true_xy_m": [
+        -0.06922730604497648,
+        -0.0012882126923916438
+      ],
+      "target_detected": true,
+      "detected_target_pixel_xy": [
+        292.4186096191406,
+        239.94186401367188
+      ],
+      "camera_estimated_target_xy_m": [
+        -0.06953165109162814,
+        -0.0011344888130373008
+      ],
+      "initial_target_projection_error_m": 0.0003409647173904435,
+      "physical_stable_lift_success": true,
+      "payload_stable_lift_success": true,
+      "full_sequence_collision_safe": true,
+      "fresh_visual_confirmation": "confirmed",
+      "visual_verification": {
+        "decision": "confirmed",
+        "reason": "raised_and_stable_in_two_fresh_frames",
+        "runtime_inputs": "initial and two fresh side-camera RGB frames only",
+        "capture_times_s": [
+          8.4,
+          8.8
+        ],
+        "initial_marker": {
+          "center_px": [
+            268.997,
+            320.136
+          ],
+          "bbox_xywh_px": [
+            262,
+            300,
+            15,
+            42
+          ],
+          "area_px": 619,
+          "major_axis_angle_deg": -89.969
+        },
+        "post_lift_markers": [
+          {
+            "center_px": [
+              259.528,
+              247.982
+            ],
+            "bbox_xywh_px": [
+              252,
+              231,
+              16,
+              35
+            ],
+            "area_px": 508,
+            "major_axis_angle_deg": 87.495
+          },
+          {
+            "center_px": [
+              259.28,
+              248.124
+            ],
+            "bbox_xywh_px": [
+              252,
+              231,
+              15,
+              36
+            ],
+            "area_px": 518,
+            "major_axis_angle_deg": 88.45
+          }
+        ],
+        "upward_displacement_px": [
+          72.154,
+          72.012
+        ],
+        "interframe_drift_px": 0.286,
+        "marker_rotation_from_start_deg": [
+          2.536,
+          1.581
+        ],
+        "thresholds_px": {
+          "minimum_upward_displacement": 50.0,
+          "maximum_interframe_drift": 12.0
+        },
+        "thresholds_deg": {
+          "maximum_marker_rotation_from_start": 4.0
+        },
+        "evaluation_only_physics": {
+          "payload_center_z_m_at_capture": [
+            0.344087,
+            0.342766
+          ],
+          "payload_lift_m_at_capture": [
+            0.104087,
+            0.102766
+          ],
+          "payload_tilt_deg_at_capture": [
+            1.685,
+            1.632
+          ],
+          "raised_at_both_frames_7cm": true,
+          "stable_between_frames_15mm": true,
+          "raised_and_stable_at_both_frames": true,
+          "full_hold_payload_stable_lift_success": true,
+          "full_sequence_collision_safe": true,
+          "strict_physical_stable_lift_success": true,
+          "available_to_visual_decision": false
+        }
+      },
+      "failure_reason": "none",
+      "payload_initial_z_m": 0.24,
+      "finger_pad_half_size_m": 0.016,
+      "payload_peak_z_m": 0.3454,
+      "payload_final_z_m": 0.24,
+      "peak_lift_m": 0.1054,
+      "minimum_payload_z_during_hold_m": 0.3409,
+      "minimum_finger_payload_contact_points_during_hold": 6,
+      "maximum_finger_payload_contact_points": 12,
+      "maximum_payload_tilt_during_hold_deg": 1.86,
+      "physics_steps_with_inter_arm_contact": 612,
+      "maximum_inter_arm_penetration_m": 0.000439,
+      "maximum_inter_arm_penetration_during_hold_m": 0.0,
+      "inter_arm_penetration_limit_m": 0.001,
+      "inter_arm_contact_steps_by_phase": {
+        "POSITION AROUND PAYLOAD": 34,
+        "LOWER TO GRASP": 466,
+        "CLOSE SIX FINGERS": 112
+      },
+      "physics_steps_with_arm_table_or_ground_contact": 0,
+      "physics_steps_with_arm_table_or_ground_contact_during_hold": 0,
+      "physics_steps_with_nonfinger_arm_payload_contact": 0,
+      "physics_steps_with_nonfinger_arm_payload_contact_during_hold": 0,
+      "unexpected_contact_steps_by_phase": {
+        "arm_environment": {},
+        "nonfinger_payload": {}
+      },
+      "unexpected_contact_pairs": {
+        "arm_environment": [],
+        "nonfinger_payload": []
+      },
+      "first_unexpected_contact": {
+        "arm_environment": null,
+        "nonfinger_payload": null
+      },
+      "stable_lift_hold_duration_s": 1.6,
+      "videos": [
+        "cooperative_pick_approach_clearance_extended_20mm.mp4"
+      ],
+      "visual_verification_translation_only_baseline": {
+        "decision": "confirmed",
+        "reason": "raised_and_stable_in_two_fresh_frames",
+        "runtime_inputs": "initial and two fresh side-camera RGB frames only",
+        "capture_times_s": [
+          8.4,
+          8.8
+        ],
+        "initial_marker": {
+          "center_px": [
+            268.997,
+            320.136
+          ],
+          "bbox_xywh_px": [
+            262,
+            300,
+            15,
+            42
+          ],
+          "area_px": 619,
+          "major_axis_angle_deg": -89.969
+        },
+        "post_lift_markers": [
+          {
+            "center_px": [
+              259.528,
+              247.982
+            ],
+            "bbox_xywh_px": [
+              252,
+              231,
+              16,
+              35
+            ],
+            "area_px": 508,
+            "major_axis_angle_deg": 87.495
+          },
+          {
+            "center_px": [
+              259.28,
+              248.124
+            ],
+            "bbox_xywh_px": [
+              252,
+              231,
+              15,
+              36
+            ],
+            "area_px": 518,
+            "major_axis_angle_deg": 88.45
+          }
+        ],
+        "upward_displacement_px": [
+          72.154,
+          72.012
+        ],
+        "interframe_drift_px": 0.286,
+        "marker_rotation_from_start_deg": [
+          2.536,
+          1.581
+        ],
+        "thresholds_px": {
+          "minimum_upward_displacement": 35.0,
+          "maximum_interframe_drift": 12.0
+        },
+        "thresholds_deg": {
+          "maximum_marker_rotation_from_start": null
+        },
+        "evaluation_only_physics": {
+          "payload_center_z_m_at_capture": [
+            0.344087,
+            0.342766
+          ],
+          "payload_lift_m_at_capture": [
+            0.104087,
+            0.102766
+          ],
+          "payload_tilt_deg_at_capture": [
+            1.685,
+            1.632
+          ],
+          "raised_at_both_frames_7cm": true,
+          "stable_between_frames_15mm": true,
+          "raised_and_stable_at_both_frames": true,
+          "full_hold_payload_stable_lift_success": true,
+          "full_sequence_collision_safe": true,
+          "strict_physical_stable_lift_success": true,
+          "available_to_visual_decision": false
+        }
+      },
+      "visual_verification_orientation_only_baseline": {
+        "decision": "confirmed",
+        "reason": "raised_and_stable_in_two_fresh_frames",
+        "runtime_inputs": "initial and two fresh side-camera RGB frames only",
+        "capture_times_s": [
+          8.4,
+          8.8
+        ],
+        "initial_marker": {
+          "center_px": [
+            268.997,
+            320.136
+          ],
+          "bbox_xywh_px": [
+            262,
+            300,
+            15,
+            42
+          ],
+          "area_px": 619,
+          "major_axis_angle_deg": -89.969
+        },
+        "post_lift_markers": [
+          {
+            "center_px": [
+              259.528,
+              247.982
+            ],
+            "bbox_xywh_px": [
+              252,
+              231,
+              16,
+              35
+            ],
+            "area_px": 508,
+            "major_axis_angle_deg": 87.495
+          },
+          {
+            "center_px": [
+              259.28,
+              248.124
+            ],
+            "bbox_xywh_px": [
+              252,
+              231,
+              15,
+              36
+            ],
+            "area_px": 518,
+            "major_axis_angle_deg": 88.45
+          }
+        ],
+        "upward_displacement_px": [
+          72.154,
+          72.012
+        ],
+        "interframe_drift_px": 0.286,
+        "marker_rotation_from_start_deg": [
+          2.536,
+          1.581
+        ],
+        "thresholds_px": {
+          "minimum_upward_displacement": 35.0,
+          "maximum_interframe_drift": 12.0
+        },
+        "thresholds_deg": {
+          "maximum_marker_rotation_from_start": 12.0
+        },
+        "evaluation_only_physics": {
+          "payload_center_z_m_at_capture": [
+            0.344087,
+            0.342766
+          ],
+          "payload_lift_m_at_capture": [
+            0.104087,
+            0.102766
+          ],
+          "payload_tilt_deg_at_capture": [
+            1.685,
+            1.632
+          ],
+          "raised_at_both_frames_7cm": true,
+          "stable_between_frames_15mm": true,
+          "raised_and_stable_at_both_frames": true,
+          "full_hold_payload_stable_lift_success": true,
+          "full_sequence_collision_safe": true,
+          "strict_physical_stable_lift_success": true,
+          "available_to_visual_decision": false
+        }
+      },
+      "visual_verification_rise_orientation_baseline": {
+        "decision": "confirmed",
+        "reason": "raised_and_stable_in_two_fresh_frames",
+        "runtime_inputs": "initial and two fresh side-camera RGB frames only",
+        "capture_times_s": [
+          8.4,
+          8.8
+        ],
+        "initial_marker": {
+          "center_px": [
+            268.997,
+            320.136
+          ],
+          "bbox_xywh_px": [
+            262,
+            300,
+            15,
+            42
+          ],
+          "area_px": 619,
+          "major_axis_angle_deg": -89.969
+        },
+        "post_lift_markers": [
+          {
+            "center_px": [
+              259.528,
+              247.982
+            ],
+            "bbox_xywh_px": [
+              252,
+              231,
+              16,
+              35
+            ],
+            "area_px": 508,
+            "major_axis_angle_deg": 87.495
+          },
+          {
+            "center_px": [
+              259.28,
+              248.124
+            ],
+            "bbox_xywh_px": [
+              252,
+              231,
+              15,
+              36
+            ],
+            "area_px": 518,
+            "major_axis_angle_deg": 88.45
+          }
+        ],
+        "upward_displacement_px": [
+          72.154,
+          72.012
+        ],
+        "interframe_drift_px": 0.286,
+        "marker_rotation_from_start_deg": [
+          2.536,
+          1.581
+        ],
+        "thresholds_px": {
+          "minimum_upward_displacement": 50.0,
+          "maximum_interframe_drift": 12.0
+        },
+        "thresholds_deg": {
+          "maximum_marker_rotation_from_start": 12.0
+        },
+        "evaluation_only_physics": {
+          "payload_center_z_m_at_capture": [
+            0.344087,
+            0.342766
+          ],
+          "payload_lift_m_at_capture": [
+            0.104087,
+            0.102766
+          ],
+          "payload_tilt_deg_at_capture": [
+            1.685,
+            1.632
+          ],
+          "raised_at_both_frames_7cm": true,
+          "stable_between_frames_15mm": true,
+          "raised_and_stable_at_both_frames": true,
+          "full_hold_payload_stable_lift_success": true,
+          "full_sequence_collision_safe": true,
+          "strict_physical_stable_lift_success": true,
+          "available_to_visual_decision": false
+        }
+      }
+    }
+  },
+  "file_prefix": "cooperative_pick_approach_clearance_extended",
+  "videos": [
+    "cooperative_pick_approach_clearance_extended_5mm.mp4",
+    "cooperative_pick_approach_clearance_extended_20mm.mp4",
+    "cooperative_pick_approach_clearance_extended_pair.mp4"
+  ],
+  "previews": [
+    "cooperative_pick_approach_clearance_extended_5mm.gif",
+    "cooperative_pick_approach_clearance_extended_20mm.gif",
+    "cooperative_pick_approach_clearance_extended_pair.gif"
+  ],
+  "paired_video_counts": {
+    "paired_video_frames": 475,
+    "preview_frames": 68
+  },
+  "camera_policy": "one initial overhead image plans the motion; a fixed side camera supplies two fresh RGB samples at 8.4 s and 8.8 s for an image-only post-lift decision; simulator state is used only afterward for evaluation",
+  "fresh_visual_confirmation": {
+    "baseline_5mm": "not_confirmed",
+    "candidate_20mm": "confirmed"
+  },
+  "visual_truth_is_evaluation_only": true,
+  "visual_verification_scope": "two fresh samples; not continuous hold, release, or full-cycle collision certification",
+  "aggregate_counting": "This selected pose is already included in the paired benchmark dataset and must not be counted again."
+}

@@ -1,0 +1,177 @@
+{
+  "experiment": "held-out diagnosis of friction-related contact loss during a three-arm cooperative lift",
+  "protocol_version": 1,
+  "evidence_type": "paired MuJoCo simulation; not hardware evidence",
+  "target_sampling": {
+    "distribution": "independent uniform XY samples in a square",
+    "x_range_m": [
+      -0.09,
+      0.09
+    ],
+    "y_range_m": [
+      -0.09,
+      0.09
+    ],
+    "base_seed": 42000,
+    "samples_per_seed": 12,
+    "unique_target_poses": 12
+  },
+  "paired_design": "same held-out poses at friction 0.5 and 2.2, paired across camera-estimate and oracle-XY controls; nominal payload, 16 mm pads, 20 mm approach clearance, and clearance release",
+  "total_physics_trials": 48,
+  "total_pad_phase_rows": 576,
+  "sampling": {
+    "physics_step_stride": 10,
+    "sample_period_s": 0.02,
+    "contact_forces": "contact-frame normal magnitude and tangential norm from mj_contactForce, summed across contacts for each named pad",
+    "relative_motion": "payload center in each hand frame relative to its first sample during cooperative lift",
+    "slide_tracking": "per-pad position-actuator command minus measured slide-joint position"
+  },
+  "conditions": {
+    "friction-0.5": {
+      "camera_estimate": {
+        "trials": 12,
+        "physical_stable_lift_successes": 0,
+        "physical_stable_lift_success_rate": 0.0,
+        "collision_safe_trials": 6,
+        "hold_contact_sample_fraction_mean": 0.0,
+        "hold_contact_sample_fraction_median": 0.0,
+        "maximum_downward_payload_drift_in_hand_frame_m_median": 0.15625509,
+        "maximum_downward_payload_drift_in_hand_frame_m_p90": 0.15870433,
+        "mean_tangential_to_normal_force_ratio_when_contacting_median": 0.46829973,
+        "mean_tangential_to_normal_force_ratio_when_contacting_p90": 0.48015705,
+        "maximum_slide_tracking_error_lift_or_hold_m_median": 0.02110189,
+        "maximum_slide_tracking_error_during_hold_m_median": 1.945e-05,
+        "fresh_visual_confirmation": "not measured"
+      },
+      "oracle_xy": {
+        "trials": 12,
+        "physical_stable_lift_successes": 0,
+        "physical_stable_lift_success_rate": 0.0,
+        "collision_safe_trials": 7,
+        "hold_contact_sample_fraction_mean": 0.0,
+        "hold_contact_sample_fraction_median": 0.0,
+        "maximum_downward_payload_drift_in_hand_frame_m_median": 0.15586311,
+        "maximum_downward_payload_drift_in_hand_frame_m_p90": 0.15836242,
+        "mean_tangential_to_normal_force_ratio_when_contacting_median": 0.4702322,
+        "mean_tangential_to_normal_force_ratio_when_contacting_p90": 0.48497053,
+        "maximum_slide_tracking_error_lift_or_hold_m_median": 0.01782617,
+        "maximum_slide_tracking_error_during_hold_m_median": 1.984e-05,
+        "fresh_visual_confirmation": "not measured"
+      }
+    },
+    "friction-2.2": {
+      "camera_estimate": {
+        "trials": 12,
+        "physical_stable_lift_successes": 12,
+        "physical_stable_lift_success_rate": 1.0,
+        "collision_safe_trials": 12,
+        "hold_contact_sample_fraction_mean": 0.70173611,
+        "hold_contact_sample_fraction_median": 0.68333333,
+        "maximum_downward_payload_drift_in_hand_frame_m_median": 0.03056962,
+        "maximum_downward_payload_drift_in_hand_frame_m_p90": 0.03616061,
+        "mean_tangential_to_normal_force_ratio_when_contacting_median": 1.2991086,
+        "mean_tangential_to_normal_force_ratio_when_contacting_p90": 1.45269393,
+        "maximum_slide_tracking_error_lift_or_hold_m_median": 0.02146388,
+        "maximum_slide_tracking_error_during_hold_m_median": 0.00191592,
+        "fresh_visual_confirmation": "not measured"
+      },
+      "oracle_xy": {
+        "trials": 12,
+        "physical_stable_lift_successes": 12,
+        "physical_stable_lift_success_rate": 1.0,
+        "collision_safe_trials": 12,
+        "hold_contact_sample_fraction_mean": 0.71354167,
+        "hold_contact_sample_fraction_median": 0.69166667,
+        "maximum_downward_payload_drift_in_hand_frame_m_median": 0.03222232,
+        "maximum_downward_payload_drift_in_hand_frame_m_p90": 0.03866353,
+        "mean_tangential_to_normal_force_ratio_when_contacting_median": 1.27373454,
+        "mean_tangential_to_normal_force_ratio_when_contacting_p90": 1.30965574,
+        "maximum_slide_tracking_error_lift_or_hold_m_median": 0.02117922,
+        "maximum_slide_tracking_error_during_hold_m_median": 0.0022043,
+        "fresh_visual_confirmation": "not measured"
+      }
+    }
+  },
+  "paired_friction_deltas": {
+    "camera_estimate": {
+      "matched_pose_pairs": 12,
+      "median_high_minus_low": {
+        "high_minus_low_hold_downward_drift_m": -0.12536804,
+        "high_minus_low_hold_contact_fraction": 0.68333333,
+        "high_minus_low_hold_slide_tracking_error_m": 0.00189945,
+        "high_minus_low_tangential_to_normal_ratio": 0.8379357
+      },
+      "physical_stable_lift_transitions": {
+        "low_only_success": 0,
+        "high_only_success": 12,
+        "both_success": 0,
+        "neither_success": 0
+      }
+    },
+    "oracle_xy": {
+      "matched_pose_pairs": 12,
+      "median_high_minus_low": {
+        "high_minus_low_hold_downward_drift_m": -0.12067727,
+        "high_minus_low_hold_contact_fraction": 0.69166667,
+        "high_minus_low_hold_slide_tracking_error_m": 0.00216069,
+        "high_minus_low_tangential_to_normal_ratio": 0.8070594
+      },
+      "physical_stable_lift_transitions": {
+        "low_only_success": 0,
+        "high_only_success": 12,
+        "both_success": 0,
+        "neither_success": 0
+      }
+    }
+  },
+  "interpretation": "Compare tangential-to-normal force, payload displacement relative to each hand, pad contact persistence, and finger slide tracking. These correlated simulation diagnostics can distinguish patterns consistent with slip from finger opening; they do not establish a universal physical root cause.",
+  "fresh_visual_confirmation": "not measured; physical stable-lift outcomes and contact traces do not imply visual confirmation",
+  "limitations": [
+    "The experiment is simulation-only and uses an idealized fixed cylinder, rigid pads, a scripted trajectory, and author-selected friction values.",
+    "Contact forces and finger positions are MuJoCo solver states, not calibrated physical sensor readings.",
+    "Twelve poses per condition provide a focused mechanism diagnostic, not a field-reliability estimate.",
+    "The oracle-XY condition is a diagnostic control and shares all contact and motion behavior with the camera condition."
+  ],
+  "artifacts": {
+    "trials_csv": "cooperative-pick-retention-trials.csv",
+    "pad_phase_csv": "cooperative-pick-retention-by-pad-phase.csv",
+    "scorecard_svg": "cooperative-pick-retention-scorecard.svg",
+    "demo_video": "cooperative_pick_retention_diagnostic_pair.mp4",
+    "demo_gif": "cooperative_pick_retention_diagnostic_pair.gif",
+    "demo_metadata": "cooperative_pick_retention_diagnostic_demos.json"
+  },
+  "demo": {
+    "purpose": "paired camera-estimate replay with force, finger tracking, and payload-to-hand motion diagnostics",
+    "source_pair_id": "42000-000",
+    "replays_are_additional_trials": false,
+    "conditions": {
+      "friction-0.5": {
+        "physical_stable_lift_success": false,
+        "fresh_visual_confirmation": "not measured",
+        "hold_minimum_pad_contact_points": 0
+      },
+      "friction-2.2": {
+        "physical_stable_lift_success": true,
+        "fresh_visual_confirmation": "not measured",
+        "hold_minimum_pad_contact_points": 5
+      }
+    },
+    "video": "cooperative_pick_retention_diagnostic_pair.mp4",
+    "preview": "cooperative_pick_retention_diagnostic_pair.gif",
+    "fresh_visual_confirmation": "not measured"
+  },
+  "controllers": [
+    "camera_estimate",
+    "oracle_xy"
+  ],
+  "frozen_settings": {
+    "finger_pad_half_size_m": 0.016,
+    "payload_body_mass_kg": 0.7201166534540158,
+    "lowest_approach_tool_height_offset_m": 0.02,
+    "release_profile": "clearance",
+    "friction_levels": [
+      0.5,
+      2.2
+    ]
+  }
+}

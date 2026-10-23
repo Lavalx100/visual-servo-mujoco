@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="490" viewBox="0 0 1040 490">
+<rect width="100%" height="100%" rx="18" fill="#111923"/>
+<text x="42" y="52" fill="#f2f6fa" font-family="sans-serif" font-size="27" font-weight="700">Separate the payload hold from full-cycle safety</text>
+<text x="42" y="83" fill="#b6c4d3" font-family="sans-serif" font-size="15">Seed 38100 tuning set · 30 poses · 16 mm pad half-size · physical simulation outcomes</text>
+<text x="280" y="119" fill="#899bad" font-family="sans-serif" font-size="13">0</text>
+<text x="872" y="119" fill="#899bad" font-family="sans-serif" font-size="13">30 trials</text>
+<text x="42" y="171" fill="#f3a849" font-family="sans-serif" font-size="17" font-weight="700">Full-sequence collision-safe</text>
+<text x="42" y="211" fill="#eaf0f5" font-family="sans-serif" font-size="15">Camera estimate</text>
+<rect x="280" y="188" width="620" height="34" rx="7" fill="#253343"/>
+<rect x="280" y="188" width="248.0" height="34" rx="7" fill="#f3a849"/>
+<text x="916" y="211" fill="#f2f6fa" font-family="sans-serif" font-size="16" font-weight="700">12/30</text>
+<text x="42" y="253" fill="#eaf0f5" font-family="sans-serif" font-size="15">Oracle XY diagnostic</text>
+<rect x="280" y="230" width="620" height="34" rx="7" fill="#253343"/>
+<rect x="280" y="230" width="186.0" height="34" rx="7" fill="#f3a849"/>
+<text x="916" y="253" fill="#f2f6fa" font-family="sans-serif" font-size="16" font-weight="700">9/30</text>
+<text x="42" y="323" fill="#45c8a6" font-family="sans-serif" font-size="17" font-weight="700">Payload stable lift</text>
+<text x="42" y="363" fill="#eaf0f5" font-family="sans-serif" font-size="15">Camera estimate</text>
+<rect x="280" y="340" width="620" height="34" rx="7" fill="#253343"/>
+<rect x="280" y="340" width="599.3" height="34" rx="7" fill="#45c8a6"/>
+<text x="916" y="363" fill="#f2f6fa" font-family="sans-serif" font-size="16" font-weight="700">29/30</text>
+<text x="42" y="405" fill="#eaf0f5" font-family="sans-serif" font-size="15">Oracle XY diagnostic</text>
+<rect x="280" y="382" width="620" height="34" rx="7" fill="#253343"/>
+<rect x="280" y="382" width="475.3" height="34" rx="7" fill="#45c8a6"/>
+<text x="916" y="405" fill="#f2f6fa" font-family="sans-serif" font-size="16" font-weight="700">23/30</text>
+<text x="42" y="462" fill="#b6c4d3" font-family="sans-serif" font-size="14">The original strict score requires both outcomes. Neither measure is fresh visual confirmation.</text></svg>

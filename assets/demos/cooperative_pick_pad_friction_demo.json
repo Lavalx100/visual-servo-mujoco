@@ -1,0 +1,63 @@
+{
+  "purpose": "four-way replay at one held-out pose comparing 16 mm and 18 mm pad half-sizes under low and high friction",
+  "source_pair_id": "40900-000",
+  "selection_rule": "prefer a camera-estimate low-friction pair where only the candidate succeeds; otherwise show the first discordant pair, else the first pair",
+  "benchmark_trials": "replays are not additional trials",
+  "fresh_visual_confirmation": "not measured",
+  "composite_video": "cooperative_pick_pad_friction_matched.mp4",
+  "composite_preview": "cooperative_pick_pad_friction_matched.gif",
+  "replays": [
+    {
+      "video": "cooperative_pick_pad_friction_mu_0.5_pad_16mm.mp4",
+      "source_pair_id": "40900-000",
+      "controller": "camera_estimate",
+      "finger_pad_half_size_m": 0.016,
+      "finger_pad_sliding_friction": 0.5,
+      "payload_body_mass_kg": 0.7201166534540158,
+      "physical_stable_lift_success": false,
+      "payload_stable_lift_success": false,
+      "full_sequence_collision_safe": false,
+      "fresh_visual_confirmation": "not measured",
+      "counted_as_additional_benchmark_trial": false
+    },
+    {
+      "video": "cooperative_pick_pad_friction_mu_0.5_pad_18mm.mp4",
+      "source_pair_id": "40900-000",
+      "controller": "camera_estimate",
+      "finger_pad_half_size_m": 0.018,
+      "finger_pad_sliding_friction": 0.5,
+      "payload_body_mass_kg": 0.7201166534540158,
+      "physical_stable_lift_success": false,
+      "payload_stable_lift_success": false,
+      "full_sequence_collision_safe": true,
+      "fresh_visual_confirmation": "not measured",
+      "counted_as_additional_benchmark_trial": false
+    },
+    {
+      "video": "cooperative_pick_pad_friction_mu_2.2_pad_16mm.mp4",
+      "source_pair_id": "40900-000",
+      "controller": "camera_estimate",
+      "finger_pad_half_size_m": 0.016,
+      "finger_pad_sliding_friction": 2.2,
+      "payload_body_mass_kg": 0.7201166534540158,
+      "physical_stable_lift_success": true,
+      "payload_stable_lift_success": true,
+      "full_sequence_collision_safe": true,
+      "fresh_visual_confirmation": "not measured",
+      "counted_as_additional_benchmark_trial": false
+    },
+    {
+      "video": "cooperative_pick_pad_friction_mu_2.2_pad_18mm.mp4",
+      "source_pair_id": "40900-000",
+      "controller": "camera_estimate",
+      "finger_pad_half_size_m": 0.018,
+      "finger_pad_sliding_friction": 2.2,
+      "payload_body_mass_kg": 0.7201166534540158,
+      "physical_stable_lift_success": true,
+      "payload_stable_lift_success": true,
+      "full_sequence_collision_safe": true,
+      "fresh_visual_confirmation": "not measured",
+      "counted_as_additional_benchmark_trial": false
+    }
+  ]
+}

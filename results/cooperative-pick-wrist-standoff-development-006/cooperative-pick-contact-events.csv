@@ -1,0 +1,13 @@
+pair_id,seed,sample_index,controller,target_x_m,target_y_m,category,phase,arm_geom,other_geom,contact_steps,maximum_penetration_m,first_contact_time_s,first_contact_x_m,first_contact_y_m,first_contact_z_m
+38100-006,38100,6,camera_estimate,-0.07521538564988237,-0.07705437978941597,arm_environment,CLOSE SIX FINGERS,arm0_left_pad,table,11,0.000221,4.208,-0.025849,-0.173891,0.179993
+38100-006,38100,6,camera_estimate,-0.07521538564988237,-0.07705437978941597,arm_environment,LOWER TO GRASP,arm0_left_pad,table,4,6.8e-05,4.134,-0.023604,-0.172112,0.179997
+38101-000,38101,0,camera_estimate,0.03294040799679062,-0.08234700273840904,arm_environment,CLOSE SIX FINGERS,arm0_left_pad,table,20,0.000169,4.208,0.082958,-0.179407,0.179997
+38101-000,38101,0,camera_estimate,0.03294040799679062,-0.08234700273840904,arm_environment,LOWER TO GRASP,arm0_left_pad,table,2,9.9e-05,4.17,0.083989,-0.178542,0.179961
+38101-000,38101,0,camera_estimate,0.03294040799679062,-0.08234700273840904,nonfinger_payload,SECURE CONTACT,arm0_wrist_link,payload_canister,1,2.7e-05,5.376,0.112685,-0.078555,0.263747
+38101-002,38101,2,camera_estimate,-0.01373597826353513,-0.08347467952528669,nonfinger_payload,LOWER TO TABLE,arm1_wrist_link,payload_canister,139,0.000294,10.218,-0.054835,-0.011205,0.324145
+38101-002,38101,2,camera_estimate,-0.01373597826353513,-0.08347467952528669,nonfinger_payload,RELEASE,arm1_wrist_link,payload_canister,324,0.010997,10.5,-0.054033,-0.014816,0.317934
+38101-002,38101,2,camera_estimate,-0.01373597826353513,-0.08347467952528669,nonfinger_payload,WITHDRAW,arm1_wrist_link,payload_canister,65,0.019057,11.252,-0.069584,0.011292,0.30064
+38101-008,38101,8,camera_estimate,-0.07411921515676397,0.011907796397440022,nonfinger_payload,RELEASE,arm0_wrist_link,payload_canister,47,0.000237,10.882,0.018499,0.022833,0.292224
+38101-008,38101,8,camera_estimate,-0.07411921515676397,0.011907796397440022,nonfinger_payload,WITHDRAW,arm0_wrist_link,payload_canister,21,0.000154,11.27,0.026167,0.022767,0.281828
+38102-002,38102,2,camera_estimate,-0.08945580278852196,-0.08593083241563519,arm_environment,CLOSE SIX FINGERS,arm0_left_pad,table,13,8.2e-05,4.234,-0.040611,-0.183159,0.179959
+38102-002,38102,2,camera_estimate,-0.08945580278852196,-0.08593083241563519,arm_environment,LOWER TO GRASP,arm0_left_pad,table,2,0.000174,4.13,-0.037753,-0.180632,0.179913

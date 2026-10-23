@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="520" viewBox="0 0 1320 520" role="img" aria-labelledby="title desc">
+  <title id="title">Camera-guided cooperative pick pipeline</title>
+  <desc id="desc">The existing visual-servo red detector and pinhole projection estimate a target position from one overhead image. That estimate or an oracle diagnostic feeds base-yaw and three-link inverse kinematics for three collidable arms. MuJoCo contact physics evaluates the free payload lift. Fresh visual confirmation is a separate outcome and is not measured here.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#7790a8"/>
+    </marker>
+    <style>
+      .bg { fill:#111923; }
+      .card { fill:#1a2735; stroke:#385069; stroke-width:2; rx:14; }
+      .cam { fill:#183b43; stroke:#49c9ab; stroke-width:2; rx:14; }
+      .diag { fill:#2c2c42; stroke:#a795e8; stroke-width:2; rx:14; }
+      .phys { fill:#21384c; stroke:#63a9f5; stroke-width:2; rx:14; }
+      .warn { fill:#392f1c; stroke:#e7bd68; stroke-width:2; rx:14; }
+      .title { fill:#f1f5f9; font:700 25px sans-serif; }
+      .head { fill:#edf3f7; font:700 18px sans-serif; }
+      .body { fill:#c1ceda; font:15px sans-serif; }
+      .small { fill:#91a3b5; font:13px sans-serif; }
+      .arrow { stroke:#7790a8; stroke-width:3; fill:none; marker-end:url(#arrow); }
+    </style>
+  </defs>
+  <rect class="bg" width="1320" height="520"/>
+  <text class="title" x="48" y="48">From the existing visual-servo pipeline to cooperative manipulation</text>
+  <text class="small" x="48" y="76">One static target observation plans the pick; later frames are not fed back into this controller.</text>
+
+  <rect class="cam" x="48" y="128" width="205" height="146"/>
+  <text class="head" x="68" y="160">Overhead RGB</text>
+  <text class="body" x="68" y="190">MuJoCo scene</text>
+  <text class="body" x="68" y="215">red target marker</text>
+  <text class="small" x="68" y="247">initial planning image</text>
+
+  <path class="arrow" d="M253 201 H292"/>
+  <rect class="card" x="302" y="128" width="225" height="146"/>
+  <text class="head" x="322" y="160">Existing perception</text>
+  <text class="body" x="322" y="190">run.detect_red_target</text>
+  <text class="body" x="322" y="215">controller.pixel_to_table_xy</text>
+  <text class="small" x="322" y="247">default detector, calibrated pinhole</text>
+
+  <path class="arrow" d="M527 201 H566"/>
+  <rect class="cam" x="576" y="128" width="220" height="146"/>
+  <text class="head" x="596" y="160">Target XY estimate</text>
+  <text class="body" x="596" y="190">pixel center → table m</text>
+  <text class="body" x="596" y="215">camera vs. oracle pair</text>
+  <text class="small" x="596" y="247">oracle uses truth for diagnosis only</text>
+
+  <path class="arrow" d="M796 201 H835"/>
+  <rect class="card" x="845" y="128" width="205" height="146"/>
+  <text class="head" x="865" y="160">Cooperative planner</text>
+  <text class="body" x="865" y="190">base yaw + 3R IK</text>
+  <text class="body" x="865" y="215">tool yaw + jaw trajectory</text>
+  <text class="small" x="865" y="247">camera_guided_cooperative_pick.py</text>
+
+  <path class="arrow" d="M1050 201 H1089"/>
+  <rect class="phys" x="1099" y="128" width="173" height="146"/>
+  <text class="head" x="1119" y="160">MuJoCo</text>
+  <text class="body" x="1119" y="190">3 arms / 6 pads</text>
+  <text class="body" x="1119" y="215">colliders + friction</text>
+  <text class="small" x="1119" y="247">free payload, gravity</text>
+
+  <path class="arrow" d="M1185 274 V326 H1050"/>
+  <rect class="phys" x="845" y="326" width="427" height="106"/>
+  <text class="head" x="870" y="360">Physical outcome record</text>
+  <text class="body" x="870" y="390">lift height · hold contacts · tilt · arm collisions · failure reason</text>
+  <text class="small" x="870" y="414">randomized positions in CSV/JSON; scorecard SVG and camera/physics video</text>
+
+  <path class="arrow" d="M1030 432 V464 H700"/>
+  <rect class="warn" x="418" y="452" width="564" height="46"/>
+  <text class="head" x="440" y="481">Fresh visual confirmation: not measured by this experiment</text>
+
+  <rect class="diag" x="48" y="326" width="335" height="106"/>
+  <text class="head" x="70" y="360">Connected earlier work</text>
+  <text class="body" x="70" y="390">single-arm camera pipeline + scripted tri-arm contact scene</text>
+  <text class="small" x="70" y="414">reversal predictor negative result remains separate and opt-in</text>
+  <path class="arrow" d="M215 326 V286"/>
+</svg>

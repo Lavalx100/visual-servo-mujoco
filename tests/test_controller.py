@@ -765,6 +765,14 @@ def test_opt_in_terminal_verification_is_fresh_and_does_not_change_control(
 ):
     baseline_frames = []
     render_rgb = run_module.render_rgb
+    # This test isolates the post-stop verifier. A fixed controller measurement
+    # avoids making its pairing assertion depend on renderer-specific target
+    # rasterization or visibility in the overhead control camera.
+    monkeypatch.setattr(
+        run_module,
+        "detect_red_target",
+        lambda _rgb: (400.0, 200.0),
+    )
 
     def capture_baseline_frame(renderer, data):
         frame = render_rgb(renderer, data)
@@ -981,6 +989,22 @@ def test_terminal_verifier_stress_is_opt_in(tmp_path):
         )
 
 
+@pytest.mark.parametrize("invalid_mapping", ([], (), "", 0))
+def test_terminal_verifier_stress_candidates_require_a_mapping(
+    tmp_path, invalid_mapping
+):
+    with pytest.raises(ValueError, match="must be a mapping"):
+        run_trials(
+            episodes=1,
+            seed=7,
+            output_dir=tmp_path,
+            controller="image_feedback",
+            verify_terminal=True,
+            terminal_verification_stress_candidates=invalid_mapping,
+            save_media=False,
+        )
+
+
 def test_verification_robustness_benchmark_pairs_stress_without_changing_control(
     tmp_path,
 ):
@@ -993,16 +1017,20 @@ def test_verification_robustness_benchmark_pairs_stress_without_changing_control
 
     assert report["benchmark"] == "terminal_verifier_quality_coverage_and_image_stress"
     assert report["control_policy_changed"] is False
-    assert report["control_matches_nominal_by_condition"] is True
+    assert report["control_trajectory_shared_across_conditions"] is True
+    assert report["control_trajectories_per_seed_episode"] == 1
     assert report["stress_conditions_are_one_factor_at_a_time"] is True
     assert len(report["results"]) == len(VERIFIER_STRESS_CONDITIONS) == 9
     for row in report["results"]:
         assert row["trials"] == 2
-        assert row["controller_outcomes_matching_nominal_trials"] == 2
+        assert row["controller_outcomes_shared_across_stress_conditions"] == 2
         assert all(
-            trial["controller_outcome_matches_nominal"]
+            trial["controller_outcome_shared_across_stress_conditions"]
             for trial in row["trial_results"]
         )
+        assert [
+            trial["shared_control_trial_id"] for trial in row["trial_results"]
+        ] == ["7:0", "7:1"]
         visible_trial = next(
             (trial for trial in row["trial_results"] if trial["both_markers_visible"]),
             None,

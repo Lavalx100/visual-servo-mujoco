@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="680" viewBox="0 0 1320 680">
+<rect width="100%" height="100%" fill="#0b1220"/>
+<style>text{font-family:Arial,Helvetica,sans-serif}.title{fill:#f3f6fb}.muted{fill:#a9b6c8}.blue{fill:#73b7ff}.green{fill:#68dfb3}.orange{fill:#ffbd72}.cell{fill:#12243a}</style>
+<text x="36" y="45" class="title" font-size="27" font-weight="700">Three-arm pick: held-out material stress test</text>
+<text x="36" y="76" class="muted" font-size="14">Same 12 target poses at every setting · 16 mm pads · 20 mm approach clearance · clearance release</text>
+<text x="36" y="99" class="muted" font-size="13">Author-selected simulator stresses; sliding friction is applied to both pads and payload. No hardware calibration.</text>
+<text x="36" y="140" class="blue" font-size="18" font-weight="700">Camera-estimated target</text>
+<text x="222" y="177" class="muted" font-size="13">pad/payload sliding friction μ</text>
+<text x="206" y="205" class="muted" font-size="14">0.5</text>
+<text x="351" y="205" class="muted" font-size="14">1.1</text>
+<text x="496" y="205" class="muted" font-size="14">2.2</text>
+<text x="36" y="264" class="title" font-size="14">0.45 kg</text>
+<text x="36" y="285" class="muted" font-size="12">body mass</text>
+<rect x="148" y="240" width="132" height="74" rx="8" fill="#120c24"/>
+<text x="162" y="267" class="title" font-size="17" font-weight="700">0/12</text>
+<text x="162" y="290" class="title" font-size="11">hold 0 · cycle 4</text>
+<rect x="293" y="240" width="132" height="74" rx="8" fill="#14222d"/>
+<text x="307" y="267" class="title" font-size="17" font-weight="700">2/12</text>
+<text x="307" y="290" class="title" font-size="11">hold 2 · cycle 3</text>
+<rect x="438" y="240" width="132" height="74" rx="8" fill="#1d8755"/>
+<text x="452" y="267" class="title" font-size="17" font-weight="700">11/12</text>
+<text x="452" y="290" class="title" font-size="11">hold 11 · cycle 11</text>
+<text x="36" y="376" class="title" font-size="14">0.72 kg</text>
+<text x="36" y="397" class="muted" font-size="12">body mass</text>
+<rect x="148" y="352" width="132" height="74" rx="8" fill="#120c24"/>
+<text x="162" y="379" class="title" font-size="17" font-weight="700">0/12</text>
+<text x="162" y="402" class="title" font-size="11">hold 0 · cycle 5</text>
+<rect x="293" y="352" width="132" height="74" rx="8" fill="#120c24"/>
+<text x="307" y="379" class="title" font-size="17" font-weight="700">0/12</text>
+<text x="307" y="402" class="title" font-size="11">hold 0 · cycle 2</text>
+<rect x="438" y="352" width="132" height="74" rx="8" fill="#1e935a"/>
+<text x="452" y="379" class="title" font-size="17" font-weight="700">12/12</text>
+<text x="452" y="402" class="title" font-size="11">hold 12 · cycle 12</text>
+<text x="36" y="488" class="title" font-size="14">0.99 kg</text>
+<text x="36" y="509" class="muted" font-size="12">body mass</text>
+<rect x="148" y="464" width="132" height="74" rx="8" fill="#120c24"/>
+<text x="162" y="491" class="title" font-size="17" font-weight="700">0/12</text>
+<text x="162" y="514" class="title" font-size="11">hold 0 · cycle 8</text>
+<rect x="293" y="464" width="132" height="74" rx="8" fill="#120c24"/>
+<text x="307" y="491" class="title" font-size="17" font-weight="700">0/12</text>
+<text x="307" y="514" class="title" font-size="11">hold 0 · cycle 1</text>
+<rect x="438" y="464" width="132" height="74" rx="8" fill="#1d8755"/>
+<text x="452" y="491" class="title" font-size="17" font-weight="700">11/12</text>
+<text x="452" y="514" class="title" font-size="11">hold 11 · cycle 12</text>
+<text x="36" y="600" class="muted" font-size="12">Each cell: strict success / trials; hold and full-cycle safety are shown separately.</text>
+<text x="678" y="140" class="blue" font-size="18" font-weight="700">Oracle target upper bound</text>
+<text x="864" y="177" class="muted" font-size="13">pad/payload sliding friction μ</text>
+<text x="848" y="205" class="muted" font-size="14">0.5</text>
+<text x="993" y="205" class="muted" font-size="14">1.1</text>
+<text x="1138" y="205" class="muted" font-size="14">2.2</text>
+<text x="678" y="264" class="title" font-size="14">0.45 kg</text>
+<text x="678" y="285" class="muted" font-size="12">body mass</text>
+<rect x="790" y="240" width="132" height="74" rx="8" fill="#120c24"/>
+<text x="804" y="267" class="title" font-size="17" font-weight="700">0/12</text>
+<text x="804" y="290" class="title" font-size="11">hold 0 · cycle 6</text>
+<rect x="935" y="240" width="132" height="74" rx="8" fill="#121728"/>
+<text x="949" y="267" class="title" font-size="17" font-weight="700">1/12</text>
+<text x="949" y="290" class="title" font-size="11">hold 2 · cycle 3</text>
+<rect x="1080" y="240" width="132" height="74" rx="8" fill="#1e935a"/>
+<text x="1094" y="267" class="title" font-size="17" font-weight="700">12/12</text>
+<text x="1094" y="290" class="title" font-size="11">hold 12 · cycle 12</text>
+<text x="678" y="376" class="title" font-size="14">0.72 kg</text>
+<text x="678" y="397" class="muted" font-size="12">body mass</text>
+<rect x="790" y="352" width="132" height="74" rx="8" fill="#120c24"/>
+<text x="804" y="379" class="title" font-size="17" font-weight="700">0/12</text>
+<text x="804" y="402" class="title" font-size="11">hold 0 · cycle 6</text>
+<rect x="935" y="352" width="132" height="74" rx="8" fill="#120c24"/>
+<text x="949" y="379" class="title" font-size="17" font-weight="700">0/12</text>
+<text x="949" y="402" class="title" font-size="11">hold 0 · cycle 2</text>
+<rect x="1080" y="352" width="132" height="74" rx="8" fill="#1e935a"/>
+<text x="1094" y="379" class="title" font-size="17" font-weight="700">12/12</text>
+<text x="1094" y="402" class="title" font-size="11">hold 12 · cycle 12</text>
+<text x="678" y="488" class="title" font-size="14">0.99 kg</text>
+<text x="678" y="509" class="muted" font-size="12">body mass</text>
+<rect x="790" y="464" width="132" height="74" rx="8" fill="#120c24"/>
+<text x="804" y="491" class="title" font-size="17" font-weight="700">0/12</text>
+<text x="804" y="514" class="title" font-size="11">hold 0 · cycle 8</text>
+<rect x="935" y="464" width="132" height="74" rx="8" fill="#120c24"/>
+<text x="949" y="491" class="title" font-size="17" font-weight="700">0/12</text>
+<text x="949" y="514" class="title" font-size="11">hold 0 · cycle 4</text>
+<rect x="1080" y="464" width="132" height="74" rx="8" fill="#1e935a"/>
+<text x="1094" y="491" class="title" font-size="17" font-weight="700">12/12</text>
+<text x="1094" y="514" class="title" font-size="11">hold 12 · cycle 12</text>
+<text x="678" y="600" class="muted" font-size="12">Each cell: strict success / trials; hold and full-cycle safety are shown separately.</text>
+<text x="36" y="646" class="orange" font-size="13">Vision confirmation was not scored. Physical success does not imply fresh visual confirmation.</text>
+</svg>

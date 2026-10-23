@@ -1,0 +1,16 @@
+pair_id,seed,sample_index,controller,target_x_m,target_y_m,category,phase,arm_geom,other_geom,contact_steps,maximum_penetration_m,first_contact_time_s,first_contact_x_m,first_contact_y_m,first_contact_z_m
+38400-002,38400,2,oracle_xy,-0.030933338515365987,0.047693332018277045,nonfinger_payload,COOPERATIVE LIFT,arm0_wrist_link,payload_canister,44,0.000124,6.514,0.038805,0.048631,0.320333
+38400-002,38400,2,oracle_xy,-0.030933338515365987,0.047693332018277045,nonfinger_payload,LOWER TO TABLE,arm0_wrist_link,payload_canister,40,0.00036,10.42,0.062467,0.050518,0.326083
+38400-002,38400,2,oracle_xy,-0.030933338515365987,0.047693332018277045,nonfinger_payload,RELEASE,arm0_wrist_link,payload_canister,275,0.000641,10.5,0.063876,0.050188,0.325206
+38400-002,38400,2,oracle_xy,-0.030933338515365987,0.047693332018277045,nonfinger_payload,WITHDRAW,arm0_wrist_link,payload_canister,62,0.020624,11.25,0.06938,0.049929,0.313799
+38401-013,38401,13,camera_estimate,-0.08960400469616189,0.04324670948202395,arm_environment,CLOSE SIX FINGERS,arm0_right_pad,table,1,1.3e-05,4.594,-0.0383,0.119662,0.179993
+38401-013,38401,13,camera_estimate,-0.08960400469616189,0.04324670948202395,nonfinger_payload,COOPERATIVE LIFT,arm0_wrist_link,payload_canister,29,0.00025,6.484,-0.020762,0.044647,0.316161
+38401-015,38401,15,camera_estimate,-0.0802537384751556,0.06549969374435878,arm_environment,CLOSE SIX FINGERS,arm0_right_pad,table,2,2.1e-05,4.29,-0.027315,0.159391,0.179989
+38401-015,38401,15,camera_estimate,-0.0802537384751556,0.06549969374435878,nonfinger_payload,RELEASE,arm0_wrist_link,payload_canister,92,0.000413,10.824,0.004094,0.064291,0.315452
+38401-015,38401,15,camera_estimate,-0.0802537384751556,0.06549969374435878,nonfinger_payload,WITHDRAW,arm0_wrist_link,payload_canister,88,0.020065,11.262,0.029209,0.064911,0.301764
+38402-002,38402,2,oracle_xy,-0.08573059825924695,-0.08352388525702707,arm_environment,CLOSE SIX FINGERS,arm0_left_pad,table,3,6e-05,4.284,-0.032589,-0.177469,0.17997
+38402-002,38402,2,oracle_xy,-0.08573059825924695,-0.08352388525702707,nonfinger_payload,LOWER TO TABLE,arm2_wrist_link,payload_canister,79,0.000182,10.218,-0.115197,-0.133353,0.333327
+38402-002,38402,2,oracle_xy,-0.08573059825924695,-0.08352388525702707,nonfinger_payload,RELEASE,arm2_wrist_link,payload_canister,114,0.00017,10.512,-0.115289,-0.13307,0.325333
+38402-016,38402,16,camera_estimate,-0.0655027243339949,-0.06224167036497045,nonfinger_payload,LOWER TO TABLE,arm1_wrist_link,payload_canister,47,0.000196,10.406,-0.110749,0.032256,0.311072
+38402-016,38402,16,camera_estimate,-0.0655027243339949,-0.06224167036497045,nonfinger_payload,RELEASE,arm1_wrist_link,payload_canister,223,0.000311,10.5,-0.111374,0.033126,0.305843
+38402-016,38402,16,camera_estimate,-0.0655027243339949,-0.06224167036497045,nonfinger_payload,WITHDRAW,arm1_wrist_link,payload_canister,138,0.0004,11.25,-0.116899,0.044326,0.300461

@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 590" role="img" aria-labelledby="title desc">
+  <title id="title">Three-arm cooperative pick collision layout</title>
+  <desc id="desc">Top view shows three separated arms with visible wrist adapters, palm rails, and finger shanks joining six collidable pads around a free payload. These connection visuals do not add contact surfaces. Side view shows the open grippers' staggered heights and the common equatorial grasp band. Per-arm collision masks enable contact between different arms and the shared environment.</desc>
+  <defs>
+    <style>
+      text { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #182433; }
+      .muted { fill: #5c6b7a; }
+      .small { font-size: 13px; }
+      .label { font-size: 15px; font-weight: 600; }
+      .panel { fill: #ffffff; stroke: #d9e1e8; stroke-width: 1.5; }
+      .arm0 { stroke: #2f8de4; fill: #2f8de4; }
+      .arm1 { stroke: #e35d49; fill: #e35d49; }
+      .arm2 { stroke: #28a779; fill: #28a779; }
+    </style>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="5" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#718096"/>
+    </marker>
+  </defs>
+  <rect width="1040" height="590" rx="22" fill="#f2f5f8"/>
+  <text x="30" y="42" font-size="25" font-weight="700">Physical separation comes from geometry and collision masks</text>
+  <text x="30" y="66" class="small muted">Three collidable 3R arms · visual wrist/palm/finger links · six friction pads · free payload</text>
+
+  <rect class="panel" x="24" y="88" width="596" height="405" rx="16"/>
+  <text x="48" y="120" class="label">TOP VIEW · radial tool spacing</text>
+  <text x="48" y="142" class="small muted">The wrist centers stop outside the payload; long pads reach inward.</text>
+
+  <!-- arm centerlines and joints -->
+  <g stroke-width="13" stroke-linecap="round" opacity="0.82">
+    <path class="arm0" d="M450 290 L402 290 L355 290"/>
+    <path class="arm1" d="M225 420 L250 377 L272.5 337.6"/>
+    <path class="arm2" d="M225 160 L250 203 L272.5 242.4"/>
+  </g>
+  <g fill="#ffffff" stroke-width="4">
+    <circle cx="402" cy="290" r="9" stroke="#2f8de4"/>
+    <circle cx="250" cy="377" r="9" stroke="#e35d49"/>
+    <circle cx="250" cy="203" r="9" stroke="#28a779"/>
+  </g>
+  <g>
+    <circle cx="450" cy="290" r="17" fill="#203248"/>
+    <circle cx="225" cy="420" r="17" fill="#203248"/>
+    <circle cx="225" cy="160" r="17" fill="#203248"/>
+  </g>
+  <!-- Render-only adapters, rails, and shanks connect each wrist to two sliding pads. -->
+  <g fill="none" stroke-width="4" stroke-linecap="round" opacity="0.88">
+    <path class="arm0" d="M355 290 L341 266 M355 290 L341 314"/>
+    <path class="arm1" d="M272.5 337.6 L259 314 M272.5 337.6 L300 337"/>
+    <path class="arm2" d="M272.5 242.4 L259 266 M272.5 242.4 L300 243"/>
+  </g>
+  <circle cx="300" cy="290" r="35" fill="#f39a35" stroke="#b96916" stroke-width="3"/>
+  <circle cx="300" cy="290" r="55" fill="none" stroke="#8999a8" stroke-width="1.5" stroke-dasharray="6 6"/>
+  <text x="267" y="286" font-size="12" font-weight="700" fill="#ffffff">FREE</text>
+  <text x="266" y="302" font-size="12" font-weight="700" fill="#ffffff">PAYLOAD</text>
+  <text x="358" y="264" class="small muted">84 mm wrist radius</text>
+  <line x1="349" y1="270" x2="333" y2="279" stroke="#718096" stroke-width="1.4" marker-end="url(#arrow)"/>
+  <!-- six inward-reaching pads, colored by their parent arm -->
+  <g stroke="#ffffff" stroke-width="2">
+    <rect class="arm0" x="334" y="261" width="14" height="10" rx="4" transform="rotate(30 341 266)"/>
+    <rect class="arm0" x="334" y="309" width="14" height="10" rx="4" transform="rotate(-30 341 314)"/>
+    <rect class="arm2" x="293" y="238" width="14" height="10" rx="4" transform="rotate(90 300 243)"/>
+    <rect class="arm2" x="252" y="261" width="14" height="10" rx="4" transform="rotate(150 259 266)"/>
+    <rect class="arm1" x="252" y="309" width="14" height="10" rx="4" transform="rotate(210 259 314)"/>
+    <rect class="arm1" x="293" y="332" width="14" height="10" rx="4" transform="rotate(270 300 337)"/>
+  </g>
+  <g class="small" font-weight="600">
+    <text x="472" y="294" fill="#2f8de4">Arm 0 · bit 1</text>
+    <text x="105" y="443" fill="#e35d49">Arm 1 · bit 2</text>
+    <text x="105" y="166" fill="#28a779">Arm 2 · bit 4</text>
+  </g>
+  <text x="48" y="475" class="small muted">Pads occupy six distinct azimuths; height staggering protects the open approach.</text>
+
+  <rect class="panel" x="638" y="88" width="378" height="405" rx="16"/>
+  <text x="662" y="120" class="label">SIDE VIEW · clear approach then grasp</text>
+  <text x="662" y="142" class="small muted">Open pads stagger by 45 mm, then align.</text>
+  <line x1="675" y1="250" x2="970" y2="250" stroke="#788999" stroke-width="4"/>
+  <text x="675" y="274" class="small muted">table top z = 0.18 m</text>
+  <rect x="788" y="154" width="76" height="96" rx="22" fill="#f39a35" stroke="#b96916" stroke-width="3"/>
+  <rect x="808" y="145" width="36" height="10" rx="4" fill="#d8872f" stroke="#b96916"/>
+  <text x="910" y="188" class="small" font-weight="700">free payload</text>
+  <text x="910" y="208" class="small muted">120 mm tall</text>
+  <g opacity="0.58" stroke="#ffffff" stroke-width="2">
+    <rect class="arm0" x="674" y="231" width="42" height="14" rx="5"/>
+    <rect class="arm1" x="674" y="195" width="42" height="14" rx="5"/>
+    <rect class="arm2" x="674" y="159" width="42" height="14" rx="5"/>
+  </g>
+  <text x="674" y="153" class="small muted">open</text>
+  <line x1="719" y1="166" x2="757" y2="195" stroke="#718096" stroke-width="1.4" marker-end="url(#arrow)"/>
+  <line x1="719" y1="202" x2="757" y2="202" stroke="#718096" stroke-width="1.4" marker-end="url(#arrow)"/>
+  <line x1="719" y1="238" x2="757" y2="209" stroke="#718096" stroke-width="1.4" marker-end="url(#arrow)"/>
+  <g stroke="#ffffff" stroke-width="1.5">
+    <rect class="arm0" x="753" y="195" width="10" height="14" rx="4"/>
+    <rect class="arm1" x="766" y="195" width="10" height="14" rx="4"/>
+    <rect class="arm2" x="779" y="195" width="10" height="14" rx="4"/>
+    <rect class="arm0" x="863" y="195" width="10" height="14" rx="4"/>
+    <rect class="arm1" x="876" y="195" width="10" height="14" rx="4"/>
+    <rect class="arm2" x="889" y="195" width="10" height="14" rx="4"/>
+  </g>
+  <text x="765" y="298" class="small muted">closed · six pads at payload equator</text>
+  <text x="662" y="324" class="small muted">Wrist clearance: 9 mm nominal · pads contact the sidewall</text>
+
+  <rect x="24" y="512" width="992" height="54" rx="12" fill="#e5ebf0"/>
+  <text x="46" y="536" class="label">Collision masks</text>
+  <text x="180" y="536" class="small">Each arm bit excludes its own arm, but accepts both other arms plus payload, table, and ground.</text>
+  <text x="46" y="556" class="small muted">No inter-arm contacts during grasp/lift; release pad penetration stayed below 0.73 mm. No arm/table, arm/ground, or non-pad/payload contacts.</text>
+</svg>
